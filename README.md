@@ -1,73 +1,116 @@
-# React + TypeScript + Vite
+# 🖥️ Priora — Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface desktop do sistema **Probabilistic Investigative Prioritization System (Priora)**.
 
-Currently, two official plugins are available:
+Este aplicativo é responsável pela interação com o usuário, permitindo a visualização e análise das evidências e do ranking de suspeitos.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## ⚡ Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run start
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🚀 Tecnologias
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+* Electron
+* React
+* Vite
+* TailwindCSS
+
+---
+
+## 📁 Estrutura do Projeto
+
 ```
+src/
+├── components/   # Componentes reutilizáveis
+├── pages/        # Páginas da aplicação
+├── services/     # Comunicação com API
+├── hooks/        # Hooks personalizados
+└── styles/       # Estilos globais
+
+electron/
+└── main.js       # Processo principal do Electron
+```
+
+---
+
+## ⚙️ Setup do Projeto
+
+### 🔹 1. Clonar repositório
+
+```bash
+git clone <repo-url>
+cd investigative-system-client
+```
+
+---
+
+### 🔹 2. Instalar dependências
+
+```bash
+npm install
+```
+
+---
+
+### 🔹 3. Rodar aplicação
+
+```bash
+npm run start
+```
+
+---
+
+## 🧪 Scripts disponíveis
+
+```bash
+npm run dev       # Inicia o Vite
+npm run electron  # Inicia o Electron
+npm run start     # Inicia ambos (recomendado)
+npm run build     # Build de produção
+```
+
+---
+
+## 🔗 Integração com Backend
+
+O frontend se comunica com o backend via API HTTP.
+
+Por padrão, espera-se que o backend esteja rodando em:
+
+```
+http://localhost:8000
+```
+
+---
+
+## ⚠️ Importante
+
+* Certifique-se de que o backend está rodando antes de iniciar o client
+* O Electron abrirá automaticamente uma janela com a aplicação
+* Evite modificar diretamente a pasta `electron/` sem necessidade
+
+---
+
+## 🎯 Funcionalidades
+
+* Visualização do ranking de suspeitos
+* Inserção e acompanhamento de evidências
+* Exploração de relações investigativas
+* Interface otimizada para análise de dados
+
+---
+
+## 📌 Objetivo
+
+O client tem como objetivo fornecer uma interface clara, organizada e eficiente para:
+
+* Apoiar a análise investigativa
+* Facilitar a interpretação dos dados
+* Melhorar a tomada de decisão baseada em evidências
