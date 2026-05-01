@@ -40,7 +40,7 @@ export default function CasesSection() {
                 </div>
 
                 {/* Grid de cards */}
-                <div className=" grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                <div className=" grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                     
                     <CaseCard
                         title="Caso Alpha"

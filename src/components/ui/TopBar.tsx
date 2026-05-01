@@ -1,9 +1,10 @@
-import { FiBell, FiUser } from "react-icons/fi";
+import { FiUser } from "react-icons/fi";
 import { MdOutlineSupportAgent } from "react-icons/md";
+import NotificationButton from "./NotificationButton";
 
 export default function TopBar() {
   return (
-    <header className="w-full h-16 bg-background flex items-center justify-between px-4 md:px-8">
+    <header className="w-full h-16 flex items-center justify-between px-4 md:px-8">
       
         {/* LEFT */}
         <div className="flex items-center gap-3">
@@ -20,10 +21,7 @@ export default function TopBar() {
             </button>
 
             {/* Notificação */}
-            <button className="relative p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
-                <FiBell size={20} />
-                <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
-            </button>
+            <NotificationButton />
 
             {/* Perfil */}
             <button className="p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
