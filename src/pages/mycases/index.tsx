@@ -1,15 +1,15 @@
-import TopBar from "../../components/ui/TopBar";
-import CasesSection from "../../components/mycases/Casesboard";
-import PrimaryButton from "../../components/ui/PrimaryButton";
+import TopBar from "@/components/ui/TopBar";
+import CasesSection from "@/components/mycases/Casesboard";
+import PrimaryButton from "@/components/ui/PrimaryButton";
 import { useState } from "react";
-import CreateCaseModal from "../../components/mycases/CreateCaseModal";
-import EmptyState from "../../components/mycases/EmptyState";
+import CreateCaseModal from "@/components/mycases/CreateCaseModal";
+// import EmptyState from "@/components/mycases/EmptyState";
 
 export default function Home() {
   const [openModal, setOpenModal] = useState(false);
 
-  const cases: any[] = []; // mock ainda sem backend
-  const hasCases = cases.length > 0;
+  // const cases: any[] = [];  mock ainda sem backend
+  // const hasCases = cases.length > 0;
 
   return (
     <div className="bg-[#1D1D1D] min-h-screen text-white flex flex-col">
