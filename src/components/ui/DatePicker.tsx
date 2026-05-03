@@ -107,8 +107,8 @@ export default function DatePicker({
           {selected ? toDisplay(selected) : placeholder}
         </span>
 
-        <div className="w-7 h-7 flex items-center justify-center bg-[#3D3D3D] rounded-full">
-            <Calendar size={14} color="#939393" />
+        <div className="w-6 h-6 flex items-center justify-center bg-[#3D3D3D] rounded-full">
+            <Calendar size={12} color="#939393" />
         </div>
       </button>
 
