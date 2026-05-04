@@ -12,7 +12,8 @@ export default function NotificationButton() {
         onClick={() => setOpen(!open)}
         className="relative p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]"
       >
-        <FiBell size={20} />
+        <FiBell size={16} className="md:hidden" />
+        <FiBell size={20} className="hidden md:block" />
 
         <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
       </button>

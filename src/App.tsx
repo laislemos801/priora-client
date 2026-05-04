@@ -10,9 +10,9 @@ import UpdatedPassword from './pages/recover/updated-password'
 
 import Home from './pages/mycases'
 import CasePanel from './pages/case'
-import Ranking from './pages/case'
-import Evidence from './pages/case'
-import Analysis from './pages/case'
+import Ranking from './pages/case/ranking'
+import Evidence from './pages/case/evidence'
+import Analysis from './pages/case/analysis'
 
 function App() {
   return (
@@ -31,7 +31,7 @@ function App() {
       {/* Rotas COM sidebar */}
       <Route element={<AppLayout />}>
         <Route path="/case/:id" element={<CasePanel />}>
-          <Route index element={<CasePanel />} />
+          <Route index element={<div className="text-white p-4">Overview</div>} />
           <Route path="ranking" element={<Ranking />} />
           <Route path="evidence" element={<Evidence />} />
           <Route path="analysis" element={<Analysis />} />

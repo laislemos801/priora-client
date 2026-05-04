@@ -143,3 +143,26 @@ body {
     @apply font-sans;
   }
 }
+
+/* largura da barra */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  padding: 2px;
+}
+
+/* trilho (fundo) */
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+/* thumb (parte que você arrasta) */
+::-webkit-scrollbar-thumb {
+  background: #139C73;
+  border-radius: 8px;
+}
+
+/* hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #0f7a5a;
+}

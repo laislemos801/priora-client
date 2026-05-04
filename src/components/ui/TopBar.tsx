@@ -4,7 +4,7 @@ import NotificationButton from "./NotificationButton";
 
 export default function TopBar() {
   return (
-    <header className="w-full h-16 flex items-center justify-between px-4 md:px-8">
+    <header className="w-full h-16 flex items-center bg-[#242424] justify-between px-4 md:px-8">
       
         {/* LEFT */}
         <div className="flex items-center gap-3">
