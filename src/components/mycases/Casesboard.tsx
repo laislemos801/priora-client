@@ -1,6 +1,6 @@
 import { FiSearch } from "react-icons/fi";
 import { MdFilterList } from "react-icons/md";
-import CaseCard from "./Casescard";
+import CaseCard from "./CasesCard";
 import { TbHelp } from "react-icons/tb";
 import { FaRegFolderOpen } from "react-icons/fa";
 import { MdOutlineBrokenImage } from "react-icons/md";
