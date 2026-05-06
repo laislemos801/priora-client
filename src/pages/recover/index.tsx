@@ -3,12 +3,17 @@ import { MdOutlineMail } from "react-icons/md";
 export default function Recover() {
   return (
     <div
-      className="flex w-full h-screen flex-col items-center px-10 pt-25 justify-start gap-10"
-      style={{
-        backgroundImage: "url(src/assets/backgound.png)",
-        backgroundSize: "100% 100%",
-      }}
+      className="flex w-full h-screen bg-no-repeat bg-center bg-cover justify-between items-center "
+      style={{ backgroundImage: "url(src/assets/backgroundDesktop.png)" }}
     >
+   <div className="w-[60%] ml-4 hidden lg:block  h-[95%] transition-all">
+        <img
+          src="src\assets\er.png"
+          alt="imagem-decorativa"
+          className=" w-full h-full hidden lg:block "
+        />
+      </div>
+      <div className="flex w-full lg:w-[25%] h-full flex-col items-center px-10 justify-center gap-10 lg:mr-20">
       <div className="">
         <img src="src\assets\logoHorizon.png" alt="logo" />
       </div>
@@ -36,6 +41,7 @@ export default function Recover() {
           RECUPERAR SENHA
         </button>
       </div>
+    </div>
     </div>
   );
 }

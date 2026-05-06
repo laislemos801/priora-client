@@ -9,13 +9,18 @@ export default function Register() {
     useState(false);
 
   return (
-    <div
-      className="flex w-full h-screen flex-col items-center px-10 pt-13 justify-start gap-10"
-      style={{
-        backgroundImage: "url(src/assets/backgound.png)",
-        backgroundSize: "100% 100%",
-      }}
+     <div
+      className="flex w-full h-screen bg-no-repeat bg-center bg-cover justify-between items-center "
+      style={{ backgroundImage: "url(src/assets/backgroundDesktop.png)" }}
     >
+          <div className="w-[60%] ml-4 lg:block hidden h-[95%] transition-all">
+        <img
+          src="src\assets\er.png"
+          alt="imagem-decorativa"
+          className=" w-full h-full"
+        />
+      </div>
+     <div className="flex w-full lg:w-[25%] h-full flex-col items-center px-10 lg:px-0 pt-13 lg:pt-0 justify-start lg:justify-center gap-10 lg:mr-20">
       <div className="">
         <img src="src\assets\logoHorizon.png" alt="logo" />
       </div>
@@ -108,6 +113,7 @@ export default function Register() {
           </p>
         </div>
       </div>
+    </div>
     </div>
   );
 }
