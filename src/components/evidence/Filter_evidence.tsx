@@ -53,7 +53,9 @@ export default function FilterPanelEvidence({ onClose }: { onClose: () => void }
             {/* HEADER */}
             <div className="flex justify-between items-center px-4 py-3 border-b border-[#3a3a3a]">
                 <span className="text-sm text-white font-medium">Filtrar</span>
-                <button onClick={onClose} className="text-[#888] hover:text-white">✕</button>
+                 <button onClick={onClose} className="text-[#ccc] transition-colors text-base hover:bg-[#ccc]/10 rounded-full w-8 h-8 flex items-center justify-center">
+                    ✕
+                </button>
             </div>
 
             {/* CONTENT */}
