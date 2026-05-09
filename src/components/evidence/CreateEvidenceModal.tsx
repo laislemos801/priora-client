@@ -79,10 +79,7 @@ export default function CreateEvidenceModal({ onClose }: { onClose: () => void }
             Nova Evidência
           </h2>
 
-          <button
-            onClick={onClose}
-            className="text-[#666] hover:text-[#ccc]"
-          >
+          <button onClick={onClose} className="text-[#ccc] transition-colors text-base hover:bg-[#ccc]/10 rounded-full w-8 h-8 flex items-center justify-center">
             ✕
           </button>
         </div>

@@ -4,6 +4,7 @@ import CustomDropdown from "../ui/CustomDropdown";
 import DatePicker from "../ui/DatePicker";
 import PrimaryButton from "../ui/PrimaryButton";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { RiAlertFill } from "react-icons/ri";
 
 // TODO: substituir pelo userId real vindo do contexto de autenticação
 const MOCK_USER_ID = "da7be1ad-6a1f-4c56-a91c-0d24e355391b";
@@ -18,6 +19,7 @@ const PRIORIDADE_OPTIONS = [
   { value: "baixa", label: "Baixa", icon: <ArrowDown size={14} color="#5b9cf6" /> },
   { value: "media", label: "Média", icon: <Minus size={14} color="#e0a030" /> },
   { value: "alta", label: "Alta", icon: <ArrowUp size={14} color="#e05555" /> },
+  { value: "critica", label: "Crítica", icon: <RiAlertFill size={14} color="#ff3b3b" /> },
 ];
 
 const ESTADO_OPTIONS = [
@@ -42,6 +44,7 @@ const PRIORIDADE_MAP: Record<string, string> = {
   baixa: "Baixa",
   media: "Média",
   alta: "Alta",
+  critica: "Crítica",
 };
 
 const ESTADO_MAP: Record<string, string> = {
@@ -72,7 +75,7 @@ const LABEL =
   "text-[11px] font-medium text-[#888] uppercase tracking-widest block mb-1.5";
 
 const INPUT =
-  "w-full bg-[#282828] border border-[#434343] rounded-md px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6] focus:border-[#434343] transition-colors";
+  "w-full bg-[#282828] border border-[#434343] rounded-md px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6] hover:border-[#606060] focus:border-[#606060] transition-colors";
 
 const ERROR_CLASS = "text-[11px] text-red-400 mt-1";
 
@@ -159,7 +162,7 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
         {/* HEADER */}
         <div className="flex justify-between items-center px-5 py-4 border-b border-[#2e2e2e]">
           <h2 className="text-[15px] font-medium text-[#e8e8e8]">Novo Caso</h2>
-          <button onClick={onClose} className="text-[#666] hover:text-[#ccc] text-base">
+          <button onClick={onClose} className="text-[#ccc] transition-colors text-base hover:bg-[#ccc]/10 rounded-full w-8 h-8 flex items-center justify-center">
             ✕
           </button>
         </div>
