@@ -269,7 +269,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       {/* ── Footer ── */}
       <footer className="flex justify-center px-2 pt-2 pb-[14px] border-t border-[#242426] flex-shrink-0">
         <button
-          onClick={onLogout}
+           onClick={() => onLogout?.()}
           title="Sair"
           className={[
             "flex items-center justify-center gap-2 rounded-[10px]",

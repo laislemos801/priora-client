@@ -1,11 +1,21 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/ui/sidebar";
 import TopBar_cases from "@/components/ui/TopBar_cases";
 
 export default function AppLayout() {
+
+   const navigate = useNavigate();
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    navigate("/login");
+  }
+
   return (
     <div className="flex h-screen">
-      <Sidebar />
+        <Sidebar onLogout={handleLogout} />
 
       <div className="flex flex-col flex-1">
         <TopBar_cases />
