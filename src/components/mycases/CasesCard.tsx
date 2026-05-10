@@ -1,3 +1,5 @@
+
+import { useNavigate } from "react-router-dom";
 import { MdOutlineGroup } from "react-icons/md";
 import { FaIdCardClip } from "react-icons/fa6";
 import { PiMapPinAreaBold } from "react-icons/pi";
@@ -10,6 +12,7 @@ type CasePriority = "Baixa" | "Média" | "Alta" | "Crítica";
 
 type CaseCardProps = {
   title: string;
+  caseId: string;
   description: string;
   status: CaseStatus;
   detectiveName: string;
@@ -51,6 +54,7 @@ const PRIORITY_CONFIG: Record<
 };
 
 export default function CaseCard({
+  caseId,
   title,
   description,
   status,
@@ -66,7 +70,7 @@ export default function CaseCard({
   uncertainty,
 }: CaseCardProps) {
   const p = PRIORITY_CONFIG[priority];
-
+  const navigate = useNavigate();
   return (
     <div className="bg-[#2A2A2A] rounded-xl p-4 border border-[#3a3a3a] flex flex-col gap-3 w-full max-w-md">
 
@@ -132,7 +136,7 @@ export default function CaseCard({
         <span className="bg-[#3a3a3a] px-4 md:px-6 lg:px-6 py-1.5 md:py-2 rounded-md text-xs md:text-sm lg:text-base font-medium">
           Incerteza: {uncertainty}%
         </span>
-        <button className="border border-[#525252] text-white px-3 md:px-6 lg:px-6 py-1.5 md:py-2 rounded-md text-xs md:text-sm hover:bg-green-500/10 hover:text-green hover:border-green-500 transition">
+        <button   onClick={() => navigate(`/case/${caseId}`)} className="border border-[#525252] text-white px-3 md:px-6 lg:px-6 py-1.5 md:py-2 rounded-md text-xs md:text-sm hover:bg-green-500/10 hover:text-green hover:border-green-500 transition">
           Ver Detalhes
         </button>
       </div>

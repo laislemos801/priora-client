@@ -13,6 +13,7 @@ const USER_ID = "da7be1ad-6a1f-4c56-a91c-0d24e355391b";
 
 type CaseFromAPI = {
   id: string;
+  caseId:string;
   nome: string;
   descricao: string;
   status: "Ativo" | "Arquivado" | "Concluído";
@@ -173,6 +174,7 @@ export default function CasesSection() {
             {filtered.map((caso) => (
               <CaseCard
                 key={caso.id}
+                caseId= {caso.id}
                 title={caso.nome}
                 description={caso.descricao}
                 status={caso.status}
