@@ -1,11 +1,22 @@
 import { FiUser, FiChevronLeft } from "react-icons/fi";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import NotificationButton from "./NotificationButton";
+import { useEffect, useState } from "react";
 
 export default function TopBar() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const [caseName, setCaseName] = useState<string | undefined>(undefined);
+
+  
+  useEffect(() => {
+    if (!id) return;
+    fetch(`http://localhost:8000/cases/${id}`)
+      .then(res => res.json())
+      .then(data => setCaseName(data.nome))
+      .catch(() => setCaseName(undefined));
+  }, [id]);
 
   // pega a aba atual pela URL
   const currentPath = location.pathname.split("/")[3];
@@ -25,6 +36,7 @@ export default function TopBar() {
 
   const label = getCurrentLabel(); 
 
+  
   return (
     <header className="w-full h-16 flex items-center bg-[#242424] justify-between px-4 md:px-8">
 
@@ -49,11 +61,12 @@ export default function TopBar() {
 
             <span>/</span>
 
-            <button
-                onClick={() => navigate(`/case/${id}`)}
-                className="hover:underline">
-                Caso {id}
-            </button>
+              <button onClick={() => navigate(`/case/${id}`)}>
+                  {caseName === undefined
+                    ? <span className="w-24 h-3 bg-[#363636] rounded animate-pulse inline-block" />
+                    : caseName ?? `Caso -`
+                  }
+              </button>
 
             {label && (
                 <>
