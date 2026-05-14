@@ -1,4 +1,4 @@
-import { Search, Pencil, Trash2 } from "lucide-react";
+import { Search, Edit, Trash2 } from "lucide-react";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import EvidenciasTable from "@/components/evidence/table_evidence";
 import ActionButton from "@/components/ui/ActionButton";
@@ -53,7 +53,7 @@ export default function Evidence() {
                 )}
               </div>
 
-              <ActionButton icon={<Pencil size={14} />}>
+              <ActionButton icon={<Edit size={14} />}>
                 Editar
               </ActionButton>
 
