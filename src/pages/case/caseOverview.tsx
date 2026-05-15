@@ -155,7 +155,17 @@ export default function CaseOverview() {
                 contacts={contacts}
                 onRefresh={fetchContacts}
                 />
-                <MapCard />
+                <MapCard
+                  endereco={[
+                    caseData?.enderecoLogradouro,
+                    caseData?.enderecoNumero,
+                    caseData?.enderecoBairro,
+                    caseData?.enderecoCidade,
+                    caseData?.enderecoEstado,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                />
               </div>
 
               <div className="xl:hidden">
