@@ -169,12 +169,12 @@ export default function CaseOverview() {
               </div>
 
               <div className="xl:hidden">
-                <AccessCard />
+                {id && <AccessCard casoId={id} />}
               </div>
             </section>
 
             <aside className="hidden space-y-4 xl:block">
-              <AccessCard />
+              {id && <AccessCard casoId={id} />}
               <ProfileCard />
               <UncertaintyCard />
             </aside>
