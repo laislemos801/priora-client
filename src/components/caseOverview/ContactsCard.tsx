@@ -153,13 +153,13 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
           <SecondaryButton
             onClick={openCreateModal}
           >
-            Adicionar Contato
+            Adicionar
           </SecondaryButton>
         }
       >
         <div className="max-h-[195px] space-y-3 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#139C73] scrollbar-track-transparent">
           {contacts.length === 0 && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-white/65">
               Nenhum contato cadastrado.
             </p>
           )}
@@ -219,27 +219,34 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-xl border border-[#4a4a4a] bg-[#242424] p-5 shadow-xl">
-            <div className="mb-5 flex items-center justify-between">
+          <div className="w-full max-w-md rounded-xl border border-[#4a4a4a] bg-[#242424] shadow-xl overflow-hidden">
+            
+            <div className="flex items-center justify-between px-5 py-4">
               <h2 className="text-lg font-semibold text-white/76">
-                {mode === "create" ? "Adicionar Contato" : "Editar Contato"}
+                {mode === "create"
+                  ? "Adicionar Contato"
+                  : "Editar Contato"}
               </h2>
 
               <button
                 onClick={closeModal}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-500/10 hover:text-slate-200"
+                className="rounded-full p-1 text-white/65 hover:bg-slate-500/10 hover:text-slate-200"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="px-5">
+              <div className="border-t border-[#3a3a3a]" />
+            </div>
+
+            <div className="space-y-4 p-5">
               <input
                 value={nome}
                 maxLength={MAX_NOME}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Nome"
-                className="w-full rounded-lg border border-[#434343] bg-[#282828] px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6] focus:border-[#434343]"
+                className="w-full rounded-lg border border-[#434343] bg-[#282828] px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6]"
               />
 
               <input
@@ -247,23 +254,37 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
                 maxLength={MAX_CARGO}
                 onChange={(e) => setCargo(e.target.value)}
                 placeholder="Cargo"
-                className="w-full rounded-lg border border-[#434343] bg-[#282828] px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6] focus:border-[#434343]"
+                className="w-full rounded-lg border border-[#434343] bg-[#282828] px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6]"
               />
 
               <input
                 value={celular}
-                onChange={(e) => setCelular(formatPhone(e.target.value))}
+                onChange={(e) =>
+                  setCelular(formatPhone(e.target.value))
+                }
                 placeholder="Telefone Celular"
-                className="w-full rounded-lg border border-[#434343] bg-[#282828] px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6] focus:border-[#434343]"
+                className="w-full rounded-lg border border-[#434343] bg-[#282828] px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6]"
               />
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
-              <PrimaryButton
+            <div className="px-5">
+              <div className="border-t border-[#3a3a3a]" />
+            </div>
+
+            <div className="flex gap-3 p-5">
+              <button
+                onClick={closeModal}
+                className="w-full rounded-md bg-[#136D52]/26 px-4 py-2 text-sm text-[#00a87e] transition hover:bg-[#136D52]/40"
+              >
+                Cancelar
+              </button>
+
+              <button
                 onClick={handleSubmit}
+                className="w-full rounded-md bg-[#139C73] px-4 py-2 text-sm text-white transition hover:bg-[#139C73]/80"
               >
                 Salvar
-              </PrimaryButton>
+              </button>
             </div>
           </div>
         </div>

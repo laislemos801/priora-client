@@ -3,7 +3,6 @@ import { Edit, Trash2, X } from "lucide-react";
 
 import Panel from "./Panel";
 import SecondaryButton from "../ui/SecondaryButton";
-import PrimaryButton from "../ui/PrimaryButton";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -16,6 +15,7 @@ type AccessUser = {
   };
   papel: "Editor" | "Leitor";
   status: "Ativo" | "Pendente";
+  tipo: "Responsavel" | "Colaborador";
 };
 
 type Props = {
@@ -29,6 +29,7 @@ export default function AccessCard({ casoId }: Props) {
 
   const [email, setEmail] = useState("");
   const [papel, setPapel] = useState<"Editor" | "Leitor">("Leitor");
+  const [roleOpen, setRoleOpen] = useState(false);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -38,6 +39,7 @@ export default function AccessCard({ casoId }: Props) {
 
   const [emailInput, setEmailInput] = useState("");
   const [emails, setEmails] = useState<string[]>([]);
+  const [editRoleOpen, setEditRoleOpen] = useState(false);
 
   async function fetchUsers() {
     try {
@@ -146,7 +148,7 @@ export default function AccessCard({ casoId }: Props) {
 
     try {
       for (const email of emails) {
-        await fetch(`${API_URL}/access/invite`, {
+        const response = await fetch(`${API_URL}/access/invite`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -158,6 +160,10 @@ export default function AccessCard({ casoId }: Props) {
             userId: currentUser.id,
           }),
         });
+
+        if (!response.ok) {
+          throw new Error(`Usuário não encontrado ou convite inválido: ${email}`);
+        }
       }
 
       setEmails([]);
@@ -184,7 +190,16 @@ export default function AccessCard({ casoId }: Props) {
           </SecondaryButton>
         }
       >
-        <div className="h-[248px] max-h-[300px] space-y-4 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#139C73] scrollbar-track-transparent">
+        <div className="
+          max-h-[300px]
+          xl:h-[248px]
+          space-y-4
+          overflow-y-auto
+          pr-1
+          scrollbar-thin
+          scrollbar-thumb-[#139C73]
+          scrollbar-track-transparent
+        ">
           {users.length === 0 && (
             <p className="text-sm text-white/65">
               Nenhum usuário com acesso.
@@ -214,7 +229,11 @@ export default function AccessCard({ casoId }: Props) {
                 </div>
               </div>
 
-              {user.status === "Ativo" ? (
+              {user.tipo === "Responsavel" ? (
+                <span className="rounded-full bg-[#139C73]/15 px-3 py-1.5 text-[10px] text-[#139C73]">
+                  Responsável
+                </span>
+              ) : user.status === "Ativo" ? (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEditModal(user)}
@@ -231,7 +250,7 @@ export default function AccessCard({ casoId }: Props) {
                   </button>
                 </div>
               ) : (
-                <span className="rounded-full bg-[#282828] px-3 py-2 text-[10px] text-white">
+                <span className="rounded-full bg-[#282828] px-3 py-1.5 text-[10px] text-white">
                   Pendente
                 </span>
               )}
@@ -242,25 +261,26 @@ export default function AccessCard({ casoId }: Props) {
 
       {modalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-md rounded-xl border border-[#4a4a4a] bg-[#242424] p-5 shadow-xl">
-            <div className="mb-5 flex items-center justify-between">
+          <div className="w-full max-w-lg rounded-xl border border-[#4a4a4a] bg-[#242424] p-5 shadow-xl">
+            <div className="mb-2 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white/80">
-                Convidar Usuário
+                Adicionar Colaborador
               </h2>
 
               <button
                 onClick={() => setModalOpen(false)}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-500/10 hover:text-slate-200"
+                className="rounded-full p-1 text-white/65 hover:bg-slate-500/10 hover:text-slate-200"
               >
                 <X size={18} />
               </button>
             </div>
+            <div className="flex justify-between pt-4 gap-1 border-t border-[#3a3a3a]"></div>
             <div className="space-y-4">
-              <label className="text-sm text-white/70">
+              <label className="text-sm text-white/76 font-normal px-1">
                 Email do colaborador
               </label>
 
-              <div className="flex gap-4">
+              <div className="flex gap-2 mt-2">
                 <div className="min-h-[96px] flex-1 rounded-lg border border-[#434343] bg-[#282828] p-3">
                   <div className="flex flex-wrap gap-2">
                     {emails.map((email) => (
@@ -288,7 +308,6 @@ export default function AccessCard({ casoId }: Props) {
                           addEmail();
                         }
                       }}
-                      onBlur={addEmail}
                       placeholder="Digite o email e pressione Enter"
                       className="min-w-[220px] flex-1 bg-transparent text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6]"
                     />
@@ -296,48 +315,72 @@ export default function AccessCard({ casoId }: Props) {
                 </div>
 
                 <div className="relative w-[155px]">
-                  <select
-                    value={papel}
-                    onChange={(e) =>
-                      setPapel(e.target.value as "Editor" | "Leitor")
-                    }
-                    className="h-[48px] w-full appearance-none rounded-full border border-[#434343] bg-[#282828] px-5 pr-10 text-sm text-white outline-none"
-                  >
-                    <option value="Leitor">Leitor</option>
-                    <option value="Editor">Editor</option>
-                  </select>
+                  <div className="w-[155px]">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setRoleOpen((prev) => !prev)}
+                        className="flex h-[40px] w-full items-center justify-between rounded-full border border-[#434343] bg-[#282828] px-5 text-sm text-white outline-none"
+                      >
+                        <span>{papel}</span>
 
-                  <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/65">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 9L12 15L18 9"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path
+                            d="M6 9L12 15L18 9"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      {roleOpen && (
+                        <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-[#434343] bg-[#242424] shadow-xl">
+                          {["Leitor", "Editor"].map((role) => (
+                            <button
+                              key={role}
+                              type="button"
+                              onClick={() => {
+                                setPapel(role as "Editor" | "Leitor");
+                                setRoleOpen(false);
+                              }}
+                              className={`w-full px-4 py-2 text-left text-sm transition-colors ${
+                                papel === role
+                                  ? "bg-[#139C73]/15 text-[#139C73]"
+                                  : "text-white hover:bg-[#303030]"
+                              }`}
+                            >
+                              {role}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 flex gap-7">
-              <SecondaryButton
+            <div className="flex justify-between pt-3 gap-3 border-t border-[#3a3a3a] mt-4">
+              <button
                 onClick={() => {
                   setModalOpen(false);
                   setEmails([]);
                   setEmailInput("");
+                  setRoleOpen(false);
                 }}
+                className="text-[#00a87e] w-full bg-[#136D52]/26 text-sm px-4 py-2 rounded-md hover:bg-[#136D52]/40 transition"
               >
                 Cancelar
-              </SecondaryButton>
+              </button>
 
-              <PrimaryButton
+              <button
                 onClick={handleInvite}
+                className="bg-[#139C73] w-full text-white hover:bg-[#139C73]/80 transition text-sm px-4 py-2 rounded-md"
               >
                 Enviar
-              </PrimaryButton>
+              </button>
             </div>
           </div>
         </div>
@@ -346,32 +389,89 @@ export default function AccessCard({ casoId }: Props) {
       {editModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-md rounded-xl border border-[#4a4a4a] bg-[#242424] p-5 shadow-xl">
-            <div className="mb-5 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white/80">
                 Editar Acesso
               </h2>
 
               <button
                 onClick={() => setEditModalOpen(false)}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-500/10 hover:text-slate-200"
+                className="rounded-full p-1 text-white/65 hover:bg-slate-500/10 hover:text-slate-200"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <select
-              value={editPapel}
-              onChange={(e) => setEditPapel(e.target.value as "Editor" | "Leitor")}
-              className="w-full rounded-lg border border-[#434343] bg-[#282828] px-3 py-2 text-sm text-[#A6A6A6] outline-none"
-            >
-              <option value="Leitor">Leitor</option>
-              <option value="Editor">Editor</option>
-            </select>
+            <div className="px-0">
+              <div className="border-t border-[#3a3a3a]" />
+            </div>
 
-            <div className="mt-6 flex justify-end">
-              <PrimaryButton onClick={handleUpdateAccess}>
+            <div className="space-y-4 py-5">
+              <label className="block px-1 text-sm font-normal text-white/76">
+                Papel do usuário
+              </label>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setEditRoleOpen((prev) => !prev)}
+                  className="flex h-[42px] w-full items-center justify-between rounded-lg border border-[#434343] bg-[#282828] px-3 text-sm text-[#A6A6A6]"
+                >
+                  <span>{editPapel}</span>
+
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M6 9L12 15L18 9"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                {editRoleOpen && (
+                  <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-[#434343] bg-[#242424] shadow-xl">
+                    {["Leitor", "Editor"].map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => {
+                          setEditPapel(role as "Editor" | "Leitor");
+                          setEditRoleOpen(false);
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm transition-colors ${
+                          editPapel === role
+                            ? "bg-[#139C73]/15 text-[#139C73]"
+                            : "text-white hover:bg-[#303030]"
+                        }`}
+                      >
+                        {role}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="px-0">
+              <div className="border-t border-[#3a3a3a]" />
+            </div>
+
+            <div className="mt-4 flex justify-between gap-3">
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="w-full rounded-md bg-[#136D52]/26 px-4 py-2 text-sm text-[#00a87e] transition hover:bg-[#136D52]/40"
+              >
+                Cancelar
+              </button>
+
+              <button
+                onClick={handleUpdateAccess}
+                className="w-full rounded-md bg-[#139C73] px-4 py-2 text-sm text-white transition hover:bg-[#139C73]/80"
+              >
                 Salvar
-              </PrimaryButton>
+              </button>
             </div>
           </div>
         </div>

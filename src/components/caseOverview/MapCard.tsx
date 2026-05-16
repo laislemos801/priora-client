@@ -70,7 +70,7 @@ export default function MapCard({ endereco }: MapCardProps) {
           {coords ? (
             <MapView coords={coords} endereco={endereco} />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-slate-400">
+            <div className="flex h-full items-center justify-center text-sm text-white/65">
               Localização não encontrada
             </div>
           )}
