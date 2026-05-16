@@ -4,9 +4,10 @@ import InfoRow from "./InfoRow";
 
 type InfoCardProps = {
   caseData: any;
+  onEdit: () => void;
 };
 
-export default function InfoCard({ caseData }: InfoCardProps) {
+export default function InfoCard({ caseData, onEdit }: InfoCardProps) {
   const local = [
     caseData?.enderecoLogradouro,
     caseData?.enderecoNumero,
@@ -21,7 +22,10 @@ export default function InfoCard({ caseData }: InfoCardProps) {
     <Panel
       title="Informações Gerais"
       action={
-        <button className="flex items-center gap-2 rounded-md bg-[#2f2f2f] px-3 py-1.5 text-xs text-white/65 hover:text-white">
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-2 rounded-md bg-[#2f2f2f] px-3 py-1.5 text-xs text-white/65 hover:text-white"
+        >
           <Edit size={14} />
           Editar
         </button>

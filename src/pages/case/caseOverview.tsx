@@ -7,6 +7,7 @@ import {
 
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import ActionButton from "@/components/ui/ActionButton";
 
@@ -19,6 +20,7 @@ import MapCard from "@/components/caseOverview/MapCard";
 import AccessCard from "@/components/caseOverview/AccessCard";
 import ProfileCard from "@/components/caseOverview/ProfileCard";
 import UncertaintyCard from "@/components/caseOverview/UncertaintyCard";
+import CreateCaseModal from "@/components/mycases/CreateCaseModal";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -35,6 +37,9 @@ export default function CaseOverview() {
   const { id } = useParams();
   const [caseData, setCaseData] = useState<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
+  const [editCaseOpen, setEditCaseOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   async function fetchContacts() {
     if (!id) return;
@@ -48,17 +53,48 @@ export default function CaseOverview() {
     }
   }
 
-  useEffect(() => {
-    async function fetchCase() {
-      try {
-        const response = await fetch(`${API_URL}/cases/${id}`);
-        const data = await response.json();
-        setCaseData(data);
-      } catch (error) {
-        console.error(error);
-      }
-    }
+  async function fetchCase() {
+    if (!id) return;
 
+    try {
+      const response = await fetch(`${API_URL}/cases/${id}`);
+      const data = await response.json();
+
+      setCaseData(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function handleDeleteCase() {
+    if (!id) return;
+
+    const confirmed = confirm(
+      "Deseja excluir este caso permanentemente?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(
+        `${API_URL}/cases/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Erro ao excluir caso");
+      }
+
+      navigate("/mycases");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao excluir caso.");
+    }
+  }
+
+  useEffect(() => {
     if (id) {
       fetchCase();
       fetchContacts();
@@ -88,6 +124,7 @@ export default function CaseOverview() {
 
               <div className="w-full md:w-auto">
                 <ActionButton
+                  onClick={handleDeleteCase}
                   variant="danger"
                   icon={<Trash2 size={14} />}
                   className="w-full justify-center md:w-auto"
@@ -101,7 +138,10 @@ export default function CaseOverview() {
           <main className="grid gap-6 p-6 xl:grid-cols-[1fr_285px]">
             <section className="space-y-6">
               <div className="grid gap-4 lg:grid-cols-[1fr_190px]">
-                <InfoCard caseData={caseData} />
+                <InfoCard
+                  caseData={caseData}
+                  onEdit={() => setEditCaseOpen(true)}
+                />
 
                 <div className="grid gap-4">
                   <MetricCard
@@ -181,6 +221,15 @@ export default function CaseOverview() {
           </main>
         </div>
       </div>
+
+      {editCaseOpen && caseData && (
+        <CreateCaseModal
+          mode="edit"
+          caseData={caseData}
+          onClose={() => setEditCaseOpen(false)}
+          onSuccess={fetchCase}
+        />
+      )}
     </div>
   );
 }
