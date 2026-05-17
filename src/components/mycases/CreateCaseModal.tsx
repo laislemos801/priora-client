@@ -6,9 +6,6 @@ import PrimaryButton from "../ui/PrimaryButton";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { RiAlertFill } from "react-icons/ri";
 
-// TODO: substituir pelo userId real vindo do contexto de autenticação
-const MOCK_USER_ID = "da7be1ad-6a1f-4c56-a91c-0d24e355391b";
-
 const STATUS_OPTIONS = [
   { value: "ativo",      label: "Ativo",      color: "#4caf7d" },
   { value: "pendente",   label: "Pendente",   color: "#e0a030" },
@@ -65,6 +62,19 @@ const PRIORIDADE_MAP: Record<string, string> = {
   critica: "Crítica",
 };
 
+const STATUS_REVERSE_MAP: Record<string, string> = {
+  Ativo: "ativo",
+  Arquivado: "pendente",
+  Concluído: "finalizado",
+};
+
+const PRIORIDADE_REVERSE_MAP: Record<string, string> = {
+  Baixa: "baixa",
+  Média: "media",
+  Alta: "alta",
+  Crítica: "critica",
+};
+
 type FormState = {
   cep: string;
   nome: string;
@@ -87,7 +97,19 @@ const INPUT =
 
 const ERROR_CLASS = "text-[11px] text-red-400 mt-1";
 
-export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
+type CreateCaseModalProps = {
+  onClose: () => void;
+  onSuccess?: () => void;
+  mode?: "create" | "edit";
+  caseData?: any;
+};
+
+export default function CreateCaseModal({
+  onClose,
+  onSuccess,
+  mode = "create",
+  caseData,
+}: CreateCaseModalProps) {
   const [form, setForm] = useState<FormState>({
     cep: "",
     nome: "",
@@ -106,6 +128,24 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
   const [error, setError]           = useState<string | null>(null);
   const [cepLoading, setCepLoading] = useState(false);
   const [cepError, setCepError]     = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mode !== "edit" || !caseData) return;
+
+    setForm({
+      cep: caseData.enderecoCep || "",
+      nome: caseData.nome || "",
+      status: STATUS_REVERSE_MAP[caseData.status] || "",
+      prioridade: PRIORIDADE_REVERSE_MAP[caseData.prioridade] || "",
+      descricao: caseData.descricao || "",
+      endereco: caseData.enderecoLogradouro || "",
+      numero: caseData.enderecoNumero || "",
+      bairro: caseData.enderecoBairro || "",
+      estado: caseData.enderecoEstado || "",
+      cidade: caseData.enderecoCidade || "",
+      data: caseData.dataOcorrencia || "",
+    });
+  }, [mode, caseData]);
 
   const handleInput = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -154,8 +194,10 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
     if (!form.descricao.trim()) return setError("Descrição é obrigatória.");
     if (!form.data)             return setError("Data de ocorrência é obrigatória.");
 
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
     const payload = {
-      userId:             MOCK_USER_ID,
+      userId:             currentUser.id,
       nome:               form.nome.trim(),
       descricao:          form.descricao.trim(),
       status:             STATUS_MAP[form.status],
@@ -171,8 +213,13 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8000/cases/", {
-        method:  "POST",
+      const url =
+        mode === "edit"
+          ? `http://localhost:8000/cases/${caseData.id}`
+          : "http://localhost:8000/cases/";
+
+      const res = await fetch(url, {
+        method: mode === "edit" ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify(payload),
       });
@@ -182,6 +229,7 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
         throw new Error(json?.detail ?? `Erro ${res.status}`);
       }
 
+      onSuccess?.();
       onClose();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro ao salvar o caso.");
@@ -201,7 +249,9 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
 
         {/* HEADER */}
         <div className="flex justify-between items-center px-5 py-4 border-b border-[#2e2e2e]">
-          <h2 className="text-[15px] font-medium text-[#e8e8e8]">Novo Caso</h2>
+          <h2 className="text-[15px] font-medium text-[#e8e8e8]">
+            {mode === "edit" ? "Editar Caso" : "Novo Caso"}
+          </h2>
           <button
             onClick={onClose}
             className="text-[#ccc] transition-colors text-base hover:bg-[#ccc]/10 rounded-full w-8 h-8 flex items-center justify-center"
@@ -215,7 +265,7 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
 
           <div>
             <label className={LABEL}>Nome do caso</label>
-            <input name="nome" onChange={handleInput} placeholder="Nome caso" className={INPUT} />
+            <input name="nome" value={form.nome} onChange={handleInput} placeholder="Nome caso" className={INPUT} />
           </div>
 
           <div>
@@ -230,7 +280,7 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
 
           <div className="md:col-span-3">
             <label className={LABEL}>Descrição</label>
-            <textarea name="descricao" onChange={handleInput} className={`${INPUT} h-24 resize-none`} />
+            <textarea name="descricao" value={form.descricao} onChange={handleInput} className={`${INPUT} h-24 resize-none`} />
           </div>
 
           {/* CEP */}
@@ -318,7 +368,13 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
         <div className="flex flex-col items-end gap-2 px-5 py-4 border-t border-[#2e2e2e]">
           {error && <p className={ERROR_CLASS}>{error}</p>}
           <PrimaryButton onClick={handleSubmit}>
-            {loading ? "Salvando..." : "Salvar"}
+            {loading
+            ? mode === "edit"
+              ? "Salvando..."
+              : "Salvando..."
+            : mode === "edit"
+              ? "Salvar alterações"
+              : "Salvar"}
           </PrimaryButton>
         </div>
 

@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import AppLayout from "@/layouts/AppLayout";
 
 import Login from "./pages/login";
@@ -13,6 +13,7 @@ import CasePanel from "./pages/case";
 import Ranking from "./pages/case/ranking";
 import Evidence from "./pages/case/evidence";
 import Analysis from "./pages/case/analysis";
+import CaseOverview from "./pages/case/caseOverview";
 import Register from "./pages/register";
 
 function App() {
@@ -28,7 +29,18 @@ function App() {
   <Route path="/recover/new-password" element={<NewPassword />} />
   <Route path="/recover/updated-password" element={<UpdatedPassword />} />
 
-  {/* privadas */}
+  {/* privadas sem sidebar */}
+  <Route
+    element={
+      <PrivateRoute>
+        <Outlet />
+      </PrivateRoute>
+    }
+  >
+    <Route path="/mycases" element={<Home />} />
+  </Route>
+
+  {/* privadas com sidebar */}
   <Route
     element={
       <PrivateRoute>
@@ -36,14 +48,8 @@ function App() {
       </PrivateRoute>
     }
   >
-    <Route path="/mycases" element={<Home />} />
-
     <Route path="/case/:id" element={<CasePanel />}>
-      <Route
-        index
-        element={<div className="text-white p-4">Overview</div>}
-      />
-
+      <Route index element={<CaseOverview />} />
       <Route path="ranking" element={<Ranking />} />
       <Route path="evidence" element={<Evidence />} />
       <Route path="analysis" element={<Analysis />} />

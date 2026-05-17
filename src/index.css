@@ -166,3 +166,14 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #0f7a5a;
 }
+
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom,
+.leaflet-control {
+  z-index: 1 !important;
+}

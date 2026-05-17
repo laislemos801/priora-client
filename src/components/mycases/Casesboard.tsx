@@ -8,9 +8,6 @@ import { FaRegFolderOpen } from "react-icons/fa";
 import { MdOutlineBrokenImage } from "react-icons/md";
 import { useState, useEffect, useRef } from "react";
 
-// TODO: substituir pelo userId real vindo do contexto de autenticação
-const USER_ID = "da7be1ad-6a1f-4c56-a91c-0d24e355391b";
-
 type CaseFromAPI = {
   id: string;
   caseId:string;
@@ -22,6 +19,8 @@ type CaseFromAPI = {
   dataOcorrencia: string | null;
   cidade: string | null;
   estado: string | null;
+  responsavelPrimeiroNome: string | null;
+  responsavelSobrenome: string | null;
   topSuspeitoNome: string | null;
   topSuspeitoProbab: number | null;
   qtdSuspeitos: number;
@@ -59,12 +58,14 @@ export default function CasesSection() {
   });
 
   const filterRef = useRef<HTMLDivElement>(null);
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const userId = currentUser.id;
 
   useEffect(() => {
     async function fetchCases() {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:8000/cases/user/${USER_ID}`);
+        const res = await fetch(`http://localhost:8000/cases/user/${userId}`);
         if (!res.ok) throw new Error(`Erro ${res.status}`);
         const data = await res.json();
         setCases(data);
@@ -191,7 +192,11 @@ export default function CasesSection() {
                 detectiveName={caso.topSuspeitoNome ?? "—"}
                 detectiveImage="../../../elvinBond.svg"
                 confidence={caso.topSuspeitoProbab ?? 0}
-                responsible="—"
+                responsible={
+                  caso.responsavelPrimeiroNome && caso.responsavelSobrenome
+                    ? `${caso.responsavelPrimeiroNome} ${caso.responsavelSobrenome}`
+                    : "—"
+                }
               />
             ))}
           </div>
