@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
-  Search,
   Plus,
   X,
   ArrowUp,
@@ -9,10 +8,14 @@ import {
   Minus,
   HelpCircle,
   Trash2,
+  Edit
 } from "lucide-react";
 
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { supabase } from "@/lib/supabase";
+import ActionButton from "@/components/ui/ActionButton";
+import { IoFilterSharp } from "react-icons/io5";
+import FilterPanelRanking from "@/components/suspect/Filter_suspect";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -25,6 +28,25 @@ type Suspect = {
   posicaoRanking?: number | null;
   tendencia?: "Alta" | "Baixa" | "Estável";
   qtdEvidencias?: number;
+  comportamento?: number;
+  agressividade?: number;
+  proximidade?: number;
+  conexoesSociais?: number;
+  nivelConfissao?: number;
+  crimeSimilarAntes?: string;
+  histDescumprimento?: string;
+};
+
+export type RankingFilters = {
+  search: string;
+  minEvidences: string;
+  suspects: string[];
+};
+
+const DEFAULT_FILTERS: RankingFilters = {
+  search: "",
+  minEvidences: "",
+  suspects: [],
 };
 
 export default function Ranking() {
@@ -32,7 +54,11 @@ export default function Ranking() {
 
   const [suspects, setSuspects] = useState<Suspect[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, _] = useState("");
+  const [openFilter, setOpenFilter] = useState(false);
+  const [filters, setFilters] = useState<RankingFilters>(DEFAULT_FILTERS);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [editingSuspect, setEditingSuspect] = useState<Suspect | null>(null);
 
   async function fetchSuspects() {
     if (!id) return;
@@ -47,14 +73,87 @@ export default function Ranking() {
     fetchSuspects();
   }, [id]);
 
-  const filtered = suspects.filter((s) =>
-    s.nome.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = suspects.filter((s) => {
+    const searchText = filters.search.trim() || search.trim();
+
+    if (
+      searchText &&
+      !s.nome.toLowerCase().includes(searchText.toLowerCase())
+    ) {
+      return false;
+    }
+
+    if (
+      filters.minEvidences &&
+      (s.qtdEvidencias ?? 0) < Number(filters.minEvidences)
+    ) {
+      return false;
+    }
+
+    if (
+      filters.suspects.length > 0 &&
+      !filters.suspects.includes(s.id)
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((item) => item !== id)
+        : [...prev, id]
+    );
+  }
+
+  async function handleDelete() {
+    if (!id || selectedIds.length === 0) {
+      alert("Selecione pelo menos um suspeito.");
+      return;
+    }
+
+    const confirmed = confirm("Deseja deletar os suspeitos selecionados?");
+    if (!confirmed) return;
+
+    for (const suspectId of selectedIds) {
+      await fetch(`${API_URL}/suspects/case/${id}/${suspectId}`, {
+        method: "DELETE",
+      });
+    }
+
+    setSelectedIds([]);
+    fetchSuspects();
+  }
+
+  function handleEdit() {
+    if (selectedIds.length !== 1 && selectedIds.length !== 0) {
+      alert("Selecione apenas um suspeito para editar.");
+      return;
+    }
+
+    if (selectedIds.length === 0) {
+      alert("Selecione um suspeito para editar.");
+      return;
+    }
+
+    const suspect = suspects.find((s) => s.id === selectedIds[0]);
+    if (!suspect) return;
+
+    setEditingSuspect(suspect);
+    setModalOpen(true);
+  }
+
+  const filterCount =
+    (filters.search ? 1 : 0) +
+    (filters.minEvidences ? 1 : 0) +
+    filters.suspects.length;
 
   return (
     <div className="min-h-screen bg-[#242424]">
       <div className="flex-1 p-4 md:p-6">
-        <div className="overflow-hidden rounded-xl border border-[#575757] bg-[#242424]">
+        <div className="relative rounded-xl border border-[#575757] bg-[#242424]">
           {/* HEADER */}
           <header className="flex flex-col gap-4 border-b border-[#575757] px-4 py-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
@@ -68,20 +167,59 @@ export default function Ranking() {
             </div>
 
             <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
-              <div className="flex h-10 w-full items-center gap-2 rounded-full border border-[#444] bg-[#242424] px-4 text-white/65 md:w-[260px]">
-                <Search size={15} />
+              <div className="flex flex-col md:flex-row md:items-center gap-2">
+                <PrimaryButton onClick={() => setModalOpen(true)}>
+                  Adicionar Suspeito
+                </PrimaryButton>
 
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Procurar"
-                  className="w-full bg-transparent text-sm outline-none placeholder:text-white/45"
-                />
+                <div className="relative w-full md:w-auto">
+                  <ActionButton
+                    icon={<IoFilterSharp size={14} />}
+                    onClick={() => setOpenFilter((prev) => !prev)}
+                    className={`w-full ${filterCount > 0 ? "border-[#139C73]/60 text-[#139C73] bg-[#139C73]/10" : ""}`}
+                  >
+                    Filtrar
+                    {filterCount > 0 && (
+                      <span className="ml-1 bg-[#139C73] text-white text-[10px] rounded-full w-4 h-4 inline-flex items-center justify-center font-bold">
+                        {filterCount}
+                      </span>
+                    )}
+                  </ActionButton>
+
+                  {openFilter && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40 bg-black/50 md:hidden"
+                        onClick={() => setOpenFilter(false)}
+                      />
+                      <FilterPanelRanking
+                        initialFilters={filters}
+                        onApply={(f) => {
+                          setFilters(f);
+                          setOpenFilter(false);
+                        }}
+                        onClear={() => {
+                          setFilters(DEFAULT_FILTERS);
+                          setOpenFilter(false);
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+
+                <ActionButton icon={<Edit size={14} />} onClick={handleEdit}>
+                  Editar
+                </ActionButton>
+
+                <ActionButton
+                  variant="danger"
+                  icon={<Trash2 size={14} />}
+                  onClick={handleDelete}
+                >
+                  {selectedIds.length > 0 ? `Deletar (${selectedIds.length})` : "Deletar"}
+                </ActionButton>
               </div>
-
-              <PrimaryButton onClick={() => setModalOpen(true)}>
-                Adicionar Suspeito
-              </PrimaryButton>
+              
             </div>
           </header>
 
@@ -90,7 +228,20 @@ export default function Ranking() {
             {filtered.length === 0 ? (
               <EmptyState onAdd={() => setModalOpen(true)} />
             ) : (
-              <RankingTable suspects={filtered} />
+              <RankingTable
+                suspects={filtered}
+                selectedIds={selectedIds}
+                onToggleSelected={toggleSelected}
+                onToggleAll={() => {
+                  const allVisibleSelected = filtered.every((s) =>
+                    selectedIds.includes(s.id)
+                  );
+
+                  setSelectedIds(
+                    allVisibleSelected ? [] : filtered.map((s) => s.id)
+                  );
+                }}
+              />
             )}
           </main>
         </div>
@@ -100,9 +251,16 @@ export default function Ranking() {
       {modalOpen && (
         <SuspectModal
           casoId={id!}
-          onClose={() => setModalOpen(false)}
+          mode={editingSuspect ? "edit" : "create"}
+          suspect={editingSuspect}
+          onClose={() => {
+            setModalOpen(false);
+            setEditingSuspect(null);
+          }}
           onSuccess={() => {
             setModalOpen(false);
+            setEditingSuspect(null);
+            setSelectedIds([]);
             fetchSuspects();
           }}
         />
@@ -111,12 +269,30 @@ export default function Ranking() {
   );
 }
 
-function RankingTable({ suspects }: { suspects: Suspect[] }) {
+function RankingTable({
+  suspects,
+  selectedIds,
+  onToggleSelected,
+  onToggleAll,
+}: {
+  suspects: Suspect[];
+  selectedIds: string[];
+  onToggleSelected: (id: string) => void;
+  onToggleAll: () => void;
+}) {
   return (
     <div className="space-y-3">
       {/* DESKTOP HEADER */}
-      <div className="hidden lg:grid lg:grid-cols-[60px_90px_1fr_190px_150px] items-center px-6 text-center text-sm font-medium text-white">
-        <div />
+      <div className="hidden lg:grid lg:grid-cols-[60px_repeat(4,minmax(0,1fr))] items-center px-6 text-center text-sm font-medium text-white">
+        <div className="flex items-center justify-center gap-3">
+          <CustomCheckbox
+            checked={
+              suspects.length > 0 &&
+              suspects.every((s) => selectedIds.includes(s.id))
+            }
+            onChange={onToggleAll}
+          />
+        </div>
 
         <p>Posição</p>
 
@@ -163,9 +339,9 @@ function RankingTable({ suspects }: { suspects: Suspect[] }) {
                   </div>
                 </div>
 
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 shrink-0 rounded border border-[#555] bg-transparent"
+                <CustomCheckbox
+                  checked={selectedIds.includes(suspect.id)}
+                  onChange={() => onToggleSelected(suspect.id)}
                 />
               </div>
 
@@ -195,11 +371,11 @@ function RankingTable({ suspects }: { suspects: Suspect[] }) {
             </div>
 
             {/* DESKTOP */}
-            <div className="hidden min-h-[96px] grid-cols-[60px_90px_1fr_190px_150px] items-center px-6 lg:grid">
+            <div className="hidden min-h-[96px] lg:grid-cols-[60px_repeat(4,minmax(0,1fr))] items-center px-6 lg:grid">
               <div className="flex justify-center">
-                <input
-                  type="checkbox"
-                  className="h-5 w-5 rounded border border-[#555] bg-transparent"
+                <CustomCheckbox
+                  checked={selectedIds.includes(suspect.id)}
+                  onChange={() => onToggleSelected(suspect.id)}
                 />
               </div>
 
@@ -275,10 +451,14 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 
 function SuspectModal({
   casoId,
+  mode = "create",
+  suspect,
   onClose,
   onSuccess,
 }: {
   casoId: string;
+  mode?: "create" | "edit";
+  suspect?: Suspect | null;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -297,6 +477,23 @@ function SuspectModal({
 
   const [histDescumprimento, setHistDescumprimento] =
     useState("Não sei");
+
+  useEffect(() => {
+    if (mode !== "edit" || !suspect) return;
+
+    setNome(suspect.nome || "");
+    setIdade(suspect.idade ? String(suspect.idade) : "");
+    setFotoFile(null);
+
+    setComportamento(suspect.comportamento ?? 50);
+    setAgressividade(suspect.agressividade ?? 50);
+    setProximidade(suspect.proximidade ?? 50);
+    setConexoesSociais(suspect.conexoesSociais ?? 50);
+    setNivelConfissao(suspect.nivelConfissao ?? 50);
+
+    setCrimeSimilarAntes(suspect.crimeSimilarAntes || "Não sei");
+    setHistDescumprimento(suspect.histDescumprimento || "Não sei");
+  }, [mode, suspect]);
 
   function handlePhotoChange(
     e: React.ChangeEvent<HTMLInputElement>
@@ -344,24 +541,28 @@ function SuspectModal({
       );
     }
 
-    const response = await fetch(`${API_URL}/suspects/`, {
-      method: "POST",
+    const url =
+      mode === "edit" && suspect
+        ? `${API_URL}/suspects/${suspect.id}`
+        : `${API_URL}/suspects/`;
+
+    const response = await fetch(url, {
+      method: mode === "edit" ? "PATCH" : "POST",
       headers: {
         "Content-Type": "application/json",
       },
-
       body: JSON.stringify({
         casoId,
         nome: nome.trim(),
         idade: idade ? Number(idade) : null,
-        fotoUrl: uploadedPhotoUrl,
-
+        fotoUrl:
+          uploadedPhotoUrl ??
+          (mode === "edit" ? suspect?.fotoUrl ?? null : null),
         comportamento,
         agressividade,
         proximidade,
         conexoesSociais,
         nivelConfissao,
-
         crimeSimilarAntes,
         histDescumprimento,
       }),
@@ -381,7 +582,7 @@ function SuspectModal({
         {/* HEADER */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white/80">
-            Novo Suspeito
+            {mode === "edit" ? "Editar Suspeito" : "Novo Suspeito"}
           </h2>
 
           <button
@@ -641,5 +842,43 @@ function BarIcon() {
       <line x1="12" y1="20" x2="12" y2="4" />
       <line x1="6" y1="20" x2="6" y2="14" />
     </svg>
+  );
+}
+
+function CustomCheckbox({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`
+        flex h-6 w-6 items-center justify-center rounded-sm border transition
+        ${
+          checked
+            ? "border-[#139C73] bg-[#139C73]"
+            : "border-[#575757] bg-transparent hover:border-[#139C73]/70"
+        }
+      `}
+    >
+      {checked && (
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      )}
+    </button>
   );
 }
