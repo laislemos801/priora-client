@@ -7,6 +7,7 @@ import CreateEvidenceModal from "@/components/evidence/CreateEvidenceModal";
 import { useState } from "react";
 import FilterPanelEvidence from "@/components/evidence/Filter_evidence";
 import toast from "react-hot-toast";
+import type { EvidenceForEdit } from "@/components/evidence/CreateEvidenceModal";
 
 export type EvidenceFilters = {
   search: string;
@@ -24,14 +25,13 @@ const DEFAULT_FILTERS: EvidenceFilters = {
   suspeitos: [],
 };
 
-
 export default function Evidence() {
-  const [openModal, setOpenModal]   = useState(false);
-  const [openFilter, setOpenFilter] = useState(false);
-  const [filters, setFilters]       = useState<EvidenceFilters>(DEFAULT_FILTERS);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  
+  const [openModal, setOpenModal]         = useState(false);
+  const [openFilter, setOpenFilter]       = useState(false);
+  const [filters, setFilters]             = useState<EvidenceFilters>(DEFAULT_FILTERS);
+  const [refreshKey, setRefreshKey]       = useState(0);
+  const [selectedIds, setSelectedIds]     = useState<string[]>([]);
+  const [editingEvidence, setEditingEvidence] = useState<EvidenceForEdit | null>(null);
 
   const filterCount =
     filters.status.length +
@@ -45,34 +45,35 @@ export default function Evidence() {
       toast.error("Selecione ao menos uma evidência.");
       return;
     }
-
     try {
       const response = await fetch("http://localhost:8000/evidences/", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: selectedIds }),
       });
-
-      if (!response.ok) {
-        throw new Error("Erro ao excluir evidências.");
-      }
-
+      if (!response.ok) throw new Error("Erro ao excluir evidências.");
       toast.success(
         selectedIds.length > 1
           ? "Evidências excluídas com sucesso!"
           : "Evidência excluída com sucesso!"
       );
-
       setSelectedIds([]);
       setRefreshKey((k) => k + 1);
-
     } catch (err: unknown) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : "Erro ao excluir evidências."
-      );
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir evidências.");
     }
+  };
+
+  const handleEdit = () => {
+    if (selectedIds.length !== 1) {
+      toast.error("Selecione exatamente uma evidência para editar.");
+      return;
+    }
+    setEditingEvidence(null); // desmonta o modal antes de remontar com dados frescos
+    fetch(`http://localhost:8000/evidences/${selectedIds[0]}`)
+      .then((r) => r.json())
+      .then((data) => setEditingEvidence(data))
+      .catch(() => toast.error("Não foi possível carregar a evidência."));
   };
 
   return (
@@ -95,6 +96,7 @@ export default function Evidence() {
                 Adicionar Evidências
               </PrimaryButton>
 
+              {/* Filtrar */}
               <div className="relative w-full md:w-auto">
                 <ActionButton
                   icon={<IoFilterSharp size={14} />}
@@ -118,32 +120,51 @@ export default function Evidence() {
                     <FilterPanelEvidence
                       onClose={() => setOpenFilter(false)}
                       initialFilters={filters}
-                      onApply={(f) => {
-                        setFilters(f);
-                        setOpenFilter(false);
-                      }}
+                      onApply={(f) => { setFilters(f); setOpenFilter(false); }}
                       onClear={() => setFilters(DEFAULT_FILTERS)}
                     />
                   </>
                 )}
               </div>
 
-              <ActionButton icon={<Edit size={14} />}>Editar</ActionButton>
+              {/* Editar */}
+              <ActionButton icon={<Edit size={14} />} onClick={handleEdit}>
+                Editar
+              </ActionButton>
+
+              {/* Deletar */}
               <ActionButton
                 variant="danger"
                 icon={<Trash2 size={14} />}
-                onClick={handleDelete}>
+                onClick={handleDelete}
+              >
                 {selectedIds.length > 0 ? `Deletar (${selectedIds.length})` : "Deletar"}
               </ActionButton>
             </div>
-
-            {openModal && (
-              <CreateEvidenceModal onClose={() => setOpenModal(false)} onSuccess={() => setRefreshKey((k) => k + 1)} />
-            )}
           </div>
 
+          {/* ── Modais ── */}
+          {openModal && (
+            <CreateEvidenceModal
+              onClose={() => setOpenModal(false)}
+              onSuccess={() => setRefreshKey((k) => k + 1)}
+            />
+          )}
+
+          {editingEvidence && (
+            <CreateEvidenceModal
+              evidence={editingEvidence}
+              onClose={() => setEditingEvidence(null)}
+              onSuccess={() => { setRefreshKey((k) => k + 1); setSelectedIds([]);       setEditingEvidence(null); }}
+            />
+          )}
+
           {/* ── Table ── */}
-          <EvidenciasTable filters={filters} refreshKey={refreshKey} onSelectionChange={setSelectedIds}/>
+          <EvidenciasTable
+            filters={filters}
+            refreshKey={refreshKey}
+            onSelectionChange={setSelectedIds}
+          />
         </div>
       </div>
     </div>
