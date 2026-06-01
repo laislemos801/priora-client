@@ -40,12 +40,10 @@ export default function Ranking() {
 
   async function fetchSuspects() {
     if (!id) return;
-
     try {
-      const response = await fetch(
-        `${API_URL}/suspects/case/${id}`
-      );
+      await fetch(`${API_URL}/bayes/preview/${id}`, { method: "POST" });
 
+      const response = await fetch(`${API_URL}/suspects/case/${id}`);
       const data = await response.json();
       setSuspects(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -114,7 +112,13 @@ export default function Ranking() {
   }
 
   function handleEdit() {
-    if (selectedIds.length !== 1) {
+
+    if (selectedIds.length === 0) {
+      alert("Selecione o suspeito que deseja editar.");
+      return;
+    }
+
+    if (selectedIds.length > 1) {
       alert("Selecione apenas um suspeito para editar.");
       return;
     }
