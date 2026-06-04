@@ -248,7 +248,9 @@ export default function Ranking() {
               <EmptySuspectState onCreate={openCreateModal} />
             ) : (
               <RankingTable
-                suspects={filtered}
+                suspects={[...filtered].sort(
+                  (a, b) => (a.posicaoRanking ?? 999) - (b.posicaoRanking ?? 999)
+                )}
                 selectedIds={selectedIds}
                 onToggleSelected={toggleSelected}
                 onToggleAll={toggleAllVisible}
