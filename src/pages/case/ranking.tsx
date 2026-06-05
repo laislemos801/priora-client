@@ -11,6 +11,7 @@ import RankingTable from "@/components/suspect/RankingTable";
 import SuspectModal from "@/components/suspect/SuspectModal";
 import EmptySuspectState from "@/components/suspect/EmptySuspectState";
 import FilterPanelRanking from "@/components/suspect/Filter_suspect";
+import RankingSkeleton from "@/components/suspect/RankingSkeleton";
 
 import type {
   RankingFilters,
@@ -36,13 +37,12 @@ export default function Ranking() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [editingSuspect, setEditingSuspect] = useState<Suspect | null>(null);
   const previousSnapshotRef = useRef<Record<string, number>>({});
-  const [rankingDiffs, setRankingDiffs] = useState<
-    Record<string, "up" | "down" | "same">
-  >({});
+  const [rankingDiffs, setRankingDiffs] = useState<Record<string, "up" | "down" | "same">>({});
   const getRankingDirection = (id: string): "up" | "down" | "same" => {
     return rankingDiffs[id] ?? "same";
   };
   const SNAPSHOT_KEY = `ranking_snapshot_${id}`;
+  const [loading, setLoading] = useState(true);
 
   async function fetchSuspects() {
     if (!id) return;
@@ -91,12 +91,10 @@ export default function Ranking() {
     } catch (error) {
       console.error(error);
       setSuspects([]);
+    } finally {
+      setLoading(false);
     }
   }
-
-  useEffect(() => {
-    fetchSuspects();
-  }, [id]);
 
   const filtered = suspects.filter((s) => {
     const searchText = filters.search.trim();
@@ -198,6 +196,12 @@ export default function Ranking() {
       alert("Erro ao deletar suspeito.");
     }
   }
+
+  useEffect(() => {
+    fetchSuspects();
+  }, [id]);
+
+  if (loading) return <RankingSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#242424]">

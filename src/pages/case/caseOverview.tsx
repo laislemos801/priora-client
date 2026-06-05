@@ -21,6 +21,7 @@ import AccessCard from "@/components/caseOverview/AccessCard";
 import ProfileCard from "@/components/caseOverview/ProfileCard";
 import UncertaintyCard from "@/components/caseOverview/UncertaintyCard";
 import CreateCaseModal from "@/components/mycases/CreateCaseModal";
+import CaseOverviewSkeleton from "@/components/caseOverview/CaseOverviewSkeleton";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -38,6 +39,7 @@ export default function CaseOverview() {
   const [caseData, setCaseData] = useState<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
   const [editCaseOpen, setEditCaseOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -95,11 +97,14 @@ export default function CaseOverview() {
   }
 
   useEffect(() => {
-    if (id) {
-      fetchCase();
-      fetchContacts();
-    }
+    if (!id) return;
+
+    Promise.all([fetchCase(), fetchContacts()]).finally(() => {
+      setLoading(false);
+    });
   }, [id]);
+
+  if (loading) return <CaseOverviewSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#242424]">

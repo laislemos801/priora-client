@@ -13,6 +13,7 @@ import LRScoreSection from "@/components/analysis/LRScoreSection";
 import BayesSection from "@/components/analysis/BayesSection";
 import FinalProbabilitySection from "@/components/analysis/FinalProbabilitySection";
 import type { SuspectAnalysis } from "@/components/analysis/types";
+import AnalysisSkeleton from "@/components/analysis/AnalysisSkeleton";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -37,6 +38,17 @@ export default function Analysis() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function fetchAnalysis(suspeitoId: string): Promise<SuspectAnalysis> {
+    const res = await fetch(`${API_URL}/analysis/case/${casoId}/suspect/${suspeitoId}`);
+    return res.json();
+  }
+
+  async function handleSelectSuspect(s: { id: string }) {
+    setSelected(await fetchAnalysis(s.id));
+    setDropdownOpen(false);
+  }
 
   useEffect(() => {
     if (!casoId) return;
@@ -50,18 +62,9 @@ export default function Analysis() {
           ? list.find((s) => s.id === suspectIdFromQuery) ?? list[0]
           : list[0];
         setSelected(await fetchAnalysis(target.id));
-      });
+      })
+      .finally(() => setLoading(false));
   }, [casoId]);
-
-  async function fetchAnalysis(suspeitoId: string): Promise<SuspectAnalysis> {
-    const res = await fetch(`${API_URL}/analysis/case/${casoId}/suspect/${suspeitoId}`);
-    return res.json();
-  }
-
-  async function handleSelectSuspect(s: { id: string }) {
-    setSelected(await fetchAnalysis(s.id));
-    setDropdownOpen(false);
-  }
 
   useEffect(() => {
     if (!selected) return;
@@ -95,6 +98,8 @@ export default function Analysis() {
     setNodes([{ id: selected.id, type: "suspect", position: { x: 800, y: 250 }, data: { nome: selected.nome, fotoUrl: selected.fotoUrl } }, ...evidenceNodes]);
     setEdges(evidenceEdges);
   }, [selected]);
+
+  if (loading) return <AnalysisSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#242424]">
