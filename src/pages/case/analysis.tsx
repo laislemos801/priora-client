@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useParams, useSearchParams } from "react-router-dom";
 
 import ReactFlow, {
   Background,
@@ -82,6 +82,7 @@ export default function Analysis() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (!casoId) return;
@@ -89,13 +90,16 @@ export default function Analysis() {
       .then((r) => r.json())
       .then(async (list) => {
         if (!Array.isArray(list) || list.length === 0) return;
-        const first = await fetchAnalysis(list[0].id);
         setSuspects(list);
+
+        // Se veio da query string, abre esse suspeito; senão abre o primeiro
+        const suspectIdFromQuery = searchParams.get("suspect");
+        const target = suspectIdFromQuery
+          ? list.find((s) => s.id === suspectIdFromQuery) ?? list[0]
+          : list[0];
+
+        const first = await fetchAnalysis(target.id);
         setSelected(first);
-      })
-      .catch(() => {
-        setSuspects([]);
-        setSelected(null);
       });
   }, [casoId]);
 
