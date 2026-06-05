@@ -20,9 +20,13 @@ type Evidence = {
   id: string;
   nome: string;
   tipo: string;
+
   pesoCondicional: number;
-  pesoEvidencia: number;
   pesoVinculo: number;
+  pesoFinal: number;
+
+  suspectIds?: string[];
+
   status?: string;
   dataColeta?: string;
   descricao?: string | null;
@@ -32,10 +36,24 @@ type SuspectAnalysis = {
   id: string;
   nome: string;
   fotoUrl: string | null;
+
   probabilidadeAtual: number;
   posicaoRanking: number;
+
   nSuspeitos: number;
+
   evidencias: Evidence[];
+
+  bayes: {
+    prior: number;
+    pEH: number;
+    numerator: number;
+    denominator: number;
+    posterior: number;
+    probabilityPct: number;
+    uncertaintyPct: number;
+    position: number;
+  };
 };
 
 const nodeTypes = {
@@ -92,30 +110,6 @@ export default function Analysis() {
     setDropdownOpen(false);
   }
 
-  const formula = useCallback(() => {
-    if (!selected) return null;
-    const n = selected.nSuspeitos || 1;
-    const prior = 1 / n;
-    let pEH = 1, pENH = 1;
-
-    if (selected.evidencias.length > 0) {
-      selected.evidencias.forEach((e) => {
-        const peso = e.pesoCondicional ?? 0;
-        pEH *= peso;
-        pENH *= 1 - peso;
-      });
-    } else {
-      pEH = 0.001;
-      pENH = 0.999;
-    }
-
-    const num = pEH * prior;
-    const den = num + pENH * (1 - prior);
-    const pHE = den > 0 ? num / den : 0;
-
-    return { num, den, pHE, pENH, prior };
-  }, [selected]);
-
   useEffect(() => {
     if (!selected) return;
 
@@ -157,7 +151,7 @@ export default function Analysis() {
         data: {
           nome: ev.nome,
           tipo: ev.tipo,
-          peso: Math.round((ev.pesoEvidencia ?? 0) * 100),
+          peso: Math.round((ev.pesoCondicional ?? 0) * 100),
         },
       };
     });
@@ -195,18 +189,6 @@ export default function Analysis() {
     setNodes([suspectNode, ...evidenceNodes]);
     setEdges(evidenceEdges);
   }, [selected]);
-
-  const f = formula();
-
-  const evidenciasValores =
-    selected?.evidencias.length
-      ? selected.evidencias
-          .map((e) => e.pesoCondicional.toFixed(2))
-          .join(" × ")
-      : "";
-
-  const denominatorPart =
-    f ? f.pENH * (1 - f.prior) : 0;
 
   return (
     <div className="min-h-screen bg-[#242424]">
@@ -281,46 +263,289 @@ export default function Analysis() {
               </ReactFlow>
             </div>
 
-            {f && (
-              <div className="max-w-md rounded-xl border border-[#343434] bg-[#222222] p-5">
-                <div className="space-y-2 text-white">
+            {selected && (
+              <div className="space-y-4">
 
-                  {/* Equação expandida */}
-                  <div className="text-[13px] font-light tracking-wide break-words">
-                    P(H|E) = P(H)
-                    {evidenciasValores && ` × ${evidenciasValores}`}
-                  </div>
+                {/* Evidências */}
+                <div className="rounded-xl border border-[#343434] bg-[#222222] p-5">
 
-                  {/* Fração */}
-                  <div className="flex items-center gap-4">
+                  <h3 className="text-white font-semibold mb-4">
+                    1. Evidências Utilizadas
+                  </h3>
 
-                    <span className="text-[13px] font-light whitespace-nowrap">
-                      P(H|E)=
-                    </span>
+                  <div className="mb-4 rounded-lg border border-[#333] bg-[#2A2A2A] p-4">
 
-                    <div className="flex flex-col items-center min-w-[200px]">
+                    <div className="text-sm font-medium text-white mb-2">
+                      Fórmula de Contribuição
+                    </div>
 
-                      <div className="w-full border-b border-white pb-1 text-center text-[13px] font-light">
-                        {f.num.toFixed(5)}
+                    <div className="text-sm text-[#139C73]">
+                      1 + (Peso Evidência × Peso Vínculo × Fator de Exclusividade)
+                    </div>
+
+                    <div className="mt-3 text-xs text-gray-400">
+                      <div>
+                        Peso Evidência = confiabilidade da evidência
                       </div>
 
-                      <div className="pt-1 text-[13px] font-light">
-                        {f.num.toFixed(5)} + {denominatorPart.toFixed(5)}
+                      <div>
+                        Peso Vínculo = força da ligação com o suspeito
+                      </div>
+
+                      <div>
+                        Fator de Exclusividade = 1 / nº de suspeitos ligados à evidência
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div className="space-y-3">
+
+                    {selected.evidencias.map((ev) => {
+
+                      const competitors =
+                        ev.suspectIds?.length || 1;
+
+                      const contribution =
+                        1 + (ev.pesoFinal * (1 / competitors));
+
+                      return (
+
+                        <div
+                          key={ev.id}
+                          className="rounded-lg border border-[#333] bg-[#2A2A2A] p-4"
+                        >
+
+                          <div className="flex items-center justify-between">
+
+                            <div>
+
+                              <div className="text-white font-medium">
+                                {ev.nome}
+                              </div>
+
+                              <div className="text-xs text-gray-400">
+                                {ev.tipo}
+                              </div>
+
+                            </div>
+
+                            <div className="text-[#139C73] font-semibold">
+                              {contribution.toFixed(2)}
+                            </div>
+
+                          </div>
+
+                          <div className="mt-3 text-xs text-gray-400">
+
+                            Evidência:
+                            {" "}
+                            {(ev.pesoCondicional * 100).toFixed(0)}%
+
+                            {" • "}
+
+                            Vínculo:
+                            {" "}
+                            {(ev.pesoVinculo * 100).toFixed(0)}%
+
+                            {" • "}
+
+                            Peso Final:
+                            {" "}
+                            {(ev.pesoFinal * 100).toFixed(0)}%
+
+                          </div>
+
+                          <div className="mt-3 text-sm text-white">
+                            1 + (
+                            {ev.pesoCondicional.toFixed(2)}
+                            {" × "}
+                            {ev.pesoVinculo.toFixed(2)}
+                            {" × "}
+                            1/{competitors}
+                            )
+                          </div>
+
+                          <div className="mt-1 text-[#139C73] text-sm font-medium">
+                            = {contribution.toFixed(2)}
+                          </div>
+
+                        </div>
+
+                      );
+                    })}
+
+                  </div>
+
+                </div>
+
+                {/* Score LR */}
+                <div className="rounded-xl border border-[#343434] bg-[#222222] p-5">
+
+                  <h3 className="text-white font-semibold mb-4">
+                    2. Construção do Score LR (P(E|H))
+                  </h3>
+
+                  <div className="text-gray-400 text-sm text-center mb-4">
+                    Multiplicação das contribuições de todas as evidências
+                  </div>
+
+                  <div className="text-center">
+
+                    <div className="text-[#139C73] font-semibold break-all text-lg">
+
+                      {selected.evidencias.length > 0
+                        ? selected.evidencias
+                            .map((ev) => {
+                              const competitors =
+                                ev.suspectIds?.length || 1;
+
+                              const contribution =
+                                1 + (ev.pesoFinal * (1 / competitors));
+
+                              return contribution.toFixed(2);
+                            })
+                            .join(" × ")
+                        : "1.00"}
+
+                    </div>
+
+                    <div className="mt-4 text-gray-400">
+                      ↓
+                    </div>
+
+                    <div className="mt-4">
+
+                      <div className="text-sm text-gray-400">
+                        P(E|H)
+                      </div>
+
+                      <div className="text-xl font-bold text-[#139C73] mt-2">
+                        {selected.bayes.pEH.toFixed(6)}
                       </div>
 
                     </div>
 
                   </div>
 
-                  {/* Resultado Final */}
-                  <div className="text-[15px] font-medium">
-                    P(H|E) ≈
-                    <span className="ml-2 text-[#139C73] font-semibold">
-                      {f.pHE.toFixed(4)}
-                    </span>
+                </div>
+
+                {/* Bayes */}
+                <div className="rounded-xl border border-[#343434] bg-[#222222] p-5">
+
+                  <h3 className="text-white font-semibold mb-4">
+                    3. Aplicação do Teorema de Bayes
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <div className="rounded-lg bg-[#2A2A2A] p-4 text-center">
+
+                      <div className="text-xs text-gray-400 mb-2">
+                        Prior P(H)
+                      </div>
+
+                      <div className="text-white font-semibold">
+                        {selected.bayes.prior.toFixed(6)}
+                      </div>
+
+                    </div>
+
+                    <div className="rounded-lg bg-[#2A2A2A] p-4 text-center">
+
+                      <div className="text-xs text-gray-400 mb-2">
+                        P(E|H)
+                      </div>
+
+                      <div className="text-white font-semibold">
+                        {selected.bayes.pEH.toFixed(6)}
+                      </div>
+
+                    </div>
+
+                    <div className="rounded-lg bg-[#2A2A2A] p-4 text-center">
+
+                      <div className="text-xs text-gray-400 mb-2">
+                        Numerador
+                      </div>
+
+                      <div className="text-[#139C73] font-semibold">
+                        {selected.bayes.numerator.toFixed(6)}
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  <div className="mt-4 rounded-lg border border-[#333] bg-[#2A2A2A] p-4">
+
+                    <div className="text-xs text-gray-400 mb-2">
+                      Cálculo do Numerador
+                    </div>
+
+                    <div className="text-white">
+                      {selected.bayes.prior.toFixed(6)}
+                      {" × "}
+                      {selected.bayes.pEH.toFixed(6)}
+                    </div>
+
+                    <div className="mt-2 text-[#139C73] font-semibold">
+                      = {selected.bayes.numerator.toFixed(6)}
+                    </div>
+
                   </div>
 
                 </div>
+
+                {/* Resultado Final */}
+                <div className="rounded-xl border border-[#343434] bg-[#222222] p-5">
+
+                  <h3 className="text-white font-semibold mb-4">
+                    4. Probabilidade Final
+                  </h3>
+
+                  <div className="max-w-md mx-auto">
+
+                    <div className="rounded-lg border border-[#333] bg-[#2A2A2A] p-5">
+
+                      <div className="text-center text-sm text-gray-400 mb-4">
+                        P(H|E)
+                      </div>
+
+                      <div className="text-center">
+
+                        <div className="border-b border-white pb-2 text-white font-medium">
+                          {selected.bayes.numerator.toFixed(6)}
+                        </div>
+
+                        <div className="pt-2 text-white font-medium">
+                          {selected.bayes.denominator.toFixed(6)}
+                        </div>
+
+                      </div>
+
+                      <div className="mt-5 text-center text-[#139C73] font-semibold text-xl">
+                        = {selected.bayes.posterior.toFixed(6)}
+                      </div>
+
+                    </div>
+
+                    <div className="mt-6 text-center">
+
+                      <div className="text-xs text-gray-400 mb-2">
+                        Probabilidade Posterior
+                      </div>
+
+                      <div className="text-2xl font-bold text-[#139C73]">
+                        {(selected.bayes.posterior * 100).toFixed(2)}%
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
               </div>
             )}
 
