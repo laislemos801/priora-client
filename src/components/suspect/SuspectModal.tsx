@@ -3,6 +3,7 @@ import { Trash2, X } from "lucide-react";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { supabase } from "@/lib/supabase";
 import type { Suspect } from "./types";
+import toast from "react-hot-toast";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -11,7 +12,7 @@ type Props = {
   mode?: "create" | "edit";
   suspect?: Suspect | null;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (mode: "create" | "edit") => void;
 };
 
 export default function SuspectModal({
@@ -81,7 +82,7 @@ export default function SuspectModal({
 
   async function handleSubmit() {
     if (!nome.trim()) {
-      alert("Informe o nome do suspeito.");
+      toast.error("Informe o nome do suspeito.");
       return;
     }
 
@@ -119,7 +120,7 @@ export default function SuspectModal({
     });
 
     if (!response.ok) {
-      alert(
+      toast.error(
         mode === "edit"
           ? "Erro ao editar suspeito."
           : "Erro ao cadastrar suspeito."
@@ -127,7 +128,7 @@ export default function SuspectModal({
       return;
     }
 
-    onSuccess();
+    onSuccess(mode);
   }
 
   return (

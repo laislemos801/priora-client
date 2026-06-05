@@ -2,22 +2,27 @@ import { HelpCircle } from "lucide-react";
 import CustomCheckbox from "./CustomCheckbox";
 import TrendIcon from "./TrendIcon";
 import type { Suspect } from "./types";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   suspects: Suspect[];
   selectedIds: string[];
+  casoId: string;                   
   onToggleSelected: (id: string) => void;
   onToggleAll: () => void;
+  getRankingDirection: (id: string) => "up" | "down" | "same";
 };
 
 export default function RankingTable({
   suspects,
   selectedIds,
+  casoId,                            
   onToggleSelected,
   onToggleAll,
+  getRankingDirection
 }: Props) {
-  const allSelected =
-    suspects.length > 0 && suspects.every((s) => selectedIds.includes(s.id));
+  const navigate = useNavigate();
+  const allSelected = suspects.length > 0 && suspects.every((s) => selectedIds.includes(s.id));
 
   return (
     <div className="space-y-3">
@@ -100,8 +105,30 @@ export default function RankingTable({
 
               <div className="flex items-center justify-center gap-2 text-lg">
                 <span>{(suspect.probabilidadeAtual ?? 0).toFixed(1)}%</span>
-                <TrendIcon trend={suspect.tendencia ?? "Estável"} />
-                <HelpCircle size={16} className="text-white/35" />
+
+                {(() => {
+                  const direction = getRankingDirection(suspect.id);
+
+                  if (direction === "up") {
+                    return <span className="text-green-500 font-bold">↑</span>;
+                  }
+
+                  if (direction === "down") {
+                    return <span className="text-red-500 font-bold">↓</span>;
+                  }
+
+                  return <span className="text-white/30">—</span>;
+                })()}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/case/${casoId}/analysis?suspect=${suspect.id}`);
+                  }}
+                  className="text-white/35 hover:text-[#139C73] transition-colors"
+                  title="Ver análise probabilística"
+                >
+                  <HelpCircle size={16} />
+                </button>
               </div>
 
               <p className="text-center text-lg">{suspect.qtdEvidencias ?? 0}</p>

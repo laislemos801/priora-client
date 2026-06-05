@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Edit, Trash2 } from "lucide-react";
 import { IoFilterSharp } from "react-icons/io5";
@@ -11,6 +11,8 @@ import RankingTable from "@/components/suspect/RankingTable";
 import SuspectModal from "@/components/suspect/SuspectModal";
 import EmptySuspectState from "@/components/suspect/EmptySuspectState";
 import FilterPanelRanking from "@/components/suspect/Filter_suspect";
+import RankingSkeleton from "@/components/suspect/RankingSkeleton";
+import toast from "react-hot-toast";
 
 import type {
   RankingFilters,
@@ -31,30 +33,69 @@ export default function Ranking() {
   const [suspects, setSuspects] = useState<Suspect[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [openFilter, setOpenFilter] = useState(false);
-  const [filters, setFilters] =
-    useState<RankingFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<RankingFilters>(DEFAULT_FILTERS);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [editingSuspect, setEditingSuspect] =
-    useState<Suspect | null>(null);
+  const [editingSuspect, setEditingSuspect] = useState<Suspect | null>(null);
+  const previousSnapshotRef = useRef<Record<string, number>>({});
+  const [rankingDiffs, setRankingDiffs] = useState<Record<string, "up" | "down" | "same">>({});
+  const getRankingDirection = (id: string): "up" | "down" | "same" => {
+    return rankingDiffs[id] ?? "same";
+  };
+  const SNAPSHOT_KEY = `ranking_snapshot_${id}`;
+  const [loading, setLoading] = useState(true);
 
   async function fetchSuspects() {
     if (!id) return;
+
     try {
       await fetch(`${API_URL}/bayes/preview/${id}`, { method: "POST" });
 
       const response = await fetch(`${API_URL}/suspects/case/${id}`);
       const data = await response.json();
-      setSuspects(Array.isArray(data) ? data : []);
+
+      const newSuspects = Array.isArray(data) ? data : [];
+
+      // Lê o snapshot salvo anteriormente
+      const savedSnapshot = localStorage.getItem(SNAPSHOT_KEY);
+      const oldSnapshot: Record<string, number> = savedSnapshot
+        ? JSON.parse(savedSnapshot)
+        : {};
+
+      const newSnapshot: Record<string, number> = {};
+      newSuspects.forEach((s) => {
+        newSnapshot[s.id] = s.posicaoRanking ?? 999;
+      });
+
+      const diff: Record<string, "up" | "down" | "same"> = {};
+      newSuspects.forEach((s) => {
+        const oldPos = oldSnapshot[s.id];
+        const newPos = newSnapshot[s.id];
+
+        if (oldPos == null) {
+          diff[s.id] = "same";
+        } else if (newPos < oldPos) {
+          diff[s.id] = "up";
+        } else if (newPos > oldPos) {
+          diff[s.id] = "down";
+        } else {
+          diff[s.id] = "same";
+        }
+      });
+
+      // Salva o novo snapshot no localStorage
+      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(newSnapshot));
+
+      setRankingDiffs(diff);
+      previousSnapshotRef.current = newSnapshot;
+      setSuspects(newSuspects);
     } catch (error) {
       console.error(error);
       setSuspects([]);
+    } finally {
+      setLoading(false);
     }
   }
-
-  useEffect(() => {
-    fetchSuspects();
-  }, [id]);
 
   const filtered = suspects.filter((s) => {
     const searchText = filters.search.trim();
@@ -112,14 +153,13 @@ export default function Ranking() {
   }
 
   function handleEdit() {
-
     if (selectedIds.length === 0) {
-      alert("Selecione o suspeito que deseja editar.");
+      toast.error("Selecione o suspeito que deseja editar.");
       return;
     }
 
     if (selectedIds.length > 1) {
-      alert("Selecione apenas um suspeito para editar.");
+      toast.error("Selecione apenas um suspeito para editar.");
       return;
     }
 
@@ -132,14 +172,11 @@ export default function Ranking() {
 
   async function handleDelete() {
     if (!id || selectedIds.length === 0) {
-      alert("Selecione pelo menos um suspeito.");
+      toast.error("Selecione pelo menos um suspeito.");
       return;
     }
 
-    const confirmed = confirm(
-      "Deseja deletar os suspeitos selecionados?"
-    );
-
+    const confirmed = confirm("Deseja deletar os suspeitos selecionados?");
     if (!confirmed) return;
 
     try {
@@ -151,11 +188,22 @@ export default function Ranking() {
 
       setSelectedIds([]);
       fetchSuspects();
+      toast.success(                          // ← aqui, no try
+        selectedIds.length > 1
+          ? "Suspeitos deletados com sucesso!"
+          : "Suspeito deletado com sucesso!"
+      );
     } catch (error) {
       console.error(error);
-      alert("Erro ao deletar suspeito.");
+      toast.error("Erro ao deletar suspeito.");  // ← erro no catch
     }
   }
+
+  useEffect(() => {
+    fetchSuspects();
+  }, [id]);
+
+  if (loading) return <RankingSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#242424]">
@@ -252,8 +300,10 @@ export default function Ranking() {
                   (a, b) => (a.posicaoRanking ?? 999) - (b.posicaoRanking ?? 999)
                 )}
                 selectedIds={selectedIds}
+                casoId={id!}                       // ← adicionar
                 onToggleSelected={toggleSelected}
                 onToggleAll={toggleAllVisible}
+                getRankingDirection={getRankingDirection}
               />
             )}
           </main>
@@ -269,11 +319,13 @@ export default function Ranking() {
             setModalOpen(false);
             setEditingSuspect(null);
           }}
-          onSuccess={() => {
+          onSuccess={(mode) => {
             setModalOpen(false);
             setEditingSuspect(null);
             setSelectedIds([]);
             fetchSuspects();
+            if (mode === "create") toast.success("Suspeito adicionado com sucesso!");
+            if (mode === "edit")   toast.success("Suspeito editado com sucesso!");
           }}
         />
       )}

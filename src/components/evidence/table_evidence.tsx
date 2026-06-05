@@ -7,6 +7,7 @@ import {
 import { Checkbox } from "../../../@/components/ui/checkbox";
 import { MdOutlineAddModerator } from "react-icons/md";
 import type { EvidenceFilters } from "../../pages/case/evidence";
+import EvidenceTableSkeleton from "./EvidenceTableSkeleton";
 
 type Status = "Coletada" | "Em análise" | "Custodiada" | "Descartada" | "Enviada a perícia";
 
@@ -324,7 +325,7 @@ export default function EvidenciasTable({
   const isIndeterminate = selected.size > 0 && selected.size < filtered.length;
 
   // ── Estados de carregamento / erro / vazio ──────────────────────────────
-  if (loading) return <p className="text-sm text-gray-400 p-6">Carregando evidências...</p>;
+  if (loading) return <EvidenceTableSkeleton />;
   if (error)   return <p className="text-sm text-red-400 p-6">{error}</p>;
 
   // Sem dados vindos da API → empty state com botão funcional

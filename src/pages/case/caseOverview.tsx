@@ -4,13 +4,13 @@ import {
   Users,
   Search,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import ActionButton from "@/components/ui/ActionButton";
-
 import InfoCard from "@/components/caseOverview/InfoCard";
 import MetricCard from "@/components/caseOverview/MetricCard";
 import Panel from "@/components/caseOverview/Panel";
@@ -21,6 +21,7 @@ import AccessCard from "@/components/caseOverview/AccessCard";
 import ProfileCard from "@/components/caseOverview/ProfileCard";
 import UncertaintyCard from "@/components/caseOverview/UncertaintyCard";
 import CreateCaseModal from "@/components/mycases/CreateCaseModal";
+import CaseOverviewSkeleton from "@/components/caseOverview/CaseOverviewSkeleton";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -38,6 +39,7 @@ export default function CaseOverview() {
   const [caseData, setCaseData] = useState<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
   const [editCaseOpen, setEditCaseOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -90,16 +92,19 @@ export default function CaseOverview() {
       navigate("/mycases");
     } catch (error) {
       console.error(error);
-      alert("Erro ao excluir caso.");
+      toast.error("Erro ao excluir caso.");
     }
   }
 
   useEffect(() => {
-    if (id) {
-      fetchCase();
-      fetchContacts();
-    }
+    if (!id) return;
+
+    Promise.all([fetchCase(), fetchContacts()]).finally(() => {
+      setLoading(false);
+    });
   }, [id]);
+
+  if (loading) return <CaseOverviewSkeleton />;
 
   return (
     <div className="min-h-screen bg-[#242424]">

@@ -3,6 +3,7 @@ import { Edit, Trash2, X } from "lucide-react";
 
 import Panel from "./Panel";
 import SecondaryButton from "../ui/SecondaryButton";
+import toast from "react-hot-toast";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -27,15 +28,12 @@ export default function AccessCard({ casoId }: Props) {
 
   const [modalOpen, setModalOpen] = useState(false);
 
-  const [email, setEmail] = useState("");
   const [papel, setPapel] = useState<"Editor" | "Leitor">("Leitor");
   const [roleOpen, setRoleOpen] = useState(false);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [editPapel, setEditPapel] = useState<"Editor" | "Leitor">("Leitor");
-
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [emailInput, setEmailInput] = useState("");
   const [emails, setEmails] = useState<string[]>([]);
@@ -90,23 +88,6 @@ export default function AccessCard({ casoId }: Props) {
     fetchUsers();
   }
 
-  function validateFields() {
-    if (!email.trim()) {
-      alert("Informe um email.");
-      return false;
-    }
-
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-      alert("Informe um email válido.");
-      return false;
-    }
-
-    return true;
-  }
-
   function addEmail() {
     const value = emailInput.trim().toLowerCase();
     if (!value) return;
@@ -114,19 +95,19 @@ export default function AccessCard({ casoId }: Props) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(value)) {
-      alert("Informe um email válido.");
+      toast.error("Informe um email válido.");
       return;
     }
 
     if (emails.includes(value)) {
-      alert("Este email já foi adicionado.");
+      toast.error("Este email já foi adicionado.");
       return;
     }
 
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
     if (currentUser?.email === value) {
-      alert("Você não pode convidar a si mesmo.");
+      toast.error("Você não pode convidar a si mesmo.");
       return;
     }
 
@@ -140,7 +121,7 @@ export default function AccessCard({ casoId }: Props) {
 
   async function handleInvite() {
     if (emails.length === 0) {
-      alert("Adicione pelo menos um colaborador.");
+      toast.error("Adicione pelo menos um colaborador.");
       return;
     }
 
@@ -173,7 +154,7 @@ export default function AccessCard({ casoId }: Props) {
       fetchUsers();
     } catch (error) {
       console.error(error);
-      alert("Erro ao enviar convite. Verifique se o usuário existe.");
+      toast.error("Erro ao enviar convite. Verifique se o usuário existe.");
     }
   }
 
