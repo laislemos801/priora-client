@@ -5,6 +5,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../../../@/components/ui/table";
 import { Checkbox } from "../../../@/components/ui/checkbox";
+import { MdOutlineAddModerator } from "react-icons/md";
 import type { EvidenceFilters } from "../../pages/case/evidence";
 
 type Status = "Coletada" | "Em análise" | "Custodiada" | "Descartada" | "Enviada a perícia";
@@ -85,7 +86,7 @@ function EvidenciaCard({ row, isSelected, onToggle }: { row: Evidencia; isSelect
     <div onClick={onToggle} className="bg-[#2B2B2B] rounded-lg p-4 flex flex-col gap-3 cursor-pointer active:bg-[#313131] transition-colors">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <Checkbox checked={isSelected}  onCheckedChange={() => {}} onClick={(e) => e.stopPropagation()}
+          <Checkbox checked={isSelected} onCheckedChange={() => {}} onClick={(e) => e.stopPropagation()}
             className="border-[#575757] rounded-sm data-[state=checked]:bg-[#139C73] data-[state=checked]:border-[#139C73]" />
           <div className="flex items-center gap-2">
             {tipoIconMap[row.tipo] ?? <File size={18} className="text-emerald-400" />}
@@ -103,7 +104,46 @@ function EvidenciaCard({ row, isSelected, onToggle }: { row: Evidencia; isSelect
   );
 }
 
-export default function EvidenciasTable({ filters, refreshKey, onSelectionChange,}: { filters: EvidenceFilters;  refreshKey: number,   onSelectionChange?: (ids: string[]) => void;}) {
+// ── Empty state ──────────────────────────────────────────────────────────────
+function EmptyEvidenceState({ onAdd }: { onAdd?: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 px-6 select-none">
+      <div className="mb-6 text-[#575757]">
+        <MdOutlineAddModerator size={80} />
+      </div>
+      <p className="text-slate-100 font-semibold text-xl mb-2 text-center">
+        Adicione uma nova evidência
+      </p>
+      <p className="text-slate-400 text-sm mb-8 text-center">
+        E comece a investigar seus casos.
+      </p>
+      {onAdd && (
+        <button
+          onClick={onAdd}
+          className="bg-[#139C73] hover:bg-[#0f7d5c] active:scale-95 transition-all duration-150 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"
+        >
+          Adicionar Evidências
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Props ────────────────────────────────────────────────────────────────────
+interface EvidenciasTableProps {
+  filters: EvidenceFilters;
+  refreshKey: number;
+  onSelectionChange?: (ids: string[]) => void;
+  onAdd?: () => void; // ← prop declarada corretamente aqui
+}
+
+// ── Main component ───────────────────────────────────────────────────────────
+export default function EvidenciasTable({
+  filters,
+  refreshKey,
+  onSelectionChange,
+  onAdd,
+}: EvidenciasTableProps) {
   const { id: casoId } = useParams<{ id: string }>();
   const [evidencias, setEvidencias] = useState<Evidencia[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,9 +192,12 @@ export default function EvidenciasTable({ filters, refreshKey, onSelectionChange
   const allSelected = filtered.length > 0 && selected.size === filtered.length;
   const isIndeterminate = selected.size > 0 && selected.size < filtered.length;
 
+  // ── Estados de carregamento / erro / vazio ──────────────────────────────
   if (loading) return <p className="text-sm text-gray-400 p-6">Carregando evidências...</p>;
   if (error)   return <p className="text-sm text-red-400 p-6">{error}</p>;
-  if (filtered.length === 0) return <p className="text-sm text-gray-500 p-6">Nenhuma evidência encontrada.</p>;
+
+  // Sem dados vindos da API → empty state com botão funcional
+  if (evidencias.length === 0) return <EmptyEvidenceState onAdd={onAdd} />;
 
   return (
     <div className="p-2 sm:p-6 w-full">

@@ -1,10 +1,12 @@
-import { registerUser } from "@/routes/user";
+import { registerUser, checkEmailExists } from "@/routes/user";
 import { useState } from "react";
 import { MdOutlineMail } from "react-icons/md";
 import {
   MdOutlineVisibility,
   MdOutlineVisibilityOff,
 } from "react-icons/md";
+import toast from "react-hot-toast"; 
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
   const [visibilityPassword, setVisibilityPassword] = useState(false);
@@ -16,13 +18,62 @@ export default function Register() {
   const [sobrenome, setSobrenome] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmSenha, setConfirmSenha] = useState("");
+  const navigate = useNavigate();
+  const [errors, setErrors] = useState({
+    email: false,
+    primeiroNome: false,
+    sobrenome: false,
+    senha: false,
+    confirmSenha: false,
+  });
 
-  async function handleRegister() {
-  if (senha !== confirmSenha) {
-    alert("As senhas não coincidem");
+  const inputClass = (hasError: boolean): string => {
+    return `bg-[#0E0E10] w-full h-12 text-[#A6A6A6] flex items-center justify-between px-5 rounded-full border transition-all duration-200 ${
+      hasError
+        ? "border-red-800"
+        : "border-transparent focus-within:border-[#139C73]"
+    }`;
+  };
+
+ async function handleRegister() {
+  const newErrors = {
+    email: !email.trim(),
+    primeiroNome: !primeiroNome.trim(),
+    sobrenome: !sobrenome.trim(),
+    senha: !senha.trim(),
+    confirmSenha: !confirmSenha.trim(),
+  };
+
+  setErrors(newErrors);
+
+  if (Object.values(newErrors).some(Boolean)) {
+    toast.error("Todos os campos são obrigatórios");
     return;
   }
 
+  if (senha.length < 8) {
+    toast.error("A senha deve conter pelo menos 8 caracteres");
+    return;
+  }
+
+  if (senha !== confirmSenha) {
+    toast.error("As senhas não coincidem");
+    return;
+  }
+
+  
+  try {
+    const emailJaCadastrado = await checkEmailExists(email);
+    if (emailJaCadastrado) {
+      setErrors((prev) => ({ ...prev, email: true }));
+      toast.error("Este email já está cadastrado");
+      return;
+    }
+  } catch (error) {
+    console.error("Erro ao verificar email:", error);
+    toast.error("Não foi possível verificar o email");
+    return;
+  }
   try {
     const data = await registerUser({
       email,
@@ -33,22 +84,22 @@ export default function Register() {
 
     console.log(data);
 
-    alert("Usuário cadastrado com sucesso!");
-
+    toast.success("Usuário cadastrado com sucesso!");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
   } catch (error) {
     if (error instanceof Error) {
-      alert(error.message);
+      toast.error(error.message);
     } else {
-      alert("Erro inesperado");
+      toast.error("Erro inesperado");
     }
   }
 }
 
   return (
-    <div
-      className="flex w-full h-screen bg-no-repeat bg-center bg-cover justify-between items-center"
-      style={{ backgroundImage: "url(src/assets/backgroundDesktop.png)" }}
-    >
+    <div className="dark-circuit-wrapper flex w-full h-screen justify-between items-center">
+      <div className="dark-circuit-background" />
       <div className="w-[60%] ml-4 lg:block hidden h-[95%] transition-all">
         <img
           src="src/assets/er.png"
@@ -57,112 +108,180 @@ export default function Register() {
         />
       </div>
 
-      <div className="flex w-full lg:w-[25%] h-full flex-col items-center px-10 lg:px-0 pt-13 lg:pt-0 justify-start lg:justify-center gap-10 lg:mr-20">
+      <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-6 mx-auto gap-10">
         <div>
           <img src="src/assets/logoHorizon.png" alt="logo" />
         </div>
 
         <div>
-          <p className="text-[#D9D9D9] text-[20px] font-semibold mb-4">
+          <p className="text-[#D9D9D9]  sm:text-sm  md:text-2xl font-semibold mb-4">
             Cadastro
           </p>
         </div>
 
         <div className="flex flex-col gap-6 w-full">
-          <div className="bg-[#0E0E10] text-[#A6A6A6] flex py-3 rounded-full items-center justify-between px-5">
-            <input
-              type="text"
-              placeholder="Email"
-              className="w-full bg-transparent outline-none"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <MdOutlineMail size={28} />
-          </div>
 
-          <div className="bg-[#0E0E10] text-[#A6A6A6] flex py-3 rounded-full px-5">
-            <input
-              type="text"
-              placeholder="Primeiro Nome"
-              className="w-full bg-transparent outline-none"
-              value={primeiroNome}
-              onChange={(e) => setPrimeiroNome(e.target.value)}
-            />
-          </div>
+          <div>
+            <div className={inputClass(errors.email)}>
+              <input
+                type="text"
+                placeholder="Email"
+                className="w-full bg-transparent text-white outline-none"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((prev) => ({ ...prev, email: false }));
+                }}
+              />
+              <MdOutlineMail size={24} />
+            </div>
 
-          <div className="bg-[#0E0E10] text-[#A6A6A6] flex py-3 rounded-full px-5">
-            <input
-              type="text"
-              placeholder="Sobrenome"
-              className="w-full bg-transparent outline-none"
-              value={sobrenome}
-              onChange={(e) => setSobrenome(e.target.value)}
-            />
+            {errors.email && (
+              <p className="text-red-600 text-sm mt-1 ml-5">
+                Campo obrigatório
+              </p>
+            )}
           </div>
 
           <div>
-            <div className="bg-[#0E0E10] text-[#A6A6A6] flex py-3 rounded-full items-center justify-between px-5">
+          <div className={inputClass(errors.primeiroNome)}>
+            <input
+              type="text"
+              placeholder="Primeiro Nome"
+              className="w-full bg-transparent text-white outline-none"
+              value={primeiroNome}
+              onChange={(e) => {
+                setPrimeiroNome(e.target.value);
+                setErrors((prev) => ({ ...prev, primeiroNome: false }));
+              }}
+            />
+          </div>
+
+          {errors.primeiroNome && (
+            <p className="text-red-600 text-sm mt-1 ml-5">
+              Campo obrigatório
+            </p>
+          )}
+        </div>
+
+          <div>
+            <div className={inputClass(errors.sobrenome)}>
+              <input
+                type="text"
+                placeholder="Sobrenome"
+                className="w-full bg-transparent text-white outline-none"
+                value={sobrenome}
+                onChange={(e) => {
+                  setSobrenome(e.target.value);
+                  setErrors((prev) => ({ ...prev, sobrenome: false }));
+                }}
+              />
+            </div>
+
+            {errors.sobrenome && (
+              <p className="text-red-600 text-xs mt-1 ml-3">
+                Campo obrigatório
+              </p>
+            )}
+          </div>
+
+          <div>
+            <div className={inputClass(errors.senha)}>
               <input
                 type={visibilityPassword ? "text" : "password"}
                 placeholder="Senha"
-                className="w-full bg-transparent outline-none"
+                className="w-full bg-transparent text-white outline-none"
                 value={senha}
-                onChange={(e) => setSenha(e.target.value)}
+                onChange={(e) => {
+                  setSenha(e.target.value);
+                  setErrors((prev) => ({ ...prev, senha: false }));
+                }}
               />
 
               {visibilityPassword ? (
                 <MdOutlineVisibilityOff
-                  size={28}
+                  size={24}
+                  className="cursor-pointer"
                   onClick={() => setVisibilityPassword(false)}
                 />
               ) : (
                 <MdOutlineVisibility
-                  size={28}
+                  size={24}
+                  className="cursor-pointer"
                   onClick={() => setVisibilityPassword(true)}
                 />
               )}
             </div>
+            {errors.senha && (
+              <p className="text-red-600 text-sm mt-1 ml-5">
+                Campo obrigatório
+              </p>
+            )}
 
-            <p className="text-[#8B8B8B] text-[10px] ml-5 mt-1">
+            <p className="text-[#8B8B8B] text-sm ml-5 mt-2">
               Sua senha deve conter 8 ou mais caracteres.
             </p>
+            
           </div>
-
-          <div className="bg-[#0E0E10] text-[#A6A6A6] flex py-3 rounded-full items-center justify-between px-5">
-            <input
-              type={visibilityPasswordConfirm ? "text" : "password"}
-              placeholder="Confirmar Senha"
-              className="w-full bg-transparent outline-none"
-              value={confirmSenha}
-              onChange={(e) => setConfirmSenha(e.target.value)}
-            />
-
-            {visibilityPasswordConfirm ? (
-              <MdOutlineVisibilityOff
-                size={28}
-                onClick={() => setVisibilityPasswordConfirm(false)}
+          <div> 
+            <div className={inputClass(errors.confirmSenha)}>
+              <input
+                type={visibilityPasswordConfirm ? "text" : "password"}
+                placeholder="Confirmar Senha"
+                className="w-full bg-transparent text-white outline-none"
+                value={confirmSenha}
+                onChange={(e) => {
+                  setConfirmSenha(e.target.value);
+                  setErrors((prev) => ({ ...prev, confirmSenha: false }));
+                }}
               />
-            ) : (
-              <MdOutlineVisibility
-                size={28}
-                onClick={() => setVisibilityPasswordConfirm(true)}
-              />
+
+              {visibilityPasswordConfirm ? (
+                <MdOutlineVisibilityOff
+                  size={24}
+                  className="cursor-pointer"
+                  onClick={() => setVisibilityPasswordConfirm(false)}
+                />
+              ) : (
+                <MdOutlineVisibility
+                  size={24}
+                  className="cursor-pointer"
+                  onClick={() => setVisibilityPasswordConfirm(true)}
+                />
+              )}
+            </div>
+            {errors.confirmSenha && (
+              <p className="text-red-600 text-xs mt-1 ml-3">
+                Campo obrigatório
+              </p>
             )}
           </div>
         </div>
-
         <div className="w-full items-center flex flex-col gap-4">
           <button
             onClick={handleRegister}
-            className="bg-[linear-gradient(90deg,#139C73,#136D52)] w-full py-3 rounded-full text-white font-bold"
-          >
+            className="
+                bg-[linear-gradient(90deg,#139C73,#136D52)]
+                w-full
+                py-3
+                rounded-full
+                text-white
+                font-bold
+                transition-all
+                duration-300
+                hover:scale-[1.02]
+                hover:shadow-[0_0_20px_rgba(19,156,115,0.35)]
+                hover:brightness-110
+                active:scale-[0.98]
+                cursor-pointer
+              "          >
             CADASTRAR
           </button>
 
           <div>
             <p className="text-white">
               Já tem uma conta?{" "}
-              <a className="text-[#139C73] underline" href="/login">
+              <a className="text-[#139C73] underline hover:text-[#4ea38a]" href="/login">
                 Login
               </a>
             </p>

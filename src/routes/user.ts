@@ -49,3 +49,14 @@ export async function loginUser(data: LoginData) {
 
   return result;
 }
+
+export async function checkEmailExists(email: string): Promise<boolean> {
+  const response = await fetch(
+    `http://127.0.0.1:8000/users/check-email?email=${encodeURIComponent(email)}`
+  );
+
+  if (!response.ok) throw new Error("Erro ao verificar email");
+
+  const data = await response.json();
+  return data.exists;
+}
