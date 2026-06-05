@@ -140,7 +140,7 @@ function NavButton({
       )}
       <span className={[
         "flex-shrink-0 flex items-center justify-center w-[22px] transition-colors duration-[180ms] text-[#D9D9D9]/65",
-        active ? "text-green-400" : "",
+        active ? "text-emerald-400" : "",
       ].join(" ")}>
         {icons[item.icon]}
       </span>
@@ -269,7 +269,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
       {/* ── Footer ── */}
       <footer className="flex justify-center px-2 pt-2 pb-[14px] border-t border-[#242426] flex-shrink-0">
         <button
-          onClick={onLogout}
+           onClick={() => onLogout?.()}
           title="Sair"
           className={[
             "flex items-center justify-center gap-2 rounded-[10px]",

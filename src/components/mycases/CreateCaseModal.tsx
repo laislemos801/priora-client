@@ -4,31 +4,80 @@ import CustomDropdown from "../ui/CustomDropdown";
 import DatePicker from "../ui/DatePicker";
 import PrimaryButton from "../ui/PrimaryButton";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { RiAlertFill } from "react-icons/ri";
+import toast from "react-hot-toast";
 
 const STATUS_OPTIONS = [
-  { value: "ativo", label: "Ativo", color: "#4caf7d" },
-  { value: "pendente", label: "Pendente", color: "#e0a030" },
-  { value: "finalizado", label: "Finalizado", color: "#777" },
+  { value: "ativo",      label: "Ativo",      color: "#4caf7d" },
+  { value: "pendente",   label: "Pendente",   color: "#e0a030" },
+  { value: "finalizado", label: "Finalizado", color: "#777"    },
 ];
 
 const PRIORIDADE_OPTIONS = [
-  { value: "baixa", label: "Baixa", icon: <ArrowDown size={14} color="#5b9cf6" /> },
-  { value: "media", label: "Média", icon: <Minus size={14} color="#e0a030" /> },
-  { value: "alta", label: "Alta", icon: <ArrowUp size={14} color="#e05555" /> },
+  { value: "baixa",   label: "Baixa",   icon: <ArrowDown size={14} color="#5b9cf6" /> },
+  { value: "media",   label: "Média",   icon: <Minus     size={14} color="#e0a030" /> },
+  { value: "alta",    label: "Alta",    icon: <ArrowUp   size={14} color="#e05555" /> },
+  { value: "critica", label: "Crítica", icon: <RiAlertFill size={14} color="#ff3b3b" /> },
 ];
 
 const ESTADO_OPTIONS = [
-  { value: "sp", label: "SP", meta: "São Paulo" },
-  { value: "rj", label: "RJ", meta: "Rio de Janeiro" },
-  { value: "mg", label: "MG", meta: "Minas Gerais" },
+  { value: "AC", label: "AC", meta: "Acre" },
+  { value: "AL", label: "AL", meta: "Alagoas" },
+  { value: "AP", label: "AP", meta: "Amapá" },
+  { value: "AM", label: "AM", meta: "Amazonas" },
+  { value: "BA", label: "BA", meta: "Bahia" },
+  { value: "CE", label: "CE", meta: "Ceará" },
+  { value: "DF", label: "DF", meta: "Distrito Federal" },
+  { value: "ES", label: "ES", meta: "Espírito Santo" },
+  { value: "GO", label: "GO", meta: "Goiás" },
+  { value: "MA", label: "MA", meta: "Maranhão" },
+  { value: "MT", label: "MT", meta: "Mato Grosso" },
+  { value: "MS", label: "MS", meta: "Mato Grosso do Sul" },
+  { value: "MG", label: "MG", meta: "Minas Gerais" },
+  { value: "PA", label: "PA", meta: "Pará" },
+  { value: "PB", label: "PB", meta: "Paraíba" },
+  { value: "PR", label: "PR", meta: "Paraná" },
+  { value: "PE", label: "PE", meta: "Pernambuco" },
+  { value: "PI", label: "PI", meta: "Piauí" },
+  { value: "RJ", label: "RJ", meta: "Rio de Janeiro" },
+  { value: "RN", label: "RN", meta: "Rio Grande do Norte" },
+  { value: "RS", label: "RS", meta: "Rio Grande do Sul" },
+  { value: "RO", label: "RO", meta: "Rondônia" },
+  { value: "RR", label: "RR", meta: "Roraima" },
+  { value: "SC", label: "SC", meta: "Santa Catarina" },
+  { value: "SP", label: "SP", meta: "São Paulo" },
+  { value: "SE", label: "SE", meta: "Sergipe" },
+  { value: "TO", label: "TO", meta: "Tocantins" },
 ];
 
-const CIDADE_OPTIONS = [
-  { value: "campinas", label: "Campinas" },
-  { value: "sao_paulo", label: "São Paulo" },
-];
+const STATUS_MAP: Record<string, string> = {
+  ativo:      "Ativo",
+  pendente:   "Arquivado",
+  finalizado: "Concluído",
+};
+
+const PRIORIDADE_MAP: Record<string, string> = {
+  baixa:   "Baixa",
+  media:   "Média",
+  alta:    "Alta",
+  critica: "Crítica",
+};
+
+const STATUS_REVERSE_MAP: Record<string, string> = {
+  Ativo: "ativo",
+  Arquivado: "pendente",
+  Concluído: "finalizado",
+};
+
+const PRIORIDADE_REVERSE_MAP: Record<string, string> = {
+  Baixa: "baixa",
+  Média: "media",
+  Alta: "alta",
+  Crítica: "critica",
+};
 
 type FormState = {
+  cep: string;
   nome: string;
   status: string;
   prioridade: string;
@@ -45,10 +94,25 @@ const LABEL =
   "text-[11px] font-medium text-[#888] uppercase tracking-widest block mb-1.5";
 
 const INPUT =
-  "w-full bg-[#282828] border border-[#434343] rounded-md px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6] focus:border-[#434343] transition-colors";
+  "w-full bg-[#282828] border border-[#434343] rounded-md px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6] hover:border-[#606060] focus:border-[#606060] transition-colors";
 
-export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
+const ERROR_CLASS = "text-[11px] text-red-400 mt-1";
+
+type CreateCaseModalProps = {
+  onClose: () => void;
+  onSuccess?: () => void;
+  mode?: "create" | "edit";
+  caseData?: any;
+};
+
+export default function CreateCaseModal({
+  onClose,
+  onSuccess,
+  mode = "create",
+  caseData,
+}: CreateCaseModalProps) {
   const [form, setForm] = useState<FormState>({
+    cep: "",
     nome: "",
     status: "",
     prioridade: "",
@@ -61,26 +125,125 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
     data: "",
   });
 
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
+  const [cepLoading, setCepLoading] = useState(false);
+  const [cepError, setCepError]     = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mode !== "edit" || !caseData) return;
+
+    setForm({
+      cep: caseData.enderecoCep || "",
+      nome: caseData.nome || "",
+      status: STATUS_REVERSE_MAP[caseData.status] || "",
+      prioridade: PRIORIDADE_REVERSE_MAP[caseData.prioridade] || "",
+      descricao: caseData.descricao || "",
+      endereco: caseData.enderecoLogradouro || "",
+      numero: caseData.enderecoNumero || "",
+      bairro: caseData.enderecoBairro || "",
+      estado: caseData.enderecoEstado || "",
+      cidade: caseData.enderecoCidade || "",
+      data: caseData.dataOcorrencia || "",
+    });
+  }, [mode, caseData]);
+
   const handleInput = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) =>
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+  ) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleDropdown = (name: string, value: string) =>
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => ({ ...prev, [name]: value }));
 
-    useEffect(() => {
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = "auto";
-      };
-    }, []);
+  const handleCep = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "").slice(0, 8);
+    setForm((prev) => ({ ...prev, cep: raw }));
+    setCepError(null);
+
+    if (raw.length !== 8) return;
+
+    try {
+      setCepLoading(true);
+      const res  = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
+      const data = await res.json();
+
+      if (data.erro) {
+        setCepError("CEP não encontrado.");
+        return;
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        endereco: data.logradouro ?? prev.endereco,
+        bairro:   data.bairro    ?? prev.bairro,
+        cidade:   data.localidade ?? prev.cidade,
+        estado:   data.uf        ?? prev.estado,
+      }));
+    } catch {
+      setCepError("Erro ao buscar CEP.");
+    } finally {
+      setCepLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setError(null);
+
+    if (!form.nome.trim())      return setError("Nome do caso é obrigatório.");
+    if (!form.status)           return setError("Status é obrigatório.");
+    if (!form.prioridade)       return setError("Prioridade é obrigatória.");
+    if (!form.descricao.trim()) return setError("Descrição é obrigatória.");
+    if (!form.data)             return setError("Data de ocorrência é obrigatória.");
+
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+    const payload = {
+      userId:             currentUser.id,
+      nome:               form.nome.trim(),
+      descricao:          form.descricao.trim(),
+      status:             STATUS_MAP[form.status],
+      prioridade:         PRIORIDADE_MAP[form.prioridade],
+      enderecoLogradouro: form.endereco.trim() || null,
+      enderecoNumero:     form.numero.trim()   || null,
+      enderecoBairro:     form.bairro.trim()   || null,
+      enderecoCidade:     form.cidade.trim()   || null,
+      enderecoEstado:     form.estado          || null,
+      dataOcorrencia:     form.data,
+      enderecoCep: form.cep || null
+    };
+
+    try {
+      setLoading(true);
+      const url =
+        mode === "edit"
+          ? `http://localhost:8000/cases/${caseData.id}`
+          : "http://localhost:8000/cases/";
+
+      const res = await fetch(url, {
+        method: mode === "edit" ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        throw new Error(json?.detail ?? `Erro ${res.status}`);
+      }
+
+      onSuccess?.();
+      onClose();
+      toast.success(mode === "edit" ? "Caso atualizado com sucesso!" : "Caso criado com sucesso!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro ao salvar o caso.";
+      setError(msg);
+      toast.error(msg);
+    }
+  };
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = "auto"; };
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3">
@@ -89,12 +252,11 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
         {/* HEADER */}
         <div className="flex justify-between items-center px-5 py-4 border-b border-[#2e2e2e]">
           <h2 className="text-[15px] font-medium text-[#e8e8e8]">
-            Novo Caso
+            {mode === "edit" ? "Editar Caso" : "Novo Caso"}
           </h2>
-
           <button
             onClick={onClose}
-            className="text-[#666] hover:text-[#ccc] text-base"
+            className="text-[#ccc] transition-colors text-base hover:bg-[#ccc]/10 rounded-full w-8 h-8 flex items-center justify-center"
           >
             ✕
           </button>
@@ -103,83 +265,76 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
         {/* FORM */}
         <div className="p-4 md:p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
 
-          {/* Nome */}
           <div>
             <label className={LABEL}>Nome do caso</label>
-            <input
-              name="nome"
-              onChange={handleInput}
-              placeholder="Nome caso"
-              className={INPUT}
-            />
+            <input name="nome" value={form.nome} onChange={handleInput} placeholder="Nome caso" className={INPUT} />
           </div>
 
-          {/* Status */}
           <div>
             <label className={LABEL}>Status</label>
-            <CustomDropdown
-              name="status"
-              placeholder="Status"
-              options={STATUS_OPTIONS}
-              value={form.status}
-              onChange={handleDropdown}
-            />
+            <CustomDropdown name="status" placeholder="Status" options={STATUS_OPTIONS} value={form.status} onChange={handleDropdown} />
           </div>
 
-          {/* Prioridade */}
           <div>
             <label className={LABEL}>Prioridade</label>
-            <CustomDropdown
-              name="prioridade"
-              placeholder="Prioridade"
-              options={PRIORIDADE_OPTIONS}
-              value={form.prioridade}
-              onChange={handleDropdown}
-            />
+            <CustomDropdown name="prioridade" placeholder="Prioridade" options={PRIORIDADE_OPTIONS} value={form.prioridade} onChange={handleDropdown} />
           </div>
 
-          {/* Descrição */}
           <div className="md:col-span-3">
             <label className={LABEL}>Descrição</label>
-            <textarea
-              name="descricao"
-              onChange={handleInput}
-              className={`${INPUT} h-24 resize-none`}
-            />
+            <textarea name="descricao" value={form.descricao} onChange={handleInput} className={`${INPUT} h-24 resize-none`} />
           </div>
 
-          {/* Endereço */}
-          <div className="md:col-span-2">
-            <label className={LABEL}>Endereço principal</label>
+          {/* CEP */}
+          <div>
+            <label className={LABEL}>CEP</label>
+            <div className="relative">
+              <input
+                name="cep"
+                value={form.cep}
+                onChange={handleCep}
+                placeholder="00000000"
+                maxLength={8}
+                className={INPUT}
+              />
+              {cepLoading && (
+                <span className="absolute right-3 top-2.5 text-[10px] text-gray-400 animate-pulse">
+                  buscando...
+                </span>
+              )}
+            </div>
+            {cepError && <p className={ERROR_CLASS}>{cepError}</p>}
+          </div>
+
+          {/* Endereço preenchido pelo CEP, editável manualmente */}
+          <div className="md:col-span-1">
+            <label className={LABEL}>Endereço</label>
             <input
               name="endereco"
+              value={form.endereco}
               onChange={handleInput}
               placeholder="Rua, Avenida..."
               className={INPUT}
             />
           </div>
 
-          {/* Número */}
           <div>
             <label className={LABEL}>Número</label>
-            <input
-              name="numero"
-              onChange={handleInput}
-              className={INPUT}
-            />
+            <input name="numero" value={form.numero} onChange={handleInput} className={INPUT} />
           </div>
 
-          {/* Bairro */}
           <div>
             <label className={LABEL}>Bairro</label>
             <input
               name="bairro"
+              value={form.bairro}
               onChange={handleInput}
+              placeholder="Bairro"
               className={INPUT}
             />
           </div>
 
-          {/* Estado */}
+          {/* Estado — dropdown com todos os 27 estados */}
           <div>
             <label className={LABEL}>Estado</label>
             <CustomDropdown
@@ -188,36 +343,43 @@ export default function CreateCaseModal({ onClose }: { onClose: () => void }) {
               options={ESTADO_OPTIONS}
               value={form.estado}
               onChange={handleDropdown}
+              menuClassName="max-h-36"  
             />
           </div>
 
-          {/* Cidade */}
+          {/* Cidade — input de texto livre preenchido pelo CEP */}
           <div>
             <label className={LABEL}>Cidade</label>
-            <CustomDropdown
+            <input
               name="cidade"
-              placeholder="Cidade"
-              options={CIDADE_OPTIONS}
               value={form.cidade}
-              onChange={handleDropdown}
+              onChange={handleInput}
+              placeholder="Cidade"
+              className={INPUT}
             />
           </div>
 
-          {/* Data */}
-            <div>
-                <label className={LABEL}>Data</label>
-                <DatePicker
-                    name="data"
-                    value={form.data}
-                    onChange={handleDropdown}
-                />
-            </div>
+          <div>
+            <label className={LABEL}>Data</label>
+            <DatePicker name="data" value={form.data} onChange={handleDropdown} />
+          </div>
+
         </div>
 
         {/* FOOTER */}
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-[#2e2e2e]">
-          <PrimaryButton>Salvar</PrimaryButton>
+        <div className="flex flex-col items-end gap-2 px-5 py-4 border-t border-[#2e2e2e]">
+          {error && <p className={ERROR_CLASS}>{error}</p>}
+          <PrimaryButton onClick={handleSubmit}>
+            {loading
+            ? mode === "edit"
+              ? "Salvando..."
+              : "Salvando..."
+            : mode === "edit"
+              ? "Salvar alterações"
+              : "Salvar"}
+          </PrimaryButton>
         </div>
+
       </div>
     </div>
   );
