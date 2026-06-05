@@ -572,6 +572,11 @@ export default function Analysis() {
 
                     </div>
 
+                    <div className="mt-4 text-center text-xs text-gray-400 max-w-md mx-auto">
+                      O denominador é a soma das pontuações de todos os suspeitos.
+                      Ele normaliza o resultado para que as probabilidades finais somem 100% no conjunto.
+                    </div>
+
                   </div>
 
                 </div>
