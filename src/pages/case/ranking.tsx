@@ -12,6 +12,7 @@ import SuspectModal from "@/components/suspect/SuspectModal";
 import EmptySuspectState from "@/components/suspect/EmptySuspectState";
 import FilterPanelRanking from "@/components/suspect/Filter_suspect";
 import RankingSkeleton from "@/components/suspect/RankingSkeleton";
+import toast from "react-hot-toast";
 
 import type {
   RankingFilters,
@@ -152,14 +153,13 @@ export default function Ranking() {
   }
 
   function handleEdit() {
-
     if (selectedIds.length === 0) {
-      alert("Selecione o suspeito que deseja editar.");
+      toast.error("Selecione o suspeito que deseja editar.");
       return;
     }
 
     if (selectedIds.length > 1) {
-      alert("Selecione apenas um suspeito para editar.");
+      toast.error("Selecione apenas um suspeito para editar.");
       return;
     }
 
@@ -172,14 +172,11 @@ export default function Ranking() {
 
   async function handleDelete() {
     if (!id || selectedIds.length === 0) {
-      alert("Selecione pelo menos um suspeito.");
+      toast.error("Selecione pelo menos um suspeito.");
       return;
     }
 
-    const confirmed = confirm(
-      "Deseja deletar os suspeitos selecionados?"
-    );
-
+    const confirmed = confirm("Deseja deletar os suspeitos selecionados?");
     if (!confirmed) return;
 
     try {
@@ -191,9 +188,14 @@ export default function Ranking() {
 
       setSelectedIds([]);
       fetchSuspects();
+      toast.success(                          // ← aqui, no try
+        selectedIds.length > 1
+          ? "Suspeitos deletados com sucesso!"
+          : "Suspeito deletado com sucesso!"
+      );
     } catch (error) {
       console.error(error);
-      alert("Erro ao deletar suspeito.");
+      toast.error("Erro ao deletar suspeito.");  // ← erro no catch
     }
   }
 
@@ -317,11 +319,13 @@ export default function Ranking() {
             setModalOpen(false);
             setEditingSuspect(null);
           }}
-          onSuccess={() => {
+          onSuccess={(mode) => {
             setModalOpen(false);
             setEditingSuspect(null);
             setSelectedIds([]);
             fetchSuspects();
+            if (mode === "create") toast.success("Suspeito adicionado com sucesso!");
+            if (mode === "edit")   toast.success("Suspeito editado com sucesso!");
           }}
         />
       )}

@@ -4,13 +4,13 @@ import {
   Users,
   Search,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import ActionButton from "@/components/ui/ActionButton";
-
 import InfoCard from "@/components/caseOverview/InfoCard";
 import MetricCard from "@/components/caseOverview/MetricCard";
 import Panel from "@/components/caseOverview/Panel";
@@ -92,7 +92,7 @@ export default function CaseOverview() {
       navigate("/mycases");
     } catch (error) {
       console.error(error);
-      alert("Erro ao excluir caso.");
+      toast.error("Erro ao excluir caso.");
     }
   }
 

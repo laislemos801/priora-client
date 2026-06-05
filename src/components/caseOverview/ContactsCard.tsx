@@ -1,8 +1,8 @@
 import { Edit, Trash2, X, Phone, Briefcase } from "lucide-react";
 import { useState } from "react";
-import PrimaryButton from "@/components/ui/PrimaryButton";
 import SecondaryButton from "../ui/SecondaryButton";
 import Panel from "./Panel";
+import toast from "react-hot-toast";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -75,27 +75,27 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
 
   function validateFields() {
     if (!nome.trim()) {
-      alert("Informe o nome do contato.");
+      toast.error("Informe o nome do contato.");
       return false;
     }
 
     if (!cargo.trim()) {
-      alert("Informe o cargo do contato.");
+      toast.error("Informe o cargo do contato.");
       return false;
     }
 
     if (nome.trim().length > MAX_NOME) {
-      alert(`O nome deve ter no máximo ${MAX_NOME} caracteres.`);
+      toast.error(`O nome deve ter no máximo ${MAX_NOME} caracteres.`);
       return false;
     }
 
     if (cargo.trim().length > MAX_CARGO) {
-      alert(`O cargo deve ter no máximo ${MAX_CARGO} caracteres.`);
+      toast.error(`O cargo deve ter no máximo ${MAX_CARGO} caracteres.`);
       return false;
     }
 
     if (celular && celular.replace(/\D/g, "").length !== 11) {
-      alert("Informe um celular válido.");
+      toast.error("Informe um celular válido.");
       return false;
     }
 
