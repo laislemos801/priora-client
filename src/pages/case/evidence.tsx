@@ -164,6 +164,7 @@ export default function Evidence() {
             filters={filters}
             refreshKey={refreshKey}
             onSelectionChange={setSelectedIds}
+            onAdd={() => setOpenModal(true)} 
           />
         </div>
       </div>

@@ -5,6 +5,7 @@ import DatePicker from "../ui/DatePicker";
 import PrimaryButton from "../ui/PrimaryButton";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { RiAlertFill } from "react-icons/ri";
+import toast from "react-hot-toast";
 
 const STATUS_OPTIONS = [
   { value: "ativo",      label: "Ativo",      color: "#4caf7d" },
@@ -231,10 +232,11 @@ export default function CreateCaseModal({
 
       onSuccess?.();
       onClose();
+      toast.success(mode === "edit" ? "Caso atualizado com sucesso!" : "Caso criado com sucesso!");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar o caso.");
-    } finally {
-      setLoading(false);
+      const msg = err instanceof Error ? err.message : "Erro ao salvar o caso.";
+      setError(msg);
+      toast.error(msg);
     }
   };
 

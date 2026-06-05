@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MdOutlineMail } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast"; 
 
 export default function Recover() {
   const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ export default function Recover() {
       });
 
       if (!response.ok) {
-        alert("Erro ao enviar email");
+        toast.error("Erro ao enviar email");
         return;
       }
 
@@ -28,15 +29,13 @@ export default function Recover() {
     } catch (error) {
       console.log(error);
 
-      alert("Erro ao conectar");
+      toast.error("Erro ao conectar");
     }
   }
 
   return (
-    <div
-      className="flex w-full h-screen bg-no-repeat bg-center bg-cover justify-between items-center "
-      style={{ backgroundImage: "url(src/assets/backgroundDesktop.png)" }}
-    >
+    <div className="dark-circuit-wrapper flex w-full h-screen justify-between items-center">
+      <div className="dark-circuit-background" />
       <div className="w-[60%] ml-4 hidden lg:block  h-[95%] transition-all">
         <img
           src="src\assets\er.png"
@@ -44,7 +43,7 @@ export default function Recover() {
           className=" w-full h-full hidden lg:block "
         />
       </div>
-      <div className="flex w-full lg:w-[25%] h-full flex-col items-center px-10 justify-center gap-10 lg:mr-20">
+      <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-6 mx-auto gap-10">
         <div className="">
           <img src="src\assets\logoHorizon.png" alt="logo" />
         </div>
@@ -55,16 +54,16 @@ export default function Recover() {
           <p className="text-[#D9D9D9] text-[20px] font-semibold mb-4">
             Redefinição de senha
           </p>
-          <p className="text-[#D9D9D9] w-[50%] text-center text-[14px]">
+          <p className="text-[#D9D9D9] max-w-75 text-center text-[14px]">
             Digite seu e-mail para redefinir a senha.
           </p>
         </div>
         <div className="flex flex-col gap-6 w-full ">
-          <div className="bg-[#0E0E10] text-[#A6A6A6] flex py-3 rounded-full items-center justify-between px-5">
+            <div className="bg-[#0E0E10] w-full text-[#A6A6A6] flex py-2 rounded-full items-center justify-between px-5 border border-transparent focus-within:border-[#139C73] transition-all duration-200">
             <input
               type="email"
               placeholder="Email"
-              className="w-full bg-transparent outline-none"
+              className="w-full bg-transparent text-white outline-none border-none focus:outline-none focus:ring-0 focus:border-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -76,8 +75,21 @@ export default function Recover() {
         <div className="w-full items-center flex flex-col gap-4">
           <button
             onClick={handleRecover}
-            className="bg-[linear-gradient(90deg,#139C73,#136D52)] w-full py-3 rounded-full text-white font-bold"
-          >
+             className="
+                bg-[linear-gradient(90deg,#139C73,#136D52)]
+                w-full
+                py-3
+                rounded-full
+                text-white
+                font-bold
+                transition-all
+                duration-300
+                hover:scale-[1.02]
+                hover:shadow-[0_0_20px_rgba(19,156,115,0.35)]
+                hover:brightness-110
+                active:scale-[0.98]
+                cursor-pointer
+              "          >
             RECUPERAR SENHA
           </button>
         </div>
