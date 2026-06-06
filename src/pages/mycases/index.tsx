@@ -3,7 +3,6 @@ import CasesSection from "@/components/mycases/Casesboard";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { useState } from "react";
 import CreateCaseModal from "@/components/mycases/CreateCaseModal";
-// import EmptyState from "@/components/mycases/EmptyState";
 
 export default function Home() {
   const [openModal, setOpenModal] = useState(false);
@@ -25,7 +24,7 @@ export default function Home() {
             </PrimaryButton>
           </div>
 
-          <CasesSection key={refreshKey} />
+          <CasesSection key={refreshKey} onCreateCase={() => setOpenModal(true)} />
         </div>
       </div>
 

@@ -7,6 +7,8 @@ import { TbHelp } from "react-icons/tb";
 import { FaRegFolderOpen } from "react-icons/fa";
 import { MdOutlineBrokenImage } from "react-icons/md";
 import { useState, useEffect, useRef } from "react";
+import EmptyState from "./EmptyState";
+import CasesSectionSkeleton from "./CasesSectionSkeleton";
 
 type CaseFromAPI = {
   id: string;
@@ -23,6 +25,7 @@ type CaseFromAPI = {
   responsavelSobrenome: string | null;
   topSuspeitoNome: string | null;
   topSuspeitoProbab: number | null;
+  topSuspeitoFotoUrl: string | null;
   qtdSuspeitos: number;
   qtdEvidencias: number;
 };
@@ -45,7 +48,79 @@ function formatDate(raw: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
-export default function CasesSection() {
+const PRIORITY_COLORS: Record<string, string> = {
+  Baixa:   "#139C73",
+  Média:   "#FFE38D",
+  Alta:    "#FFC067",
+  Crítica: "#FF6055",
+};
+
+const CARD_H = "h-44";
+
+function PriorityChart({ cases }: { cases: CaseFromAPI[] }) {
+  const data = ["Baixa", "Média", "Alta", "Crítica"].map((p) => ({
+    name: p,
+    quantidade: cases.filter((c) => c.prioridade === p).length,
+    color: PRIORITY_COLORS[p],
+  }));
+
+  const max = Math.max(...data.map((d) => d.quantidade), 1);
+  const chartH = 60;
+  const topPad = 12; 
+  const barW = 28;
+  const gap = 36;
+  const paddingLeft = 10;
+  const totalW = paddingLeft * 2 + data.length * barW + (data.length - 1) * gap;
+
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${totalW} ${chartH + topPad + 16}`}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      {data.map((d, i) => {
+        const barH = Math.max((d.quantidade / max) * chartH, d.quantidade > 0 ? 4 : 0);
+        const x = paddingLeft + i * (barW + gap);
+        const y = topPad + (chartH - barH);
+
+        return (
+          <g key={d.name}>
+            <text
+              x={x + barW / 2}
+              y={y - 4}
+              textAnchor="middle"
+              fill="#ffffff"
+              fontSize={10}
+              fontWeight={600}
+            >
+              {d.quantidade}
+            </text>
+
+            <rect
+              x={x} y={y}
+              width={barW} height={barH}
+              fill={d.quantidade > 0 ? d.color : "#3a3a3a"}
+              rx={3}
+            />
+
+            <text
+              x={x + barW / 2}
+              y={topPad + chartH + 12}
+              textAnchor="middle"
+              fill="#9ca3af"
+              fontSize={10}
+            >
+              {d.name}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+export default function CasesSection({ onCreateCase }: { onCreateCase: () => void }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const [cases, setCases] = useState<CaseFromAPI[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,6 +191,8 @@ export default function CasesSection() {
     (activeFilters.dataInicio ? 1 : 0) +
     (activeFilters.dataFim ? 1 : 0);
 
+  if (loading) return <CasesSectionSkeleton />;
+
   return (
     <div className="h-full rounded-md p-4 flex flex-col gap-4">
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -165,9 +242,10 @@ export default function CasesSection() {
             </div>
           </div>
 
-          {loading && <p className="text-sm text-gray-400">Carregando casos...</p>}
-          {error && <p className="text-sm text-red-400">{error}</p>}
-          {!loading && !error && filtered.length === 0 && (
+          {!loading && !error && cases.length === 0 && (
+            <EmptyState onCreate={onCreateCase} />
+          )}
+          {!loading && !error && cases.length > 0 && filtered.length === 0 && (
             <p className="text-sm text-gray-500">Nenhum caso encontrado.</p>
           )}
 
@@ -183,15 +261,15 @@ export default function CasesSection() {
                 suspects={caso.qtdSuspeitos}
                 evidences={caso.qtdEvidencias}
                 uncertainty={caso.incerteza}
+                suspeitoNome={caso.topSuspeitoNome}
+                suspeitoFotoUrl={caso.topSuspeitoFotoUrl ?? null}
+                suspeitoProbab={caso.topSuspeitoProbab}
                 location={
                   caso.cidade && caso.estado
                     ? `${caso.cidade}, ${caso.estado}`
                     : caso.cidade ?? caso.estado ?? "—"
                 }
                 date={formatDate(caso.dataOcorrencia)}
-                detectiveName={caso.topSuspeitoNome ?? "—"}
-                detectiveImage="../../../elvinBond.svg"
-                confidence={caso.topSuspeitoProbab ?? 0}
                 responsible={
                   caso.responsavelPrimeiroNome && caso.responsavelSobrenome
                     ? `${caso.responsavelPrimeiroNome} ${caso.responsavelSobrenome}`
@@ -226,14 +304,18 @@ export default function CasesSection() {
             <MdOutlineBrokenImage className="absolute bottom-3 right-3 text-[#139C73]/48 text-4xl md:text-6xl" />
           </div>
 
-          <div className="bg-[#2A2A2A] flex-col justify-start items-start p-4 rounded-xl border border-[#3a3a3a] h-40 flex text-gray-500 text-sm">
+          <div className={`bg-[#2A2A2A] p-4 rounded-xl border border-[#3a3a3a] flex flex-col gap-2 ${CARD_H}`}>
             <p className="text-sm text-white">Prioridade de Casos Ativos:</p>
-            Gráfico aqui
+            <div className="flex-1 min-h-0">
+              <PriorityChart cases={ativos} />
+            </div>
           </div>
 
-          <div className="bg-[#2A2A2A] p-4 rounded-xl border border-[#3a3a3a] h-40 flex-col ustify-start items-start text-gray-500 text-sm">
+          <div className={`bg-[#2A2A2A] p-4 rounded-xl border border-[#3a3a3a] flex flex-col gap-2 ${CARD_H}`}>
             <p className="text-sm text-white">Evolução da Incerteza Média:</p>
-            Gráfico aqui
+            <div className="flex h-full items-center justify-center text-gray-500 text-xs">
+              Gráfico aqui
+            </div>
           </div>
         </div>
 

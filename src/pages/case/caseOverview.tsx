@@ -165,7 +165,7 @@ export default function CaseOverview() {
 
               <div className="grid gap-6 lg:grid-cols-[1fr_280px] xl:hidden">
                 <ProfileCard />
-                <UncertaintyCard />
+                <UncertaintyCard incerteza={caseData?.incerteza ?? null} />
               </div>
 
               <Panel title="Histórico Recente">
@@ -221,7 +221,7 @@ export default function CaseOverview() {
             <aside className="hidden space-y-4 xl:block">
               {id && <AccessCard casoId={id} />}
               <ProfileCard />
-              <UncertaintyCard />
+              <UncertaintyCard incerteza={caseData?.incerteza ?? null} />
             </aside>
           </main>
         </div>
