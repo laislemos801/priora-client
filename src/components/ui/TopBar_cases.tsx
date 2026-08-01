@@ -29,6 +29,8 @@ export default function TopBar() {
         return "Evidências";
       case "analysis":
         return "Análise";
+      case "evidenceBoard":
+        return "Quadro investigativo";
       default:
         return null; 
     }
