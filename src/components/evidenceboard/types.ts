@@ -13,6 +13,7 @@ export interface TextBoxData extends Record<string, unknown> {
 export interface ImageBoxData extends Record<string, unknown> {
   imageUrl: string;
   caption: string;
+  caseId: string;
 }
 
 export interface NoteData extends Record<string, unknown> {

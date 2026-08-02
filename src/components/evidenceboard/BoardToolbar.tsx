@@ -72,16 +72,16 @@ export default function BoardToolbar({
           onClick={onSave}
           disabled={isSaving}
           title="Salvar quadro"
-          className="p-1.5 rounded-md hover:bg-zinc-800 text-[#139C73] disabled:opacity-50"
+          className="p-2 rounded-md hover:bg-zinc-800 text-[#139C73] disabled:opacity-50"
         >
-          <Save size={16} />
+          <Save size={22} />
         </button>
         <button
           onClick={onDeleteSelected}
           title="Excluir selecionado"
-          className="p-1.5 rounded-md hover:bg-red-950 text-red-500"
+          className="p-2 rounded-md hover:bg-red-950 text-red-500"
         >
-          <Trash2 size={16} />
+          <Trash2 size={22} />
         </button>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Handle, Position, NodeToolbar, useReactFlow, useNodeId } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import type { TextBoxNodeType } from './types';
@@ -41,17 +41,29 @@ function EditableText({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const commit = useCallback(() => {
     setIsEditing(false);
     onCommit(draft);
   }, [draft, onCommit]);
 
+  // cresce a caixa junto com o texto em vez de mostrar scrollbar
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [draft, isEditing]);
+
   if (isEditing) {
     return (
       <textarea
+        ref={textareaRef}
         autoFocus
-        className={`nodrag nowheel w-full bg-transparent resize-none outline-none placeholder-current/50 ${className}`}
+        rows={1}
+        placeholder={placeholder}
+        className={`nodrag nowheel w-full bg-transparent resize-none outline-none overflow-hidden placeholder:text-current placeholder:opacity-40 ${className}`}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
@@ -73,10 +85,10 @@ function EditableText({
   return (
     <span
       onDoubleClick={() => {
-        setDraft(value);
+        setDraft(value); // começa vazio se ainda não tem texto — sem nada pra apagar
         setIsEditing(true);
       }}
-      className={`cursor-text whitespace-pre-wrap ${className}`}
+      className={`cursor-text whitespace-pre-wrap ${!value ? 'opacity-40' : ''} ${className}`}
     >
       {value || placeholder}
     </span>
@@ -161,7 +173,7 @@ export default function TextBoxNode({ data, selected }: NodeProps<TextBoxNodeTyp
           className={`absolute inset-2 rotate-45 border-2 shadow-lg ${selected ? 'ring-2 ring-white/40' : ''}`}
           style={boxStyle}
         />
-        <div className="absolute inset-0 flex items-center justify-center px-6">
+        <div className="absolute inset-0 flex items-center justify-center px-6 overflow-hidden">
           <div className="text-xs font-medium text-center leading-snug" style={{ color: boxStyle.color }}>
             {editable('text-center')}
           </div>
@@ -182,7 +194,7 @@ export default function TextBoxNode({ data, selected }: NodeProps<TextBoxNodeTyp
         </NodeToolbar>
 
         <div
-          className={`w-32 h-32 rounded-full border-2 shadow-lg flex items-center justify-center px-4 text-center text-sm font-medium leading-snug ${
+          className={`w-32 h-32 rounded-full border-2 shadow-lg flex items-center justify-center px-4 text-center text-sm font-medium leading-snug overflow-hidden ${
             selected ? 'ring-2 ring-white/40' : ''
           }`}
           style={boxStyle}

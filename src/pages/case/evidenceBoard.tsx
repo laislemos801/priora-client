@@ -27,16 +27,19 @@ const nodeTypes = {
   note: NoteNode,
 };
 
+
 function BoardCanvas({
   initialNodes,
   initialEdges,
   onSave,
   isSaving,
+  caseId,
 }: {
   initialNodes: BoardNode[];
   initialEdges: BoardEdge[];
   onSave: (nodes: BoardNode[], edges: BoardEdge[]) => void;
   isSaving: boolean;
+  caseId: string;
 }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -68,54 +71,58 @@ function BoardCanvas({
         ? screenToFlowPosition({ x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 })
         : { x: 250, y: 250 };
 
-      const id = crypto.randomUUID();
+      const nodeId = crypto.randomUUID();
       let newNode: BoardNode;
 
       switch (tool) {
         case 'image':
           newNode = {
-            id,
-            type: 'imageBox',
+            id: nodeId,
+            type: "imageBox",
             position: center,
-            data: { imageUrl: '', caption: 'Legenda...' },
+            data: {
+                imageUrl: "",
+                caption: "",
+                caseId: caseId,
+            },
           };
           break;
 
         case 'text':
           // label solto, sem caixa ao redor (ex: "Quem é?")
           newNode = {
-            id,
+            id: nodeId,
             type: 'note',
             position: center,
-            data: { text: 'Texto aqui...' },
+            data: { text: '' },
           };
           break;
 
         case 'note':
           // post-it de verdade: papel colorido, sem forma/caixa
           newNode = {
-            id,
+              id: nodeId,
             type: 'textBox',
             position: center,
-            data: { label: 'Texto aqui...', color: '#fde68a', variant: 'postit' },
+            data: { label: '', color: '#fde68a', variant: 'postit' },
           };
           break;
 
         case 'circle':
           newNode = {
-            id,
+              id: nodeId,
             type: 'textBox',
             position: center,
-            data: { label: 'Texto aqui...', color: '#9b6ff0', shape: 'circle' },
+            data: { label: '', color: '#9b6ff0', shape: 'circle' },
           };
           break;
 
         case 'diamond':
           newNode = {
-            id,
+              id: nodeId,
             type: 'textBox',
             position: center,
-            data: { label: 'Texto aqui...', color: '#9b6ff0', shape: 'diamond' },
+            data: { label: '', color: '#9b6ff0', shape: 'diamond' },
           };
           break;
 
@@ -127,10 +134,10 @@ function BoardCanvas({
         // 'rectangle'
         default:
           newNode = {
-            id,
+            id: nodeId,
             type: 'textBox',
             position: center,
-            data: { label: 'Texto aqui...', color: '#9b6ff0', shape: 'rectangle' },
+            data: { label: '', color: '#9b6ff0', shape: 'rectangle' },
           };
       }
 
@@ -251,6 +258,8 @@ export default function EvidenceBoard() {
     );
   }
 
+  
+
   return (
     <ReactFlowProvider>
       <BoardCanvas
@@ -258,7 +267,10 @@ export default function EvidenceBoard() {
         initialEdges={edges}
         onSave={handleSave}
         isSaving={isSaving}
+        caseId={id!}
       />
     </ReactFlowProvider>
   );
 }
+
+

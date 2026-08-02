@@ -26,7 +26,8 @@ export default function NoteNode({ data, selected }: NodeProps<NoteNodeType>) {
       {isEditing ? (
         <input
           autoFocus
-          className="nodrag bg-transparent outline-none border-b border-zinc-500 text-xs"
+          placeholder="Texto aqui..."
+          className="nodrag bg-transparent outline-none border-b border-zinc-500 text-xs placeholder:text-zinc-500"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
