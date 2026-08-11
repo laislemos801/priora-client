@@ -1,8 +1,12 @@
 import { FiUser } from "react-icons/fi";
 import { MdOutlineSupportAgent } from "react-icons/md";
 import NotificationButton from "./NotificationButton";
+import { useNavigate } from "react-router-dom";
 
 export default function TopBar() {
+
+    const navigate = useNavigate();
+
   return (
     <header className="w-full h-16 flex items-center bg-[#242424] justify-between px-4 md:px-8">
       
@@ -16,7 +20,7 @@ export default function TopBar() {
         <div className="flex items-center gap-3">
             
             {/* Ajuda */}
-            <button className="p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
+            <button  onClick={() => navigate("/contact")} className="p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
                 <MdOutlineSupportAgent size={20} />
             </button>
 

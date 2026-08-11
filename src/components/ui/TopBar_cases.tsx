@@ -29,6 +29,8 @@ export default function TopBar() {
         return "Evidências";
       case "analysis":
         return "Análise";
+      case "help":
+        return "Ajuda";
       default:
         return null; 
     }

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import logoHorizon from "@/assets/logoHorizonSideBar.png";
 import logoMobile from "@/assets/logoAlone.png";
 import { useNavigate, useLocation } from "react-router-dom";
+import { MdOutlineSupportAgent } from "react-icons/md";
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 
@@ -57,10 +58,7 @@ const icons = {
     </svg>
   ),
   help: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
-    </svg>
+    <MdOutlineSupportAgent size={18}/>
   ),
   logout: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -106,7 +104,7 @@ const NAV_MAIN: NavItem[] = [
 
 const NAV_SECONDARY: NavItem[] = [
   { id: "export", label: "Exportar Relatório", icon: "export", path: "export" },
-  { id: "help", label: "Ajuda", icon: "help", path: "help" },
+  { id: "help", label: "Contato", icon: "help", path: "help" },
 ];
 
 // ─── NavButton ───────────────────────────────────────────────────────────────
