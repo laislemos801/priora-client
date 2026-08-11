@@ -66,7 +66,6 @@ function App() {
         >
           <Route path="/mycases" element={<Home />} />
           <Route path="/contact" element={<Contact />} />
-
         </Route>
 
         {/* privadas com sidebar */}
@@ -83,7 +82,6 @@ function App() {
             <Route path="evidence" element={<Evidence />} />
             <Route path="analysis" element={<Analysis />} />
             <Route path="help" element={<Help />} />
-
           </Route>
         </Route>
       </Routes>
