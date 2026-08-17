@@ -18,6 +18,7 @@ import CaseOverview from "./pages/case/caseOverview";
 import Register from "./pages/register";
 import { Help } from "./pages/case/help";
 import Contact from "./pages/contact";
+import Profile from "./pages/profile";
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
         >
           <Route path="/mycases" element={<Home />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
 
         {/* privadas com sidebar */}
