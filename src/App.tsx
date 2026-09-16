@@ -16,6 +16,8 @@ import Evidence from "./pages/case/evidence";
 import Analysis from "./pages/case/analysis";
 import CaseOverview from "./pages/case/caseOverview";
 import Register from "./pages/register";
+import EvidenceBoard from "./pages/case/evidenceBoard";
+
 
 function App() {
   return (
@@ -53,6 +55,7 @@ function App() {
         <Route path="/recover/email-send" element={<EmailSend />} />
         <Route path="/recover/new-password" element={<NewPassword />} />
         <Route path="/recover/updated-password" element={<UpdatedPassword />} />
+      
 
         {/* privadas sem sidebar */}
         <Route
@@ -78,6 +81,7 @@ function App() {
             <Route path="ranking" element={<Ranking />} />
             <Route path="evidence" element={<Evidence />} />
             <Route path="analysis" element={<Analysis />} />
+            <Route path="evidenceBoard" element={<EvidenceBoard />} />
           </Route>
         </Route>
       </Routes>
