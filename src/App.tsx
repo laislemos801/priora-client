@@ -17,7 +17,10 @@ import Analysis from "./pages/case/analysis";
 import CaseOverview from "./pages/case/caseOverview";
 import Register from "./pages/register";
 import EvidenceBoard from "./pages/case/evidenceBoard";
-
+import { Help } from "./pages/case/help";
+import Contact from "./pages/contact";
+import Profile from "./pages/profile";
+import History from "./pages/case/history";
 
 function App() {
   return (
@@ -66,6 +69,8 @@ function App() {
           }
         >
           <Route path="/mycases" element={<Home />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
 
         {/* privadas com sidebar */}
@@ -82,6 +87,8 @@ function App() {
             <Route path="evidence" element={<Evidence />} />
             <Route path="analysis" element={<Analysis />} />
             <Route path="evidenceBoard" element={<EvidenceBoard />} />
+            <Route path="help" element={<Help />} />
+            <Route path="history" element={<History />} />
           </Route>
         </Route>
       </Routes>

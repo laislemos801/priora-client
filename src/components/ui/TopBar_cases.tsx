@@ -32,6 +32,8 @@ export default function TopBar() {
         return "Análise";
       case "evidenceBoard":
         return "Quadro investigativo";
+      case "help":
+        return "Ajuda";
       default:
         return null; 
     }
@@ -87,7 +89,7 @@ export default function TopBar() {
        <div className="flex items-center gap-1 md:gap-3 text-[#D9D9D9]">
         <NotificationButton />
 
-        <button className="p-1.5 md:p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
+        <button onClick={()=> navigate("/profile")} className="p-1.5 md:p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
           <FiUser size={16} className="md:hidden" />
           <FiUser size={20} className="hidden md:block" />
         </button>
