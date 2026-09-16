@@ -33,7 +33,7 @@ export default function Profile() {
           {/* Área da conta */}
           <div className="relative flex-1 flex flex-col">
             {/* Background */}
-            <div className="absolute inset-x-0 top-0 h-[20%] border-b border-[#575757] overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-[30%] border-b border-[#575757] overflow-hidden">
               <img
                 src={backImageProfile}
                 alt=""
