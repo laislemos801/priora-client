@@ -4,7 +4,7 @@ import InfoRow from "./InfoRow";
 
 type InfoCardProps = {
   caseData: any;
-  onEdit: () => void;
+  onEdit?: () => void;
 };
 
 export default function InfoCard({ caseData, onEdit }: InfoCardProps) {
@@ -22,13 +22,15 @@ export default function InfoCard({ caseData, onEdit }: InfoCardProps) {
     <Panel
       title="Informações Gerais"
       action={
-        <button
-          onClick={onEdit}
-          className="flex items-center gap-2 rounded-md bg-[#2f2f2f] px-3 py-1.5 text-xs text-white/65 hover:text-white"
-        >
-          <Edit size={14} />
-          Editar
-        </button>
+        onEdit && (
+          <button
+            onClick={onEdit}
+            className="flex items-center gap-2 rounded-md bg-[#2f2f2f] px-3 py-1.5 text-xs text-white/65 hover:text-white"
+          >
+            <Edit size={14} />
+            Editar
+          </button>
+        )
       }
     >
       <div className="space-y-3 text-sm text-white/65">

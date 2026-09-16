@@ -8,14 +8,15 @@ import { Checkbox } from "../../../@/components/ui/checkbox";
 import { MdOutlineAddModerator } from "react-icons/md";
 import type { EvidenceFilters } from "../../pages/case/evidence";
 import EvidenceTableSkeleton from "./EvidenceTableSkeleton";
+import { apiFetch } from "@/lib/api";
 
 type Status = "Coletada" | "Em análise" | "Custodiada" | "Descartada" | "Enviada a perícia";
 
-interface SuspeitoVinculo { id: string; nome: string; }
+interface SuspeitoVinculo { id: string; nome: string; pesoVinculo?: number | null; }
 
 interface Evidencia {
   id: string; nome: string; tipo: string; status: Status;
-  dataColeta: string | null; pesoCondicional: number; pesoVinculo?: number | null;
+  dataColeta: string | null; pesoCondicional: number;
   descricao?: string | null; suspeitos: SuspeitoVinculo[];
 }
 
@@ -98,7 +99,7 @@ function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose
 
   // Busca o detalhe completo pelo ID para garantir que descricao venha da API
   useEffect(() => {
-    fetch(`http://localhost:8000/evidences/${evidence.id}`)
+    apiFetch(`/evidences/${evidence.id}`)
       .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
       .then((data) => setDetail(data))
       .catch(() => { /* mantém os dados da lista como fallback */ })
@@ -154,16 +155,9 @@ function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose
               <p className="text-[14px] text-[#e8e8e8]">{detail.pesoCondicional ?? "—"}</p>
             </div>
 
-            {detail.pesoVinculo != null && (
-              <div>
-                <span className={LABEL}>Peso de vínculo</span>
-                <p className="text-[14px] text-[#e8e8e8]">{detail.pesoVinculo}</p>
-              </div>
-            )}
-
             {detail.suspeitos && detail.suspeitos.length > 0 && (
               <div className="sm:col-span-2">
-                <span className={LABEL}>Suspeitos vinculados</span>
+                <span className={LABEL}>Suspeitos vinculados (peso de vínculo)</span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {detail.suspeitos.map((s) => (
                     <span
@@ -171,6 +165,7 @@ function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose
                       className="bg-[#139C73]/15 text-[#139C73] text-xs px-3 py-1 rounded-full"
                     >
                       {s.nome}
+                      {s.pesoVinculo != null && ` · ${s.pesoVinculo}`}
                     </span>
                   ))}
                 </div>
@@ -293,7 +288,7 @@ export default function EvidenciasTable({
   useEffect(() => {
     if (!casoId) return;
     setLoading(true);
-    fetch(`http://localhost:8000/evidences/case/${casoId}`)
+    apiFetch(`/evidences/case/${casoId}`)
       .then((r) => { if (!r.ok) throw new Error(`Erro ${r.status}`); return r.json(); })
       .then((data) => setEvidencias(Array.isArray(data) ? data : []))
       .catch((err) => setError(err.message))

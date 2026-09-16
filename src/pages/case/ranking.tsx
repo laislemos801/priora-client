@@ -13,13 +13,13 @@ import EmptySuspectState from "@/components/suspect/EmptySuspectState";
 import FilterPanelRanking from "@/components/suspect/Filter_suspect";
 import RankingSkeleton from "@/components/suspect/RankingSkeleton";
 import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/api";
+import { useCaseRole } from "@/hooks/useCaseRole";
 
 import type {
   RankingFilters,
   Suspect,
 } from "@/components/suspect/types";
-
-const API_URL = "http://127.0.0.1:8000";
 
 const DEFAULT_FILTERS: RankingFilters = {
   search: "",
@@ -29,6 +29,7 @@ const DEFAULT_FILTERS: RankingFilters = {
 
 export default function Ranking() {
   const { id } = useParams();
+  const { canEdit } = useCaseRole(id);
 
   const [suspects, setSuspects] = useState<Suspect[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -49,9 +50,9 @@ export default function Ranking() {
     if (!id) return;
 
     try {
-      await fetch(`${API_URL}/bayes/preview/${id}`, { method: "POST" });
+      await apiFetch(`/bayes/preview/${id}`, { method: "POST" });
 
-      const response = await fetch(`${API_URL}/suspects/case/${id}`);
+      const response = await apiFetch(`/suspects/case/${id}`);
       const data = await response.json();
 
       const newSuspects = Array.isArray(data) ? data : [];
@@ -181,7 +182,7 @@ export default function Ranking() {
 
     try {
       for (const suspectId of selectedIds) {
-        await fetch(`${API_URL}/suspects/case/${id}/${suspectId}`, {
+        await apiFetch(`/suspects/case/${id}/${suspectId}`, {
           method: "DELETE",
         });
       }
@@ -222,9 +223,11 @@ export default function Ranking() {
 
             <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
               <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                <PrimaryButton onClick={openCreateModal}>
-                  Adicionar Suspeito
-                </PrimaryButton>
+                {canEdit && (
+                  <PrimaryButton onClick={openCreateModal}>
+                    Adicionar Suspeito
+                  </PrimaryButton>
+                )}
 
                 <div className="relative w-full md:w-auto">
                   <ActionButton
@@ -271,29 +274,33 @@ export default function Ranking() {
                   )}
                 </div>
 
-                <ActionButton
-                  icon={<Edit size={14} />}
-                  onClick={handleEdit}
-                >
-                  Editar
-                </ActionButton>
+                {canEdit && (
+                  <>
+                    <ActionButton
+                      icon={<Edit size={14} />}
+                      onClick={handleEdit}
+                    >
+                      Editar
+                    </ActionButton>
 
-                <ActionButton
-                  variant="danger"
-                  icon={<Trash2 size={14} />}
-                  onClick={handleDelete}
-                >
-                  {selectedIds.length > 0
-                    ? `Deletar (${selectedIds.length})`
-                    : "Deletar"}
-                </ActionButton>
+                    <ActionButton
+                      variant="danger"
+                      icon={<Trash2 size={14} />}
+                      onClick={handleDelete}
+                    >
+                      {selectedIds.length > 0
+                        ? `Deletar (${selectedIds.length})`
+                        : "Deletar"}
+                    </ActionButton>
+                  </>
+                )}
               </div>
             </div>
           </header>
 
           <main className="p-4 md:p-6">
             {filtered.length === 0 ? (
-              <EmptySuspectState onCreate={openCreateModal} />
+              <EmptySuspectState onCreate={canEdit ? openCreateModal : undefined} />
             ) : (
               <RankingTable
                 suspects={[...filtered].sort(

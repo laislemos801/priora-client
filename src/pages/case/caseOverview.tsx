@@ -22,8 +22,8 @@ import ProfileCard from "@/components/caseOverview/ProfileCard";
 import UncertaintyCard from "@/components/caseOverview/UncertaintyCard";
 import CreateCaseModal from "@/components/mycases/CreateCaseModal";
 import CaseOverviewSkeleton from "@/components/caseOverview/CaseOverviewSkeleton";
-
-const API_URL = "http://127.0.0.1:8000";
+import { apiFetch } from "@/lib/api";
+import { useCaseRole } from "@/hooks/useCaseRole";
 
 const icons = {
   dashboard: (
@@ -36,6 +36,7 @@ const icons = {
 
 export default function CaseOverview() {
   const { id } = useParams();
+  const { canEdit, isOwner } = useCaseRole(id);
   const [caseData, setCaseData] = useState<any>(null);
   const [contacts, setContacts] = useState<any[]>([]);
   const [editCaseOpen, setEditCaseOpen] = useState(false);
@@ -47,7 +48,7 @@ export default function CaseOverview() {
     if (!id) return;
 
     try {
-      const response = await fetch(`${API_URL}/contacts/case/${id}`);
+      const response = await apiFetch(`/contacts/case/${id}`);
       const data = await response.json();
         setContacts(data);
     } catch (error) {
@@ -59,7 +60,7 @@ export default function CaseOverview() {
     if (!id) return;
 
     try {
-      const response = await fetch(`${API_URL}/cases/${id}`);
+      const response = await apiFetch(`/cases/${id}`);
       const data = await response.json();
 
       setCaseData(data);
@@ -78,8 +79,8 @@ export default function CaseOverview() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/cases/${id}`,
+      const response = await apiFetch(
+        `/cases/${id}`,
         {
           method: "DELETE",
         }
@@ -127,16 +128,18 @@ export default function CaseOverview() {
                 </div>
               </div>
 
-              <div className="w-full md:w-auto">
-                <ActionButton
-                  onClick={handleDeleteCase}
-                  variant="danger"
-                  icon={<Trash2 size={14} />}
-                  className="w-full justify-center md:w-auto"
-                >
-                  Excluir
-                </ActionButton>
-              </div>
+              {isOwner && (
+                <div className="w-full md:w-auto">
+                  <ActionButton
+                    onClick={handleDeleteCase}
+                    variant="danger"
+                    icon={<Trash2 size={14} />}
+                    className="w-full justify-center md:w-auto"
+                  >
+                    Excluir
+                  </ActionButton>
+                </div>
+              )}
             </div>
           </header>
 
@@ -145,7 +148,7 @@ export default function CaseOverview() {
               <div className="grid gap-4 lg:grid-cols-[1fr_190px]">
                 <InfoCard
                   caseData={caseData}
-                  onEdit={() => setEditCaseOpen(true)}
+                  onEdit={canEdit ? () => setEditCaseOpen(true) : undefined}
                 />
 
                 <div className="grid gap-4">
@@ -199,6 +202,7 @@ export default function CaseOverview() {
                 casoId={id!}
                 contacts={contacts}
                 onRefresh={fetchContacts}
+                canEdit={canEdit}
                 />
                 <MapCard
                   endereco={[
@@ -214,12 +218,12 @@ export default function CaseOverview() {
               </div>
 
               <div className="xl:hidden">
-                {id && <AccessCard casoId={id} />}
+                {id && <AccessCard casoId={id} canInvite={canEdit} isOwner={isOwner} />}
               </div>
             </section>
 
             <aside className="hidden space-y-4 xl:block">
-              {id && <AccessCard casoId={id} />}
+              {id && <AccessCard casoId={id} canInvite={canEdit} isOwner={isOwner} />}
               <ProfileCard />
               <UncertaintyCard incerteza={caseData?.incerteza ?? null} />
             </aside>

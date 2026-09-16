@@ -2,6 +2,7 @@ import { FiUser, FiChevronLeft } from "react-icons/fi";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import NotificationButton from "./NotificationButton";
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function TopBar() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function TopBar() {
   
   useEffect(() => {
     if (!id) return;
-    fetch(`http://localhost:8000/cases/${id}`)
+    apiFetch(`/cases/${id}`)
       .then(res => res.json())
       .then(data => setCaseName(data.nome))
       .catch(() => setCaseName(undefined));

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { MdOutlineMail } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/api";
 
 export default function Recover() {
   const [email, setEmail] = useState("");
@@ -10,7 +11,7 @@ export default function Recover() {
 
   async function handleRecover() {
     try {
-      const response = await fetch("http://127.0.0.1:8000/users/recover", {
+      const response = await apiFetch("/users/recover", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

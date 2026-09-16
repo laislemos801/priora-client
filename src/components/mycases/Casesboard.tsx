@@ -9,6 +9,7 @@ import { MdOutlineBrokenImage } from "react-icons/md";
 import { useState, useEffect, useRef } from "react";
 import EmptyState from "./EmptyState";
 import CasesSectionSkeleton from "./CasesSectionSkeleton";
+import { apiFetch } from "@/lib/api";
 
 type CaseFromAPI = {
   id: string;
@@ -140,7 +141,7 @@ export default function CasesSection({ onCreateCase }: { onCreateCase: () => voi
     async function fetchCases() {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:8000/cases/user/${userId}`);
+        const res = await apiFetch(`/cases/user/${userId}`);
         if (!res.ok) throw new Error(`Erro ${res.status}`);
         const data = await res.json();
         setCases(data);

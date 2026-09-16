@@ -6,6 +6,7 @@ import PrimaryButton from "../ui/PrimaryButton";
 import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { RiAlertFill } from "react-icons/ri";
 import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/api";
 
 const STATUS_OPTIONS = [
   { value: "ativo",      label: "Ativo",      color: "#4caf7d" },
@@ -216,10 +217,10 @@ export default function CreateCaseModal({
       setLoading(true);
       const url =
         mode === "edit"
-          ? `http://localhost:8000/cases/${caseData.id}`
-          : "http://localhost:8000/cases/";
+          ? `/cases/${caseData.id}`
+          : "/cases/";
 
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: mode === "edit" ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify(payload),
