@@ -21,6 +21,7 @@ import { Help } from "./pages/case/help";
 import Contact from "./pages/contact";
 import Profile from "./pages/profile";
 import History from "./pages/case/history";
+import Priority from "./pages/case/priority";
 
 function App() {
   return (
@@ -87,6 +88,7 @@ function App() {
             <Route path="evidence" element={<Evidence />} />
             <Route path="analysis" element={<Analysis />} />
             <Route path="evidenceBoard" element={<EvidenceBoard />} />
+            <Route path="priority" element={<Priority />} />
             <Route path="help" element={<Help />} />
             <Route path="history" element={<History />} />
           </Route>
