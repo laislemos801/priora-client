@@ -1,26 +1,23 @@
 import {
   PROFILE_AXES,
+  type EstimatedProfile,
   type ProfileAxisKey,
-  type ProfileInsight,
   type ProfileValues,
-  type ProfilingData,
   type ProfilingSuspect,
 } from "@/components/profiling/types";
+import type { Suspect } from "@/components/suspect/types";
 import { apiFetch } from "@/lib/api";
-
 
 // Mesmo neutro usado pelo backend para eixo sem valor
 // (priora-server/app/repositories/bayes_repository.py).
 const NEUTRAL_SCORE = 50;
 
-// Enquanto não houver endpoint de perfil estimado, a UI avisa que é exemplo.
-export const PROFILING_ESTIMATE_IS_MOCK = true;
+type RawSuspect = Suspect & Partial<Record<ProfileAxisKey, number | string | null>>;
 
-type RawSuspect = {
-  id?: string | number | null;
-  nome?: string | null;
-  fotoUrl?: string | null;
-} & Partial<Record<ProfileAxisKey, number | string | null>>;
+type RawEstimatedProfile = {
+  perfil?: Partial<Record<ProfileAxisKey, number | string | null>> | null;
+  atualizadoEm?: string | null;
+};
 
 // Eixo nulo/inválido assume o neutro do backend.
 function toScore(value: unknown): number {
@@ -29,7 +26,9 @@ function toScore(value: unknown): number {
   return Number.isFinite(n) ? n : NEUTRAL_SCORE;
 }
 
-function toProfileValues(raw: RawSuspect): ProfileValues {
+function toProfileValues(
+  raw: Partial<Record<ProfileAxisKey, unknown>>,
+): ProfileValues {
   return PROFILE_AXES.reduce((acc, axis) => {
     acc[axis.key] = toScore(raw[axis.key]);
     return acc;
@@ -57,43 +56,47 @@ export async function getProfilingSuspects(
       nome: item.nome ?? "",
       fotoUrl: item.fotoUrl ?? null,
       perfil: toProfileValues(item),
+      origem: item,
     }));
 }
 
-// TODO: trocar por endpoint real quando o backend expor perfil estimado e análises.
-// Valores placeholder apenas para visualização — não representam regra de negócio.
-const MOCK_ESTIMATED_PROFILE: ProfileValues = {
-  conexoesSociais: 50,
-  proximidade: 50,
-  agressividade: 50,
-  comportamento: 50,
-  nivelConfissao: 50,
-};
+function toEstimatedProfile(raw: RawEstimatedProfile | null): EstimatedProfile {
+  return {
+    perfil: raw?.perfil ? toProfileValues(raw.perfil) : null,
+    atualizadoEm: raw?.atualizadoEm ?? null,
+  };
+}
 
-// TODO: trocar por endpoint real quando o backend expor perfil estimado e análises.
-export async function getProfiling(
-  _casoId: string,
-  suspect: ProfilingSuspect,
-): Promise<ProfilingData> {
-  const perfilEstimado: ProfileValues = { ...MOCK_ESTIMATED_PROFILE };
+export async function getEstimatedProfile(
+  casoId: string,
+): Promise<EstimatedProfile> {
+  const response = await apiFetch(
+    `/cases/${encodeURIComponent(casoId)}/estimated-profile`,
+  );
 
-  const insights: ProfileInsight[] = PROFILE_AXES.flatMap((axis) => [
+  if (!response.ok) {
+    throw new Error(`Erro ao carregar perfil estimado (${response.status})`);
+  }
+
+  return toEstimatedProfile(await response.json());
+}
+
+export async function saveEstimatedProfile(
+  casoId: string,
+  values: ProfileValues,
+): Promise<EstimatedProfile> {
+  const response = await apiFetch(
+    `/cases/${encodeURIComponent(casoId)}/estimated-profile`,
     {
-      id: `${suspect.id}-suspeito-${axis.key}`,
-      tipo: "suspeito" as const,
-      eixo: axis.key,
-      titulo: axis.label,
-      texto: `Pontuação do suspeito neste eixo: ${suspect.perfil[axis.key]} de 100. A análise descritiva será fornecida pelo backend.`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
     },
-    {
-      id: `${suspect.id}-estimado-${axis.key}`,
-      tipo: "estimado" as const,
-      eixo: axis.key,
-      titulo: axis.label,
-      texto:
-        "Perfil estimado ainda indisponível: os valores exibidos são dados de exemplo. A análise descritiva será fornecida pelo backend.",
-    },
-  ]);
+  );
 
-  return { suspeito: suspect, perfilEstimado, insights };
+  if (!response.ok) {
+    throw new Error(`Erro ao salvar perfil estimado (${response.status})`);
+  }
+
+  return toEstimatedProfile(await response.json());
 }

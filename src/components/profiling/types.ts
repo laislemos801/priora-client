@@ -1,3 +1,5 @@
+import type { Suspect } from "@/components/suspect/types";
+
 // Eixos do radar de perfilamento — mesmos campos do suspeito no backend (0–100).
 export type ProfileAxisKey =
   | "conexoesSociais"
@@ -34,20 +36,14 @@ export type ProfilingSuspect = {
   nome: string;
   fotoUrl?: string | null;
   perfil: ProfileValues;
+  // Registro completo, usado para editar o suspeito pelo SuspectModal.
+  origem: Suspect;
 };
 
-export type ProfileInsight = {
-  id: string;
-  tipo: ProfileType;
-  eixo: ProfileAxisKey;
-  titulo: string;
-  texto: string;
-};
-
-export type ProfilingData = {
-  suspeito: ProfilingSuspect;
-  perfilEstimado: ProfileValues;
-  insights: ProfileInsight[];
+// Perfil estimado do criminoso, definido pelo investigador (um por caso).
+export type EstimatedProfile = {
+  perfil: ProfileValues | null;
+  atualizadoEm: string | null;
 };
 
 export type ProfilingFilters = {

@@ -156,7 +156,8 @@ function BoardCanvas({
   }, [nodes, edges, onSave]);
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-950">
+    // Altura da área abaixo da TopBar_cases (h-16), para o quadro não rolar e esconder a toolbar
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-zinc-950">
       <BoardToolbar
         onAddShape={handleAddShape}
         onSave={handleSaveClick}
@@ -252,7 +253,7 @@ export default function EvidenceBoard() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
         Carregando quadro investigativo...
       </div>
     );

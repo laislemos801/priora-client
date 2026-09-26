@@ -1,22 +1,25 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { IoFilterSharp } from "react-icons/io5";
-import { RotateCw } from "lucide-react";
+import { Edit, RotateCw } from "lucide-react";
 import toast from "react-hot-toast";
 
 import ActionButton from "@/components/ui/ActionButton";
+import PrimaryButton from "@/components/ui/PrimaryButton";
+import SuspectModal from "@/components/suspect/SuspectModal";
+import { useCaseRole } from "@/hooks/useCaseRole";
 
 import ProfilingIcon from "@/components/profiling/ProfilingIcon";
 import RadarChart from "@/components/profiling/RadarChart";
 import SuspectHeader from "@/components/profiling/SuspectHeader";
-import InsightList from "@/components/profiling/InsightList";
+import ComparisonList from "@/components/profiling/ComparisonList";
+import EstimatedProfileModal from "@/components/profiling/EstimatedProfileModal";
 import FilterPanelProfiling from "@/components/profiling/Filter_profiling";
 import ProfilingSkeleton from "@/components/profiling/ProfilingSkeleton";
 import EmptyProfilingState from "@/components/profiling/EmptyProfilingState";
 import {
-  getProfiling,
+  getEstimatedProfile,
   getProfilingSuspects,
-  PROFILING_ESTIMATE_IS_MOCK,
 } from "@/services/profilingService";
 
 import {
@@ -25,8 +28,8 @@ import {
   PROFILE_TYPE_LABEL,
 } from "@/components/profiling/types";
 import type {
+  EstimatedProfile,
   ProfileType,
-  ProfilingData,
   ProfilingFilters,
   ProfilingSuspect,
 } from "@/components/profiling/types";
@@ -57,22 +60,23 @@ function ProfilingContent({ id }: { id: string | undefined }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const querySuspect = searchParams.get("suspect");
 
+  const { canEdit } = useCaseRole(id);
+
   const [suspects, setSuspects] = useState<ProfilingSuspect[]>([]);
+  const [estimated, setEstimated] = useState<EstimatedProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [data, setData] = useState<ProfilingData | null>(null);
-  const [profilingError, setProfilingError] = useState(false);
+  const [editingEstimated, setEditingEstimated] = useState(false);
+  const [editingSuspect, setEditingSuspect] = useState(false);
 
   const [openFilter, setOpenFilter] = useState(false);
   const [filters, setFilters] = useState<ProfilingFilters>(
     DEFAULT_PROFILING_FILTERS
   );
 
-  // Garante que só a última requisição de perfil atualize a tela.
-  const requestRef = useRef(0);
   const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -103,26 +107,30 @@ function ProfilingContent({ id }: { id: string | undefined }) {
     if (!id) return;
     let cancelled = false;
 
-    async function fetchSuspects(casoId: string) {
-      setLoading(true);
+    async function fetchProfiling(casoId: string) {
       setError(false);
 
       try {
-        const list = await getProfilingSuspects(casoId);
+        const [list, profile] = await Promise.all([
+          getProfilingSuspects(casoId),
+          getEstimatedProfile(casoId),
+        ]);
         if (cancelled) return;
         setSuspects(list);
+        setEstimated(profile);
       } catch (err) {
         if (cancelled) return;
         console.error(err);
-        toast.error("Erro ao carregar os suspeitos do caso.");
+        toast.error("Erro ao carregar o perfilamento criminal.");
         setSuspects([]);
+        setEstimated(null);
         setError(true);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    fetchSuspects(id);
+    fetchProfiling(id);
 
     return () => {
       cancelled = true;
@@ -150,31 +158,6 @@ function ProfilingContent({ id }: { id: string | undefined }) {
     );
   }, [availableSuspects, selectedId, querySuspect]);
 
-  const loadProfiling = useCallback(
-    async (casoId: string, suspect: ProfilingSuspect) => {
-      const requestId = ++requestRef.current;
-      setProfilingError(false);
-
-      try {
-        const result = await getProfiling(casoId, suspect);
-        if (requestId !== requestRef.current) return;
-        setData(result);
-      } catch (err) {
-        if (requestId !== requestRef.current) return;
-        console.error(err);
-        toast.error("Erro ao carregar o perfilamento do suspeito.");
-        setData(null);
-        setProfilingError(true);
-      }
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (!id || !activeSuspect) return;
-    loadProfiling(id, activeSuspect);
-  }, [id, activeSuspect, loadProfiling]);
-
   function handleSelect(suspectId: string) {
     setSelectedId(suspectId);
     setSearchParams(
@@ -188,17 +171,11 @@ function ProfilingContent({ id }: { id: string | undefined }) {
   }
 
   function handleRetry() {
-    if (error) {
-      setReloadKey((k) => k + 1);
-      return;
-    }
-    if (id && activeSuspect) loadProfiling(id, activeSuspect);
+    setLoading(true);
+    setReloadKey((k) => k + 1);
   }
 
-  const currentData =
-    data && activeSuspect && data.suspeito.id === activeSuspect.id
-      ? data
-      : null;
+  const estimatedValues = estimated?.perfil ?? null;
 
   const visibleTypes = filters.tipos.length > 0
     ? filters.tipos
@@ -209,7 +186,7 @@ function ProfilingContent({ id }: { id: string | undefined }) {
       const values =
         tipo === "suspeito"
           ? activeSuspect?.perfil
-          : currentData?.perfilEstimado;
+          : estimatedValues;
       if (!values) return null;
       return {
         id: tipo,
@@ -220,15 +197,11 @@ function ProfilingContent({ id }: { id: string | undefined }) {
     })
     .filter((s): s is NonNullable<typeof s> => s !== null);
 
+  // Busca filtra as variáveis exibidas nos cards de comparação.
   const searchText = normalize(filters.search.trim());
-  const insights = (currentData?.insights ?? []).filter((insight) => {
-    if (!visibleTypes.includes(insight.tipo)) return false;
-    if (!searchText) return true;
-    return (
-      normalize(insight.titulo).includes(searchText) ||
-      normalize(insight.texto).includes(searchText)
-    );
-  });
+  const visibleAxes = PROFILE_AXES.filter(
+    (axis) => !searchText || normalize(axis.label).includes(searchText)
+  );
 
   const filterCount =
     (filters.search ? 1 : 0) +
@@ -239,7 +212,7 @@ function ProfilingContent({ id }: { id: string | undefined }) {
 
   if (loading) return <ProfilingSkeleton />;
 
-  const hasError = error || profilingError;
+  const hasError = error;
   const isEmpty = !error && suspects.length === 0;
 
   return (
@@ -257,8 +230,17 @@ function ProfilingContent({ id }: { id: string | undefined }) {
               </h1>
             </div>
 
-            {!isEmpty && !error && (
+            {!error && (
               <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
+                {canEdit && (
+                  <PrimaryButton onClick={() => setEditingEstimated(true)}>
+                    {estimatedValues
+                      ? "Editar perfil estimado"
+                      : "Definir perfil estimado"}
+                  </PrimaryButton>
+                )}
+
+                {!isEmpty && (
                 <div ref={filterRef} className="relative w-full md:w-auto">
                   <ActionButton
                     icon={<IoFilterSharp size={14} />}
@@ -313,6 +295,7 @@ function ProfilingContent({ id }: { id: string | undefined }) {
                     </>
                   )}
                 </div>
+                )}
               </div>
             )}
           </header>
@@ -337,50 +320,76 @@ function ProfilingContent({ id }: { id: string | undefined }) {
             ) : (
               <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
                 <section className="flex min-w-0 flex-1 flex-col gap-6 rounded-xl bg-[#2A2A2A] p-4 md:p-6">
-                  <SuspectHeader
-                    suspect={activeSuspect}
-                    suspects={availableSuspects}
-                    onSelect={handleSelect}
-                  />
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <SuspectHeader
+                      suspect={activeSuspect}
+                      suspects={availableSuspects}
+                      onSelect={handleSelect}
+                    />
 
-                  <RadarChart
-                    axes={PROFILE_AXES}
-                    series={series}
-                    className={currentData ? "" : "animate-pulse"}
-                  />
-
-                  {PROFILING_ESTIMATE_IS_MOCK &&
-                    visibleTypes.includes("estimado") && (
-                      <p className="text-center text-xs text-white/60">
-                        O perfil estimado usa dados de exemplo até o backend
-                        disponibilizar a análise.
-                      </p>
+                    {canEdit && (
+                      <ActionButton
+                        icon={<Edit size={14} />}
+                        onClick={() => setEditingSuspect(true)}
+                      >
+                        Editar perfil do suspeito
+                      </ActionButton>
                     )}
+                  </div>
+
+                  <RadarChart axes={PROFILE_AXES} series={series} />
+
+                  {!estimatedValues && visibleTypes.includes("estimado") && (
+                    <p className="text-center text-xs text-white/60">
+                      Perfil estimado ainda não definido.
+                      {canEdit &&
+                        " Use \"Definir perfil estimado\" para comparar com os suspeitos."}
+                    </p>
+                  )}
                 </section>
 
                 <aside className="w-full lg:w-[320px] lg:flex-shrink-0">
-                  {currentData ? (
-                    <InsightList
-                      insights={insights}
-                      colors={COLORS}
-                      className="lg:max-h-[640px]"
-                    />
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {[0, 1, 2].map((i) => (
-                        <div
-                          key={i}
-                          className="h-36 animate-pulse rounded-xl bg-[#2A2A2A]"
-                        />
-                      ))}
-                    </div>
-                  )}
+                  <ComparisonList
+                    axes={visibleAxes}
+                    estimado={estimatedValues}
+                    suspeito={activeSuspect.perfil}
+                    tipos={visibleTypes}
+                    colors={COLORS}
+                    className="lg:max-h-[640px]"
+                  />
                 </aside>
               </div>
             )}
           </main>
         </div>
       </div>
+
+      {editingEstimated && id && (
+        <EstimatedProfileModal
+          casoId={id}
+          initialValues={estimatedValues}
+          onClose={() => setEditingEstimated(false)}
+          onSuccess={(profile) => {
+            setEstimated(profile);
+            setEditingEstimated(false);
+            toast.success("Perfil estimado salvo com sucesso!");
+          }}
+        />
+      )}
+
+      {editingSuspect && id && activeSuspect && (
+        <SuspectModal
+          casoId={id}
+          mode="edit"
+          suspect={activeSuspect.origem}
+          onClose={() => setEditingSuspect(false)}
+          onSuccess={() => {
+            setEditingSuspect(false);
+            setReloadKey((k) => k + 1);
+            toast.success("Suspeito editado com sucesso!");
+          }}
+        />
+      )}
     </div>
   );
 }
