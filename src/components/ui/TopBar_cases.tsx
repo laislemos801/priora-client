@@ -2,6 +2,7 @@ import { FiUser, FiChevronLeft } from "react-icons/fi";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import NotificationButton from "./NotificationButton";
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function TopBar() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function TopBar() {
   
   useEffect(() => {
     if (!id) return;
-    fetch(`http://localhost:8000/cases/${id}`)
+    apiFetch(`/cases/${id}`)
       .then(res => res.json())
       .then(data => setCaseName(data.nome))
       .catch(() => setCaseName(undefined));
@@ -29,6 +30,10 @@ export default function TopBar() {
         return "Evidências";
       case "analysis":
         return "Análise";
+      case "evidenceBoard":
+        return "Quadro investigativo";
+      case "help":
+        return "Ajuda";
       default:
         return null; 
     }
@@ -84,7 +89,7 @@ export default function TopBar() {
        <div className="flex items-center gap-1 md:gap-3 text-[#D9D9D9]">
         <NotificationButton />
 
-        <button className="p-1.5 md:p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
+        <button onClick={()=> navigate("/profile")} className="p-1.5 md:p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
           <FiUser size={16} className="md:hidden" />
           <FiUser size={20} className="hidden md:block" />
         </button>

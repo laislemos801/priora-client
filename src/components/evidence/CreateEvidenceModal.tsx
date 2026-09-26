@@ -7,6 +7,7 @@ import PrimaryButton from "../ui/PrimaryButton";
 import { Trash2 } from "lucide-react";
 import { IoMdArrowDropdown } from "react-icons/io";
 import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/api";
 
 const STATUS_OPTIONS = [
   { value: "Coletada",          label: "Coletada"          },
@@ -31,6 +32,7 @@ const INPUT     = "w-full bg-[#282828] border border-[#434343] rounded-md px-3 p
 const ERROR_CLASS = "text-[11px] text-red-400 mt-1";
 
 type Suspect = { id: string; nome: string };
+type SelectedSuspect = { id: string; nome: string; pesoVinculo: number };
 
 export type EvidenceForEdit = {
   id: string;
@@ -40,9 +42,10 @@ export type EvidenceForEdit = {
   descricao?: string | null;
   dataColeta?: string | null;
   pesoCondicional?: number | null;
-  pesoVinculo?: number | null;
-  suspeitos?: Suspect[];
+  suspeitos?: (Suspect & { pesoVinculo?: number | null })[];
 };
+
+const DEFAULT_PESO_VINCULO = 0.5;
 
 type Props = {
   onClose: () => void;
@@ -61,11 +64,16 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
     descricao:   evidence?.descricao          ?? "",
     data:        evidence?.dataColeta         ?? "",
     peso:        evidence?.pesoCondicional != null ? String(evidence.pesoCondicional) : "",
-    pesoVinculo: evidence?.pesoVinculo     != null ? String(evidence.pesoVinculo)     : "",
   });
 
   const [suspects, setSuspects]               = useState<Suspect[]>([]);
-  const [selectedSuspects, setSelected]       = useState<Suspect[]>(evidence?.suspeitos ?? []);
+  const [selectedSuspects, setSelected]       = useState<SelectedSuspect[]>(
+    (evidence?.suspeitos ?? []).map((s) => ({
+      id: s.id,
+      nome: s.nome,
+      pesoVinculo: s.pesoVinculo ?? DEFAULT_PESO_VINCULO,
+    }))
+  );
   const [openSuspeitos, setOpenSuspeitos]     = useState(false);
   const [suspectsLoading, setSuspectsLoading] = useState(false);
   const [loading, setLoading]                 = useState(false);
@@ -74,7 +82,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
   useEffect(() => {
     if (!casoId) return;
     setSuspectsLoading(true);
-    fetch(`http://localhost:8000/suspects/case/${casoId}`)
+    apiFetch(`/suspects/case/${casoId}`)
       .then((r) => r.json())
       .then((data) => setSuspects(Array.isArray(data) ? data : []))
       .catch(() => setSuspects([]))
@@ -94,11 +102,18 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
   const toggleSuspect = (s: Suspect) =>
     setSelected((prev) =>
-      prev.find((x) => x.id === s.id) ? prev.filter((x) => x.id !== s.id) : [...prev, s]
+      prev.find((x) => x.id === s.id)
+        ? prev.filter((x) => x.id !== s.id)
+        : [...prev, { id: s.id, nome: s.nome, pesoVinculo: DEFAULT_PESO_VINCULO }]
     );
 
   const removeSuspect = (id: string) =>
     setSelected((prev) => prev.filter((s) => s.id !== id));
+
+  const updateSuspectPeso = (id: string, value: string) =>
+    setSelected((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, pesoVinculo: Number(value) } : s))
+    );
 
   const handleSubmit = async () => {
     setError(null);
@@ -108,22 +123,29 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
     if (!form.status)                  return setError("Status é obrigatório.");
     if (!form.data)                    return setError("Data é obrigatória.");
     if (!form.peso)                    return setError("Peso é obrigatório.");
-    if (!form.pesoVinculo)             return setError("Peso de vínculo é obrigatório.");
     if (selectedSuspects.length === 0) return setError("Selecione ao menos um suspeito.");
 
-    const pesoNum        = parseFloat(form.peso);
-    const pesoVinculoNum = parseFloat(form.pesoVinculo);
+    const pesoNum = parseFloat(form.peso);
 
     if (isNaN(pesoNum) || pesoNum < 0 || pesoNum > 1)
       return setError("Peso deve ser entre 0 e 1.");
-    if (isNaN(pesoVinculoNum) || pesoVinculoNum < 0 || pesoVinculoNum > 1)
-      return setError("Peso de vínculo deve ser entre 0 e 1.");
+
+    for (const s of selectedSuspects) {
+      if (isNaN(s.pesoVinculo) || s.pesoVinculo < 0 || s.pesoVinculo > 1) {
+        return setError(`Peso de vínculo de ${s.nome} deve ser entre 0 e 1.`);
+      }
+    }
+
+    const vinculos = selectedSuspects.map((s) => ({
+      suspeitoId: s.id,
+      pesoVinculo: s.pesoVinculo,
+    }));
 
     try {
       setLoading(true);
 
       if (isEdit) {
-        const res = await fetch(`http://localhost:8000/evidences/${evidence!.id}`, {
+        const res = await apiFetch(`/evidences/${evidence!.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -133,26 +155,24 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
             descricao:   form.descricao.trim() || null,
             dataColeta:  form.data,
             peso:        pesoNum,
-            pesoVinculo: pesoVinculoNum,
-            suspeitoIds: selectedSuspects.map((s) => s.id),
+            vinculos,
           }),
         });
         if (!res.ok) throw new Error(`Erro ${res.status}`);
         toast.success("Evidência atualizada com sucesso!");
       } else {
-        const res = await fetch("http://localhost:8000/evidences/", {
+        const res = await apiFetch("/evidences/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             casoId,
-            suspeitoIds: selectedSuspects.map((s) => s.id),
+            vinculos,
             nome:        form.nome.trim(),
             tipo:        form.tipo,
             status:      form.status,
             descricao:   form.descricao.trim() || null,
             dataColeta:  form.data,
             peso:        pesoNum,
-            pesoVinculo: pesoVinculoNum,
           }),
         });
         if (!res.ok) throw new Error(`Erro ${res.status}`);
@@ -232,19 +252,6 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
                 />
               </div>
 
-              <div>
-                <label className={LABEL}>Peso de vínculo (0 a 1)</label>
-                <input
-                  name="pesoVinculo"
-                  type="number"
-                  step="0.01" min="0" max="1"
-                  placeholder="ex: 0.75"
-                  value={form.pesoVinculo} 
-                  onChange={handleInput}
-                  className={INPUT}
-                />
-              </div>
-
               {/* Suspeitos */}
               <div>
                 <label className={LABEL}>Suspeito(s)</label>
@@ -294,17 +301,29 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
                 </div>
 
                 {selectedSuspects.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  <div className="flex flex-col gap-2 mt-2">
                     {selectedSuspects.map((s) => (
-                      <span
+                      <div
                         key={s.id}
-                        className="flex items-center gap-1 bg-[#139C73]/15 text-[#139C73] text-xs px-2 py-0.5 rounded-full"
+                        className="flex items-center gap-2 bg-[#282828] border border-[#434343] rounded-md px-2 py-1.5"
                       >
-                        {s.nome}
-                        <button type="button" onClick={() => removeSuspect(s.id)}>
-                          <Trash2 size={10} />
+                        <span className="flex-1 text-xs text-[#ccc] truncate">{s.nome}</span>
+
+                        <label className="text-[10px] text-[#888] uppercase tracking-widest shrink-0">
+                          Peso vínculo
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01" min="0" max="1"
+                          value={s.pesoVinculo}
+                          onChange={(e) => updateSuspectPeso(s.id, e.target.value)}
+                          className="w-16 bg-[#1e1e1e] border border-[#434343] rounded px-1.5 py-1 text-xs text-[#e8e8e8] outline-none"
+                        />
+
+                        <button type="button" onClick={() => removeSuspect(s.id)} className="text-[#888] hover:text-red-400">
+                          <Trash2 size={12} />
                         </button>
-                      </span>
+                      </div>
                     ))}
                   </div>
                 )}

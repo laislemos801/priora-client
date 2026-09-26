@@ -4,6 +4,7 @@ import Tag from "../ui/Tag";
 import DatePicker from "../ui/DatePicker";
 import { Checkbox } from "../../../@/components/ui/checkbox";
 import type { EvidenceFilters } from "../../pages/case/evidence";
+import { apiFetch } from "@/lib/api";
 
 const STATUS_VALUES = ["Coletada", "Enviada a perícia", "Em análise", "Custodiada", "Descartada"];
 const TIPO_VALUES   = ["Digital", "DNA", "Depoimento", "Documental", "Física", "Audiovisual", "Biológica"];
@@ -42,7 +43,7 @@ export default function FilterPanelEvidence({ onClose, initialFilters, onApply, 
 
   useEffect(() => {
     if (!casoId) return;
-    fetch(`http://localhost:8000/suspects/case/${casoId}`)
+    apiFetch(`/suspects/case/${casoId}`)
       .then((r) => r.json())
       .then((data) => setSuspects(Array.isArray(data) ? data : []))
       .catch(() => setSuspects([]));

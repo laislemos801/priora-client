@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast"; 
+import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/api";
 
 export default function NewPassword() {
   const [visibilityPassword, setVisibilityPassword] = useState(false);
@@ -34,8 +35,8 @@ export default function NewPassword() {
   }
 
   try {
-    const response = await fetch(
-      "http://127.0.0.1:8000/users/reset-password",
+    const response = await apiFetch(
+      "/users/reset-password",
       {
         method: "POST",
         headers: {

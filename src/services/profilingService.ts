@@ -6,11 +6,8 @@ import {
   type ProfilingData,
   type ProfilingSuspect,
 } from "@/components/profiling/types";
+import { apiFetch } from "@/lib/api";
 
-// "||" para que VITE_API_URL vazio também caia no fallback.
-const API_URL: string = (
-  import.meta.env.VITE_API_URL?.trim() || "http://127.0.0.1:8000"
-).replace(/\/+$/, "");
 
 // Mesmo neutro usado pelo backend para eixo sem valor
 // (priora-server/app/repositories/bayes_repository.py).
@@ -42,8 +39,8 @@ function toProfileValues(raw: RawSuspect): ProfileValues {
 export async function getProfilingSuspects(
   casoId: string,
 ): Promise<ProfilingSuspect[]> {
-  const response = await fetch(
-    `${API_URL}/suspects/case/${encodeURIComponent(casoId)}`,
+  const response = await apiFetch(
+    `/suspects/case/${encodeURIComponent(casoId)}`,
   );
 
   if (!response.ok) {

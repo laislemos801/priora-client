@@ -14,9 +14,6 @@ type CaseCardProps = {
   caseId: string;
   description: string;
   status: CaseStatus;
-  detectiveName: string;
-  detectiveImage: string;
-  confidence: number;
   priority: CasePriority;
   suspects: number;
   evidences: number;
@@ -24,6 +21,9 @@ type CaseCardProps = {
   location: string;
   date: string;
   uncertainty: number;
+  suspeitoNome: string | null;    
+  suspeitoFotoUrl: string | null;  
+  suspeitoProbab: number | null;
 };
 
 const PRIORITY_CONFIG: Record<
@@ -57,9 +57,6 @@ export default function CaseCard({
   title,
   description,
   status,
-  detectiveName,
-  detectiveImage,
-  confidence,
   priority,
   suspects,
   evidences,
@@ -67,6 +64,9 @@ export default function CaseCard({
   location,
   date,
   uncertainty,
+  suspeitoNome,
+  suspeitoFotoUrl,
+  suspeitoProbab,
 }: CaseCardProps) {
   const p = PRIORITY_CONFIG[priority];
   const navigate = useNavigate();
@@ -84,17 +84,32 @@ export default function CaseCard({
         </span>
       </div>
 
-      {/* Detective */}
-      <div className="flex items-center gap-3 border border-[#444] rounded-lg p-4">
-        <img
-          src={detectiveImage}
-          alt={detectiveName}
-          className="w-8 h-8 rounded-full"
-        />
-        <p className="md:text-sm text-md">
-          {detectiveName}{" "}
-          <span className="text-green-400">({confidence}%)</span>
-        </p>
+      {/* Top suspeito */}
+      <div className="flex items-center gap-3 border border-[#444] rounded-lg p-3">
+        {suspeitoNome ? (
+          <>
+            {suspeitoFotoUrl ? (
+              <img
+                src={suspeitoFotoUrl}
+                alt={suspeitoNome}
+                className="h-8 w-8 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#3A3A3A] text-xs font-semibold text-white">
+                {suspeitoNome.slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-xs text-white/50">Top suspeito</p>
+              <p className="text-sm truncate">
+                {suspeitoNome}{" "}
+                <span className="text-green-400">({suspeitoProbab?.toFixed(1)}%)</span>
+              </p>
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-white/40 italic">Nenhum suspeito cadastrado ainda</p>
+        )}
       </div>
 
       {/* Infos */}

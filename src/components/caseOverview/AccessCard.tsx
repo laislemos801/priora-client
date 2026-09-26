@@ -4,8 +4,7 @@ import { Edit, Trash2, X } from "lucide-react";
 import Panel from "./Panel";
 import SecondaryButton from "../ui/SecondaryButton";
 import toast from "react-hot-toast";
-
-const API_URL = "http://127.0.0.1:8000";
+import { apiFetch } from "@/lib/api";
 
 type AccessUser = {
   usuario: {
@@ -21,9 +20,11 @@ type AccessUser = {
 
 type Props = {
   casoId: string;
+  canInvite?: boolean;
+  isOwner?: boolean;
 };
 
-export default function AccessCard({ casoId }: Props) {
+export default function AccessCard({ casoId, canInvite = false, isOwner = false }: Props) {
   const [users, setUsers] = useState<AccessUser[]>([]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -41,8 +42,8 @@ export default function AccessCard({ casoId }: Props) {
 
   async function fetchUsers() {
     try {
-      const response = await fetch(
-        `${API_URL}/access/case/${casoId}`
+      const response = await apiFetch(
+        `/access/case/${casoId}`
       );
 
       const data = await response.json();
@@ -66,7 +67,7 @@ export default function AccessCard({ casoId }: Props) {
   async function handleUpdateAccess() {
     if (!selectedUserId) return;
 
-    await fetch(`${API_URL}/access/case/${casoId}/user/${selectedUserId}`, {
+    await apiFetch(`/access/case/${casoId}/user/${selectedUserId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ papel: editPapel }),
@@ -81,7 +82,7 @@ export default function AccessCard({ casoId }: Props) {
     const confirmed = confirm("Deseja remover este acesso?");
     if (!confirmed) return;
 
-    await fetch(`${API_URL}/access/case/${casoId}/user/${userId}`, {
+    await apiFetch(`/access/case/${casoId}/user/${userId}`, {
       method: "DELETE",
     });
 
@@ -129,7 +130,7 @@ export default function AccessCard({ casoId }: Props) {
 
     try {
       for (const email of emails) {
-        const response = await fetch(`${API_URL}/access/invite`, {
+        const response = await apiFetch(`/access/invite`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -164,11 +165,13 @@ export default function AccessCard({ casoId }: Props) {
         title="Gerenciar Acesso"
         className="bg-[#2B2B2B]"
         action={
-          <SecondaryButton
-            onClick={() => setModalOpen(true)}
-          >
-            Adicionar
-          </SecondaryButton>
+          canInvite && (
+            <SecondaryButton
+              onClick={() => setModalOpen(true)}
+            >
+              Adicionar
+            </SecondaryButton>
+          )
         }
       >
         <div className="
@@ -215,21 +218,23 @@ export default function AccessCard({ casoId }: Props) {
                   Responsável
                 </span>
               ) : user.status === "Ativo" ? (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openEditModal(user)}
-                    className="rounded-full bg-[#3A3A3A] p-2 text-white/65 hover:text-white"
-                  >
-                    <Edit size={14} />
-                  </button>
+                isOwner && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openEditModal(user)}
+                      className="rounded-full bg-[#3A3A3A] p-2 text-white/65 hover:text-white"
+                    >
+                      <Edit size={14} />
+                    </button>
 
-                  <button
-                    onClick={() => handleDeleteAccess(user.usuario.id)}
-                    className="rounded-full bg-[#3A3A3A] p-2 text-red-400/70 hover:text-red-400"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+                    <button
+                      onClick={() => handleDeleteAccess(user.usuario.id)}
+                      className="rounded-full bg-[#3A3A3A] p-2 text-red-400/70 hover:text-red-400"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )
               ) : (
                 <span className="rounded-full bg-[#282828] px-3 py-1.5 text-[10px] text-white">
                   Pendente

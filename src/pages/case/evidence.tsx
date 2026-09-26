@@ -5,9 +5,12 @@ import ActionButton from "@/components/ui/ActionButton";
 import { IoFilterSharp } from "react-icons/io5";
 import CreateEvidenceModal from "@/components/evidence/CreateEvidenceModal";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import FilterPanelEvidence from "@/components/evidence/Filter_evidence";
 import toast from "react-hot-toast";
 import type { EvidenceForEdit } from "@/components/evidence/CreateEvidenceModal";
+import { apiFetch } from "@/lib/api";
+import { useCaseRole } from "@/hooks/useCaseRole";
 
 export type EvidenceFilters = {
   search: string;
@@ -26,6 +29,9 @@ const DEFAULT_FILTERS: EvidenceFilters = {
 };
 
 export default function Evidence() {
+  const { id: casoId } = useParams();
+  const { canEdit } = useCaseRole(casoId);
+
   const [openModal, setOpenModal]         = useState(false);
   const [openFilter, setOpenFilter]       = useState(false);
   const [filters, setFilters]             = useState<EvidenceFilters>(DEFAULT_FILTERS);
@@ -46,7 +52,7 @@ export default function Evidence() {
       return;
     }
     try {
-      const response = await fetch("http://localhost:8000/evidences/", {
+      const response = await apiFetch("/evidences/", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: selectedIds }),
@@ -70,7 +76,7 @@ export default function Evidence() {
       return;
     }
     setEditingEvidence(null); // desmonta o modal antes de remontar com dados frescos
-    fetch(`http://localhost:8000/evidences/${selectedIds[0]}`)
+    apiFetch(`/evidences/${selectedIds[0]}`)
       .then((r) => r.json())
       .then((data) => setEditingEvidence(data))
       .catch(() => toast.error("Não foi possível carregar a evidência."));
@@ -92,9 +98,11 @@ export default function Evidence() {
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center gap-2">
-              <PrimaryButton onClick={() => setOpenModal(true)}>
-                Adicionar Evidências
-              </PrimaryButton>
+              {canEdit && (
+                <PrimaryButton onClick={() => setOpenModal(true)}>
+                  Adicionar Evidências
+                </PrimaryButton>
+              )}
 
               {/* Filtrar */}
               <div className="relative w-full md:w-auto">
@@ -127,19 +135,23 @@ export default function Evidence() {
                 )}
               </div>
 
-              {/* Editar */}
-              <ActionButton icon={<Edit size={14} />} onClick={handleEdit}>
-                Editar
-              </ActionButton>
+              {canEdit && (
+                <>
+                  {/* Editar */}
+                  <ActionButton icon={<Edit size={14} />} onClick={handleEdit}>
+                    Editar
+                  </ActionButton>
 
-              {/* Deletar */}
-              <ActionButton
-                variant="danger"
-                icon={<Trash2 size={14} />}
-                onClick={handleDelete}
-              >
-                {selectedIds.length > 0 ? `Deletar (${selectedIds.length})` : "Deletar"}
-              </ActionButton>
+                  {/* Deletar */}
+                  <ActionButton
+                    variant="danger"
+                    icon={<Trash2 size={14} />}
+                    onClick={handleDelete}
+                  >
+                    {selectedIds.length > 0 ? `Deletar (${selectedIds.length})` : "Deletar"}
+                  </ActionButton>
+                </>
+              )}
             </div>
           </div>
 
@@ -164,7 +176,7 @@ export default function Evidence() {
             filters={filters}
             refreshKey={refreshKey}
             onSelectionChange={setSelectedIds}
-            onAdd={() => setOpenModal(true)} 
+            onAdd={canEdit ? () => setOpenModal(true) : undefined}
           />
         </div>
       </div>

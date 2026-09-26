@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Checkbox } from "../../../@/components/ui/checkbox";
+import { apiFetch } from "@/lib/api";
 
 type Suspect = {
   id: string;
@@ -34,7 +35,7 @@ export default function FilterPanelRanking({
   useEffect(() => {
     if (!casoId) return;
 
-    fetch(`http://localhost:8000/suspects/case/${casoId}`)
+    apiFetch(`/suspects/case/${casoId}`)
       .then((r) => r.json())
       .then((data) => setSuspects(Array.isArray(data) ? data : []))
       .catch(() => setSuspects([]));

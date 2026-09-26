@@ -17,6 +17,12 @@ import Analysis from "./pages/case/analysis";
 import CaseOverview from "./pages/case/caseOverview";
 import Profiling from "./pages/case/profiling";
 import Register from "./pages/register";
+import EvidenceBoard from "./pages/case/evidenceBoard";
+import { Help } from "./pages/case/help";
+import Contact from "./pages/contact";
+import Profile from "./pages/profile";
+import History from "./pages/case/history";
+import Priority from "./pages/case/priority";
 
 function App() {
   return (
@@ -54,6 +60,7 @@ function App() {
         <Route path="/recover/email-send" element={<EmailSend />} />
         <Route path="/recover/new-password" element={<NewPassword />} />
         <Route path="/recover/updated-password" element={<UpdatedPassword />} />
+      
 
         {/* privadas sem sidebar */}
         <Route
@@ -64,6 +71,8 @@ function App() {
           }
         >
           <Route path="/mycases" element={<Home />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
 
         {/* privadas com sidebar */}
@@ -80,6 +89,10 @@ function App() {
             <Route path="evidence" element={<Evidence />} />
             <Route path="analysis" element={<Analysis />} />
             <Route path="profiling" element={<Profiling />} />
+            <Route path="evidenceBoard" element={<EvidenceBoard />} />
+            <Route path="priority" element={<Priority />} />
+            <Route path="help" element={<Help />} />
+            <Route path="history" element={<History />} />
           </Route>
         </Route>
       </Routes>

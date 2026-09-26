@@ -3,8 +3,7 @@ import { useState } from "react";
 import SecondaryButton from "../ui/SecondaryButton";
 import Panel from "./Panel";
 import toast from "react-hot-toast";
-
-const API_URL = "http://127.0.0.1:8000";
+import { apiFetch } from "@/lib/api";
 
 type Contact = {
   id: string;
@@ -17,11 +16,12 @@ type Props = {
   casoId: string;
   contacts: Contact[];
   onRefresh: () => void;
+  canEdit?: boolean;
 };
 
 type ModalMode = "create" | "edit";
 
-export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
+export default function ContactsCard({ casoId, contacts, onRefresh, canEdit = false }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState<ModalMode>("create");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -106,7 +106,7 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
     if (!validateFields()) return;
 
     if (mode === "create") {
-      await fetch(`${API_URL}/contacts/`, {
+      await apiFetch(`/contacts/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,7 +119,7 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
     }
 
     if (mode === "edit" && editingId) {
-      await fetch(`${API_URL}/contacts/${editingId}`, {
+      await apiFetch(`/contacts/${editingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -138,7 +138,7 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
     const confirmed = confirm("Deseja excluir este contato?");
     if (!confirmed) return;
 
-    await fetch(`${API_URL}/contacts/case/${casoId}/${contatoId}`, {
+    await apiFetch(`/contacts/case/${casoId}/${contatoId}`, {
       method: "DELETE",
     });
 
@@ -150,11 +150,13 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
       <Panel
         title="Lista Rápida de Contatos"
         action={
-          <SecondaryButton
-            onClick={openCreateModal}
-          >
-            Adicionar
-          </SecondaryButton>
+          canEdit && (
+            <SecondaryButton
+              onClick={openCreateModal}
+            >
+              Adicionar
+            </SecondaryButton>
+          )
         }
       >
         <div className="max-h-[195px] space-y-3 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#139C73] scrollbar-track-transparent">
@@ -180,21 +182,23 @@ export default function ContactsCard({ casoId, contacts, onRefresh }: Props) {
                   </h3>
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openEditModal(contact)}
-                    className="rounded-full p-1.5 text-white/65 hover:bg-slate-500/10 hover:text-white"
-                  >
-                    <Edit size={14} />
-                  </button>
+                {canEdit && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openEditModal(contact)}
+                      className="rounded-full p-1.5 text-white/65 hover:bg-slate-500/10 hover:text-white"
+                    >
+                      <Edit size={14} />
+                    </button>
 
-                  <button
-                    onClick={() => handleDelete(contact.id)}
-                    className="rounded-full p-1.5 text-red-400/70 hover:bg-red-500/10 hover:text-red-400"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+                    <button
+                      onClick={() => handleDelete(contact.id)}
+                      className="rounded-full p-1.5 text-red-400/70 hover:bg-red-500/10 hover:text-red-400"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2 text-xs text-slate-300">

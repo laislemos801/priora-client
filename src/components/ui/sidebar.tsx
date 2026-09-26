@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import logoHorizon from "@/assets/logoHorizonSideBar.png";
 import logoMobile from "@/assets/logoAlone.png";
 import { useNavigate, useLocation } from "react-router-dom";
+import { MdOutlineSupportAgent } from "react-icons/md";
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 
@@ -57,10 +58,7 @@ const icons = {
     </svg>
   ),
   help: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
-    </svg>
+    <MdOutlineSupportAgent size={18}/>
   ),
   logout: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -91,6 +89,18 @@ export type SidebarProps = {
   onLogout?: () => void;
 };
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Verifica se `pathname` é igual a `fullPath` ou uma sub-rota dele
+ * (ex: /case/123/evidence/detalhe). Evita o bug de startsWith puro, onde
+ * "/evidenceBoard" seria falsamente considerado ativo para o item
+ * "evidence", já que "/evidenceBoard".startsWith("/evidence") === true.
+ */
+function isRouteActive(pathname: string, fullPath: string): boolean {
+  return pathname === fullPath || pathname.startsWith(`${fullPath}/`);
+}
+
 // ─── Nav config ──────────────────────────────────────────────────────────────
 
 const NAV_MAIN: NavItem[] = [
@@ -100,13 +110,13 @@ const NAV_MAIN: NavItem[] = [
   { id: "analysis", label: "Análise Probabilística", icon: "analysis", path: "analysis" },
   { id: "profiling", label: "Perfilamento Criminal", icon: "profiling", path: "profiling" },
   { id: "priority", label: "Priorização de Ações", icon: "priority", path: "priority" },
-  { id: "board", label: "Quadro investigativo", icon: "board", path: "board" },
+  { id: "board", label: "Quadro investigativo", icon: "board", path: "evidenceBoard" },
   { id: "history", label: "Histórico", icon: "history", path: "history" },
 ];
 
 const NAV_SECONDARY: NavItem[] = [
   { id: "export", label: "Exportar Relatório", icon: "export", path: "export" },
-  { id: "help", label: "Ajuda", icon: "help", path: "help" },
+  { id: "help", label: "Contato", icon: "help", path: "help" },
 ];
 
 // ─── NavButton ───────────────────────────────────────────────────────────────
@@ -139,13 +149,13 @@ function NavButton({
         <span className="absolute left-0 top-[20%] h-[60%] w-[3px] bg-green-400 rounded-r-[3px]" />
       )}
       <span className={[
-        "flex-shrink-0 flex items-center justify-center w-[22px] transition-colors duration-[180ms] text-[#D9D9D9]/65",
+        "shrink-0 flex items-center justify-center w-[22px] transition-colors duration-[180ms] text-[#D9D9D9]/65",
         active ? "text-emerald-400" : "",
       ].join(" ")}>
         {icons[item.icon]}
       </span>
       <span className={[
-        "transition-opacity duration-[180ms]",
+        "transition-opacity duration-180",
         collapsed ? "opacity-0 pointer-events-none select-none" : "opacity-100",
       ].join(" ")}>
         {item.label}
@@ -230,8 +240,8 @@ export default function Sidebar({ onLogout }: SidebarProps) {
 
             const isActive =
               item.path === ""
-              ? location.pathname === basePath
-              : location.pathname.startsWith(fullPath);
+                ? location.pathname === basePath
+                : isRouteActive(location.pathname, fullPath);
 
             return (
               <NavButton
@@ -251,7 +261,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           {NAV_SECONDARY.map((item) => {
             const fullPath = `/case/${caseId}/${item.id}`;
 
-            const isActive = location.pathname.startsWith(fullPath);
+            const isActive = isRouteActive(location.pathname, fullPath);
 
             return (
               <NavButton
@@ -274,17 +284,17 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           className={[
             "flex items-center justify-center gap-2 rounded-[10px]",
             "text-[#ffffff]/65 text-[15px] bg-transparent cursor-pointer",
-            "hover:bg-red-400/[0.08] hover:text-red-400 hover:border-red-400/25",
-            "transition-all duration-[180ms]",
+            "hover:bg-red-400/8 hover:text-red-400 hover:border-red-400/25",
+            "transition-all duration-180",
             collapsed
-              ? "w-[38px] h-[38px] !rounded-full p-0 justify-center items-center"
+              ? "w-9.5 h-9.5 rounded-full! p-0 justify-center items-center"
               : "px-5 py-2",
           ].join(" ")}
         >
           {icons.logout}
           <span
             className={[
-              "transition-opacity duration-[180ms] whitespace-nowrap",
+              "transition-opacity duration-180 whitespace-nowrap",
               collapsed ? "hidden" : "opacity-100",
             ].join(" ")}
           >

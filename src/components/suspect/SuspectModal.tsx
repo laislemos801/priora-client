@@ -4,8 +4,7 @@ import PrimaryButton from "@/components/ui/PrimaryButton";
 import { supabase } from "@/lib/supabase";
 import type { Suspect } from "./types";
 import toast from "react-hot-toast";
-
-const API_URL = "http://127.0.0.1:8000";
+import { apiFetch } from "@/lib/api";
 
 type Props = {
   casoId: string;
@@ -94,10 +93,10 @@ export default function SuspectModal({
 
     const url =
       mode === "edit" && suspect
-        ? `${API_URL}/suspects/${suspect.id}`
-        : `${API_URL}/suspects/`;
+        ? `/suspects/${suspect.id}`
+        : `/suspects/`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: mode === "edit" ? "PATCH" : "POST",
       headers: {
         "Content-Type": "application/json",

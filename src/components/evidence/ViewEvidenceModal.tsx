@@ -1,6 +1,6 @@
 import { X, Fingerprint, Dna, MessageSquare, FileText, Video, Microscope, File } from "lucide-react";
 
-type Suspect = { id: string; nome: string };
+type Suspect = { id: string; nome: string; pesoVinculo?: number | null };
 
 export type EvidenceForView = {
   id: string;
@@ -10,7 +10,6 @@ export type EvidenceForView = {
   descricao?: string | null;
   dataColeta?: string | null;
   pesoCondicional?: number | null;
-  pesoVinculo?: number | null;
   suspeitos?: Suspect[];
 };
 
@@ -92,16 +91,9 @@ export default function ViewEvidenceModal({ evidence, onClose }: Props) {
             <p className="text-[14px] text-[#e8e8e8]">{evidence.pesoCondicional ?? "—"}</p>
           </div>
 
-          {evidence.pesoVinculo != null && (
-            <div>
-              <span className={LABEL}>Peso de vínculo</span>
-              <p className="text-[14px] text-[#e8e8e8]">{evidence.pesoVinculo}</p>
-            </div>
-          )}
-
           {evidence.suspeitos && evidence.suspeitos.length > 0 && (
             <div className="sm:col-span-2">
-              <span className={LABEL}>Suspeitos vinculados</span>
+              <span className={LABEL}>Suspeitos vinculados (peso de vínculo)</span>
               <div className="flex flex-wrap gap-2 mt-1">
                 {evidence.suspeitos.map((s) => (
                   <span
@@ -109,6 +101,7 @@ export default function ViewEvidenceModal({ evidence, onClose }: Props) {
                     className="bg-[#139C73]/15 text-[#139C73] text-xs px-3 py-1 rounded-full"
                   >
                     {s.nome}
+                    {s.pesoVinculo != null && ` · ${s.pesoVinculo}`}
                   </span>
                 ))}
               </div>

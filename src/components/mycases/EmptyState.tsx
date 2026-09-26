@@ -1,29 +1,24 @@
-import { MdOutlineAddModerator } from "react-icons/md";
-import PrimaryButton from "../ui/PrimaryButton";
+import PrimaryButton from "@/components/ui/PrimaryButton";
+import { ShieldPlus } from "lucide-react";
 
 export default function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="h-[70vh] flex flex-col items-center justify-center text-center gap-3">
+    <div className="flex min-h-[600px] flex-col items-center justify-center text-center">
+      <ShieldPlus size={140} className="text-white/10" />
 
-      {/* Ícone */}
-      <div className="w-24 h-24 rounded-full bg-[#2a2a2a] flex items-center justify-center">
-        <MdOutlineAddModerator className="text-[#A6A6A6] text-5xl" />
-      </div>
-
-      {/* Texto */}
-      <h3 className="text-[#A6A6A6] text-lg md:text-2xl font-medium">
+      <h2 className="mt-6 text-3xl font-medium text-white/60">
         Ainda não há casos cadastrados.
-      </h3>
+      </h2>
 
-      <p className="text-[#666] text-sm max-w-md">
+      <p className="mt-2 text-md text-white/35">
         Crie um caso para começar a investigar.
       </p>
 
-      {/* Botão */}
-      <PrimaryButton onClick={onCreate}>
-        Criar Novo Caso
-      </PrimaryButton>
-
+      <div className="mt-8">
+        <PrimaryButton onClick={onCreate}>
+          Criar Novo Caso
+        </PrimaryButton>
+      </div>
     </div>
   );
 }

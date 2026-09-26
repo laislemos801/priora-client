@@ -14,8 +14,7 @@ import BayesSection from "@/components/analysis/BayesSection";
 import FinalProbabilitySection from "@/components/analysis/FinalProbabilitySection";
 import type { SuspectAnalysis } from "@/components/analysis/types";
 import AnalysisSkeleton from "@/components/analysis/AnalysisSkeleton";
-
-const API_URL = "http://127.0.0.1:8000";
+import { apiFetch } from "@/lib/api";
 
 const nodeTypes = { suspect: SuspectNode, evidence: EvidenceNode };
 const edgeTypes = { vinculo: VinculoEdge };
@@ -41,7 +40,7 @@ export default function Analysis() {
   const [loading, setLoading] = useState(true);
 
   async function fetchAnalysis(suspeitoId: string): Promise<SuspectAnalysis> {
-    const res = await fetch(`${API_URL}/analysis/case/${casoId}/suspect/${suspeitoId}`);
+    const res = await apiFetch(`/analysis/case/${casoId}/suspect/${suspeitoId}`);
     return res.json();
   }
 
@@ -52,7 +51,7 @@ export default function Analysis() {
 
   useEffect(() => {
     if (!casoId) return;
-    fetch(`${API_URL}/suspects/case/${casoId}`)
+    apiFetch(`/suspects/case/${casoId}`)
       .then((r) => r.json())
       .then(async (list) => {
         if (!Array.isArray(list) || list.length === 0) return;

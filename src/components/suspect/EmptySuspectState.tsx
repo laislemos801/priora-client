@@ -2,7 +2,7 @@ import PrimaryButton from "@/components/ui/PrimaryButton";
 import { ShieldPlus } from "lucide-react";
 
 type Props = {
-  onCreate: () => void;
+  onCreate?: () => void;
 };
 
 export default function EmptySuspectState({
@@ -23,11 +23,13 @@ export default function EmptySuspectState({
         E comece a priorizar suas investigações.
       </p>
 
-      <div className="mt-8">
-        <PrimaryButton onClick={onCreate}>
-          Adicionar Suspeito
-        </PrimaryButton>
-      </div>
+      {onCreate && (
+        <div className="mt-8">
+          <PrimaryButton onClick={onCreate}>
+            Adicionar Suspeito
+          </PrimaryButton>
+        </div>
+      )}
     </div>
   );
 }
