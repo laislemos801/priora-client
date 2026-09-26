@@ -15,6 +15,7 @@ import Ranking from "./pages/case/ranking";
 import Evidence from "./pages/case/evidence";
 import Analysis from "./pages/case/analysis";
 import CaseOverview from "./pages/case/caseOverview";
+import Profiling from "./pages/case/profiling";
 import Register from "./pages/register";
 
 function App() {
@@ -78,6 +79,7 @@ function App() {
             <Route path="ranking" element={<Ranking />} />
             <Route path="evidence" element={<Evidence />} />
             <Route path="analysis" element={<Analysis />} />
+            <Route path="profiling" element={<Profiling />} />
           </Route>
         </Route>
       </Routes>
