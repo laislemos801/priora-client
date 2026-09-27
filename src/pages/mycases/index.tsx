@@ -12,7 +12,7 @@ export default function Home() {
     <div className="bg-[#1D1D1D] min-h-screen text-white flex flex-col">
       <TopBar />
 
-      <div className="flex-1 p-4 md:p-6">
+      <div className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className="h-full border border-[#575757] rounded-md p-4">
           <div className="flex items-center -mx-4 px-4 pb-3 mb-4 border-b border-[#575757] justify-between">
             <h2 className="md:text-lg text-2xl font-sans font-normal">

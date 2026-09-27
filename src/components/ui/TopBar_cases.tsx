@@ -39,9 +39,8 @@ export default function TopBar() {
     }
   };
 
-  const label = getCurrentLabel(); 
+  const label = getCurrentLabel();
 
-  
   return (
     <header className="w-full h-16 flex items-center bg-[#242424] justify-between px-4">
 

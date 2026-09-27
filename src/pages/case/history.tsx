@@ -1,5 +1,3 @@
-import TopBar from "@/components/ui/TopBar";
-
 import {
   FiShare2,
   FiFilter,
@@ -288,13 +286,11 @@ export default function History() {
 
 
   return (
-    <div className="min-h-screen bg-[#1D1D1D] text-white flex flex-col">
+    <div className="min-h-screen bg-[#242424] text-white">
 
-      <TopBar />
+      <main className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
 
-      <main className="flex-1 p-[1vw] md:p-[1.2vw]">
-
-        <div className="w-full min-h-[calc(100vh-5vw)] rounded-lg border border-[#575757] bg-[#242424] overflow-hidden">
+        <div className="w-full rounded-xl border border-[#575757] bg-[#242424] overflow-hidden">
 
           {/* ==================================================
               CABEÇALHO

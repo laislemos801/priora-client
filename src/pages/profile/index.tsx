@@ -1,6 +1,6 @@
 import TopBar from "@/components/ui/TopBar";
 import { IoIosArrowBack } from "react-icons/io";
-import { FiCamera } from "react-icons/fi";
+import { FiCamera, FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 import backImageProfile from "@/assets/backImageProfile.png";
@@ -9,24 +9,27 @@ import profileImage from "@/assets/profile.png";
 export default function Profile() {
   const navigate = useNavigate();
 
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  }
+
   return (
     <div className="min-h-screen bg-[#1D1D1D] text-white flex flex-col">
       <TopBar />
 
       <main className="flex-1 flex flex-col p-[1.5vw]">
-        {/* Voltar */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-[0.3vw] self-start mb-[1vw] text-[0.8vw] hover:text-gray-300"
-        >
-          <IoIosArrowBack className="text-[1vw]" />
-          Voltar
-        </button>
-
         {/* Container */}
         <section className="flex-1 flex flex-col border border-[#575757] rounded-md overflow-hidden">
           {/* Título */}
-          <header className="border-b border-[#575757] px-[1.2vw] py-[0.8vw]">
+          <header className="flex items-center gap-2 border-b border-[#575757] px-[1.2vw] py-[0.8vw]">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 -ml-2 rounded-full text-white/65 hover:bg-[#363636] hover:text-white transition-colors"
+            >
+              <IoIosArrowBack size={16} />
+            </button>
             <p className="text-[1.1vw] font-light">Minha Conta</p>
           </header>
 
@@ -134,6 +137,14 @@ export default function Profile() {
                   <span>Total de Casos:</span>
                   <span className="text-[#E8B768]">45</span>
                 </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="border-t border-[#575757] px-[0.8vw] py-[0.8vw] flex items-center justify-center gap-[0.5vw] text-[0.7vw] text-white/65 hover:bg-red-400/10 hover:text-red-400 transition-colors"
+                >
+                  <FiLogOut className="text-[0.85vw]" />
+                  Sair
+                </button>
               </div>
 
               {/* ================= FORMULÁRIO ================= */}

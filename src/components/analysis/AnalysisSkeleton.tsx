@@ -28,7 +28,7 @@ function SectionSk({ rows = 3 }: { rows?: number }) {
 export default function AnalysisSkeleton() {
   return (
     <div className="min-h-screen bg-[#242424]">
-      <div className="p-4 md:p-6">
+      <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className="rounded-xl border border-[#575757] bg-[#1e1e1e] overflow-hidden">
 
           {/* Header */}

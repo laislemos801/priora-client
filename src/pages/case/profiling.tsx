@@ -217,7 +217,7 @@ function ProfilingContent({ id }: { id: string | undefined }) {
 
   return (
     <div className="min-h-screen bg-[#242424]">
-      <div className="flex-1 p-4 md:p-6">
+      <div className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className="relative rounded-xl border border-[#575757] bg-[#242424]">
           <header className="flex flex-col gap-4 border-b border-[#575757] px-4 py-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">

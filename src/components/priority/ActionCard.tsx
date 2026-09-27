@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from "react";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Ban } from "lucide-react";
 import type { ActionStatus, InvestigativeAction } from "./types";
-import { STATUS_OPTIONS } from "./types";
+
+const STATUS_CYCLE_OPTIONS: ActionStatus[] = ["Sugerida", "Em progresso", "Concluída"];
 
 const STATUS_STYLES: Record<ActionStatus, string> = {
+  "Sugerida":     "bg-[#4584A3]/20 text-[#4584A3] border border-[#4584A3]/40",
   "Em progresso": "bg-[#139C73]/20 text-[#139C73] border border-[#139C73]/40",
-  "Em aprovação": "bg-[#FFA648]/20 text-[#FFA648] border border-[#FFA648]/40",
-  "Concluída":    "bg-[#4584A3]/20 text-[#4584A3] border border-[#4584A3]/40",
+  "Concluída":    "bg-[#8B8B8B]/20 text-[#D9D9D9] border border-[#8B8B8B]/40",
+  "Descartada":   "bg-[#FF6055]/20 text-[#FF6055] border border-[#FF6055]/40",
 };
 
 type Props = {
   action: InvestigativeAction;
-  onEdit: () => void;
-  onDelete: () => void;
   onChangeStatus: (status: ActionStatus) => void;
 };
 
-export default function ActionCard({ action, onEdit, onDelete, onChangeStatus }: Props) {
+export default function ActionCard({ action, onChangeStatus }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -53,19 +53,10 @@ export default function ActionCard({ action, onEdit, onDelete, onChangeStatus }:
 
             {menuOpen && (
               <div className="absolute right-0 top-8 z-20 w-56 rounded-lg border border-[#3a3a3a] bg-[#2b2b2b] shadow-xl py-1">
-                <button
-                  onClick={() => { onEdit(); setMenuOpen(false); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#ccc] hover:bg-[#333] transition-colors"
-                >
-                  <Pencil size={13} /> Editar ação
-                </button>
-
-                <div className="my-1 border-t border-[#3a3a3a]" />
-
                 <p className="px-3 pt-1 pb-1 text-[10px] uppercase tracking-widest text-[#777]">
                   Mudar status
                 </p>
-                {STATUS_OPTIONS.map((status) => (
+                {STATUS_CYCLE_OPTIONS.map((status) => (
                   <button
                     key={status}
                     onClick={() => { onChangeStatus(status); setMenuOpen(false); }}
@@ -82,10 +73,10 @@ export default function ActionCard({ action, onEdit, onDelete, onChangeStatus }:
                 <div className="my-1 border-t border-[#3a3a3a]" />
 
                 <button
-                  onClick={() => { onDelete(); setMenuOpen(false); }}
+                  onClick={() => { onChangeStatus("Descartada"); setMenuOpen(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
                 >
-                  <Trash2 size={13} /> Excluir ação
+                  <Ban size={13} /> Descartar sugestão
                 </button>
               </div>
             )}

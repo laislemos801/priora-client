@@ -28,7 +28,10 @@ export default function TopBar() {
         <NotificationButton />
 
         {/* Perfil */}
-        <button className="p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]">
+        <button
+          onClick={() => navigate("/profile")}
+          className="p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]"
+        >
           <FiUser size={20} />
         </button>
       </div>

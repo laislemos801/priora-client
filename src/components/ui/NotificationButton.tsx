@@ -15,7 +15,7 @@ export default function NotificationButton() {
         <FiBell size={16} className="md:hidden" />
         <FiBell size={20} className="hidden md:block" />
 
-        <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full" />
+        <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-red-500 rounded-full ring-2 ring-[#242424]" />
       </button>
 
       {/* DROPDOWN */}
@@ -35,7 +35,7 @@ export default function NotificationButton() {
                 {/* NOTIF 1 */}
                 <div className="flex gap-2 items-start text-sm text-gray-300 hover:bg-[#3a3a3a] p-2 rounded-md cursor-pointer">
                 
-                    <span className="mt-1 h-2 w-2 rounded-full bg-green-400" />
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-green-400" />
 
                     <p>
                         O colaborador Lucas Goes aceitou seu convite e agora tem acesso de editor ao Caso Alpha.
@@ -45,7 +45,7 @@ export default function NotificationButton() {
                 {/* NOTIF 2 */}
                 <div className="flex gap-2 items-start text-sm text-gray-300 hover:bg-[#3a3a3a] p-2 rounded-md cursor-pointer">
                 
-                    <span className="mt-1 h-2 w-2 rounded-full bg-yellow-400" />
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-yellow-400" />
 
                     <p>
                         O Caso Alpha atingiu 38 evidências. Sugerimos revisar o Quadro Investigativo para identificar novos nós de conexão.

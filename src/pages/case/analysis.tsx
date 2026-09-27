@@ -102,7 +102,7 @@ export default function Analysis() {
 
   return (
     <div className="min-h-screen bg-[#242424]">
-      <div className="p-4 md:p-6">
+      <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className="rounded-xl border border-[#575757] bg-[#1e1e1e] overflow-hidden">
           <header className="flex flex-col gap-4 border-b border-[#575757] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">

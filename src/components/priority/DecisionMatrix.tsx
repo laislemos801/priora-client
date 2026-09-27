@@ -18,9 +18,17 @@ function LabelDot({ cx, cy, index }: { cx?: number; cy?: number; index?: number 
   if (cx == null || cy == null) return null;
   return (
     <g>
-      <circle cx={cx} cy={cy} r={5} fill="#139C73" stroke="#0f7d5c" strokeWidth={1} />
-      <text x={cx + 8} y={cy + 4} fontSize={10} fill="#e8e8e8">
-        {`AÇÃO ${(index ?? 0) + 1}`}
+      <circle cx={cx} cy={cy} r={9} fill="#139C73" stroke="#0f7d5c" strokeWidth={1} />
+      <text
+        x={cx}
+        y={cy}
+        fontSize={9}
+        fontWeight={700}
+        fill="#0f2c22"
+        textAnchor="middle"
+        dominantBaseline="central"
+      >
+        {(index ?? 0) + 1}
       </text>
     </g>
   );
