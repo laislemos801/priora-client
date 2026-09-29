@@ -1,34 +1,46 @@
-import {
-  FiShare2,
-  FiFilter,
-  FiPlus,
-} from "react-icons/fi";
+import { FiShare2, FiFilter, FiPlus, FiX } from "react-icons/fi";
+import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
+import { useParams } from "react-router-dom";
 
-import roseHines from "@/assets/rose.png";
-import aryanRoy from "@/assets/aryan.png";
-import lucasGoes from "@/assets/lucas.png";
+interface HistoryItem {
+  id: string;
+  userId: string;
+  casoId: string;
+  action: string;
+  entityType: string;
+  entityId?: string | null;
+  entityName?: string | null;
+  details?: string | null;
+  createdAt: string;
+  user?: {
+    id: string;
+    primeiroNome: string;
+    sobrenome: string;
+    fotoUrl?: string | null;
+  };
+}
 
+interface Change {
+  campo: string;
+  antes: unknown;
+  depois: unknown;
+}
 
 // ============================================================
-// FUNÇÕES DE DATA
+// DATA
 // ============================================================
 
-// Remove horas e deixa somente a data
-function startOfDay(date) {
+function startOfDay(date: Date | string) {
   const result = new Date(date);
   result.setHours(0, 0, 0, 0);
   return result;
 }
 
-
-// Segunda-feira da semana atual
-function startOfWeek(date) {
+function startOfWeek(date: Date | string) {
   const result = startOfDay(date);
-
   const day = result.getDay();
 
-  // Domingo = 0
-  // Segunda = 1
   const difference = day === 0 ? 6 : day - 1;
 
   result.setDate(result.getDate() - difference);
@@ -36,29 +48,22 @@ function startOfWeek(date) {
   return result;
 }
 
-
-
-
-// Formata somente a data
-function formatDate(date) {
+function formatDate(date: Date) {
   return new Intl.DateTimeFormat("pt-BR").format(date);
 }
 
-
-// Formata somente o horário
-function formatTime(date) {
+function formatTime(date: Date) {
   return new Intl.DateTimeFormat("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
 }
 
-
 // ============================================================
-// CLASSIFICAÇÃO DOS HISTÓRICOS
+// ORGANIZAÇÃO
 // ============================================================
 
-function organizeHistory(items) {
+function organizeHistory(items: HistoryItem[]) {
   const today = startOfDay(new Date());
 
   const currentWeekStart = startOfWeek(today);
@@ -69,20 +74,15 @@ function organizeHistory(items) {
   const lastWeekEnd = new Date(currentWeekStart);
   lastWeekEnd.setMilliseconds(-1);
 
+  const todayItems: HistoryItem[] = [];
+  const thisWeekItems: HistoryItem[] = [];
+  const lastWeekItems: HistoryItem[] = [];
 
-  const todayItems = [];
-  const thisWeekItems = [];
-  const lastWeekItems = [];
-
-  // Históricos antigos serão agrupados pela data
-  const oldItems = {};
-
+  const oldItems: Record<string, HistoryItem[]> = {};
 
   items.forEach((item) => {
-    const itemDate = new Date(item.date);
-
+    const itemDate = new Date(item.createdAt);
     const day = startOfDay(itemDate);
-
 
     // HOJE
     if (day.getTime() === today.getTime()) {
@@ -90,28 +90,19 @@ function organizeHistory(items) {
       return;
     }
 
-
     // ESSA SEMANA
-    if (
-      day >= currentWeekStart &&
-      day <= today
-    ) {
+    if (day >= currentWeekStart && day <= today) {
       thisWeekItems.push(item);
       return;
     }
 
-
     // SEMANA PASSADA
-    if (
-      day >= lastWeekStart &&
-      day <= lastWeekEnd
-    ) {
+    if (day >= lastWeekStart && day <= lastWeekEnd) {
       lastWeekItems.push(item);
       return;
     }
 
-
-    // ANTES DA SEMANA PASSADA
+    // DATAS ANTIGAS
     const dateKey = formatDate(itemDate);
 
     if (!oldItems[dateKey]) {
@@ -121,9 +112,12 @@ function organizeHistory(items) {
     oldItems[dateKey].push(item);
   });
 
+  const sections: {
+    title: string;
+    items: HistoryItem[];
+  }[] = [];
 
-  const sections = [];
-
+  console.log(sections)
 
   if (todayItems.length > 0) {
     sections.push({
@@ -132,14 +126,12 @@ function organizeHistory(items) {
     });
   }
 
-
   if (thisWeekItems.length > 0) {
     sections.push({
       title: "ESSA SEMANA",
       items: thisWeekItems,
     });
   }
-
 
   if (lastWeekItems.length > 0) {
     sections.push({
@@ -148,8 +140,6 @@ function organizeHistory(items) {
     });
   }
 
-
-  // Datas antigas
   Object.entries(oldItems).forEach(([date, items]) => {
     sections.push({
       title: date,
@@ -157,161 +147,330 @@ function organizeHistory(items) {
     });
   });
 
-
   return sections;
 }
 
+// ============================================================
+// LABELS
+// ============================================================
+
+function getActionLabel(action: string) {
+  switch (action) {
+    case "CREATE":
+      return "criou";
+
+    case "UPDATE":
+      return "atualizou";
+
+    case "DELETE":
+      return "excluiu";
+
+    default:
+      return action;
+  }
+}
+function getEntityLabel(entityType: string) {
+  switch (entityType) {
+    case "EVIDENCIA":
+      return "uma evidência";
+
+    case "CASO":
+      return "o caso";
+
+    case "SUSPEITO":
+      return "um suspeito";
+
+    default:
+      return entityType.toLowerCase();
+  }
+}
+
+function getEntityNameFromDetails(details?: string | null) {
+  if (!details) return null;
+
+  try {
+    console.log("aqui: ",details)
+    const parsed = JSON.parse(details);
+
+    return parsed.nome || null;
+
+  } catch {
+    return null;
+  }
+}
+
+function getActionColor(action: string) {
+  switch (action) {
+    case "CREATE":
+      return {
+        background: "bg-[#155A46]",
+        text: "text-[#18C18A]",
+      };
+
+    case "UPDATE":
+      return {
+        background: "bg-[#465157]",
+        text: "text-[#65BBDD]",
+      };
+
+    case "DELETE":
+      return {
+        background: "bg-[#5A3030]",
+        text: "text-[#F07878]",
+      };
+
+    default:
+      return {
+        background: "bg-[#465157]",
+        text: "text-[#65BBDD]",
+      };
+  }
+}
+
+// ============================================================
+// CAMPOS
+// ============================================================
+
+function getFieldLabel(field: string) {
+  const labels: Record<string, string> = {
+    nome: "Nome",
+    descricao: "Descrição",
+    status: "Status",
+    prioridade: "Prioridade",
+    enderecoCep: "CEP",
+    enderecoLogradouro: "Logradouro",
+    enderecoNumero: "Número",
+    enderecoBairro: "Bairro",
+    enderecoCidade: "Cidade",
+    enderecoEstado: "Estado",
+    dataOcorrencia: "Data da ocorrência",
+  };
+
+  return labels[field] || field;
+}
+
+// ============================================================
+// ALTERAÇÕES
+// ============================================================
+
+function parseChanges(details?: string | null): Change[] | null {
+  if (!details) return null;
+
+  try {
+    const parsed = JSON.parse(details);
+
+    if (!Array.isArray(parsed)) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================
+// FORMATAR VALOR
+// ============================================================
+
+function formatChangeValue(value: unknown) {
+  if (value === null || value === undefined || value === "") {
+    return "vazio";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Sim" : "Não";
+  }
+
+  return String(value);
+}
 
 // ============================================================
 // COMPONENTE
 // ============================================================
 
 export default function History() {
+  const { id: caseId } = useParams<{ id: string }>();
+
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // ==========================================================
-  // HISTÓRICOS
+  // FILTROS
   // ==========================================================
 
-  const history = [
-    {
-      date: "2026-09-16T01:09:00",
-      image: roseHines,
-      name: "Rose Hines",
-      action: "enviou imagem",
-      text: "Foto da cena do crime",
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
+  const [showFilters, setShowFilters] = useState(false);
 
-    {
-      date: "2026-09-16T01:09:00",
-      image: roseHines,
-      name: "Rose Hines",
-      action: "conectou",
-      text: "Seta Suspeito 2 → Local do Crime",
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
+  const [selectedDate, setSelectedDate] = useState("");
 
-    {
-      date: "2026-09-15T16:40:00",
-      image: aryanRoy,
-      name: "Aryan Roy",
-      action: "alterou status do Depoimento 01 para",
-      text: "Custodiada",
-      status: "green",
-      tag: "Evidências",
-      type: "green",
-    },
+  const [selectedActions, setSelectedActions] = useState<string[]>([]);
 
-    {
-      date: "2026-09-14T16:07:00",
-      image: lucasGoes,
-      name: "Lucas Goes",
-      action: "enviou um convite para",
-      text: "Rhea Rull editar caso Alpha",
-      tag: "Convite",
-      type: "yellow",
-    },
+  // ==========================================================
+  // BUSCAR HISTÓRICO
+  // ==========================================================
 
-    {
-      date: "2026-09-12T13:34:00",
-      image: aryanRoy,
-      name: "Aryan Roy",
-      action: "adicionou texto",
-      text: '"Horário do crime"',
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
+  useEffect(() => {
+    async function loadHistory() {
+      if (!caseId) {
+        toast.error("Caso não informado.");
+        setLoading(false);
+        return;
+      }
 
-    {
-      date: "2026-09-11T13:09:00",
-      image: roseHines,
-      name: "Rose Hines",
-      action: "adicionou Nota",
-      text: '"Aguardar laudo"',
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
+      try {
+        setLoading(true);
 
-    {
-      date: "2026-09-10T13:07:00",
-      image: lucasGoes,
-      name: "Lucas Goes",
-      action: "enviou um convite para",
-      text: "Sarika Jain editar caso Alpha",
-      tag: "Convite",
-      type: "yellow",
-    },
+        const token = localStorage.getItem("token");
 
-    {
-      date: "2026-09-09T12:40:00",
-      image: lucasGoes,
-      name: "Lucas Goes",
-      action: "alterou status do DNA 01 para",
-      text: "Em análise",
-      status: "orange",
-      tag: "Evidências",
-      type: "green",
-    },
+        const response = await fetch(
+          `http://localhost:8000/history/cases/${caseId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
 
-    // ============================================
-    // EXEMPLOS ANTIGOS
-    // ============================================
+        const data = await response.json();
 
-    {
-      date: "2026-09-01T09:40:00",
-      image: lucasGoes,
-      name: "Lucas Goes",
-      action: "editou foto do suspeito",
-      text: "",
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
+        if (!response.ok) {
+          throw new Error(data.detail || "Erro ao carregar histórico.");
+        }
 
-    {
-      date: "2026-08-25T15:20:00",
-      image: roseHines,
-      name: "Rose Hines",
-      action: "adicionou documento",
-      text: "Laudo pericial",
-      tag: "Documentos",
-      type: "blue",
-    },
-  ];
+        if (!Array.isArray(data)) {
+          setHistory([]);
+          return;
+        }
 
+        setHistory(data);
+      } catch (error) {
+        console.error("Erro ao carregar histórico:", error);
 
-  // Organiza automaticamente
-  const sections = organizeHistory(history);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Erro ao carregar histórico.",
+        );
 
+        setHistory([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadHistory();
+  }, [caseId]);
+
+  // ==========================================================
+  // ALTERAR TIPO DO FILTRO
+  // ==========================================================
+
+  function toggleAction(action: string) {
+    setSelectedActions((current) => {
+      if (current.includes(action)) {
+        return current.filter((item) => item !== action);
+      }
+
+      return [...current, action];
+    });
+  }
+
+  // ==========================================================
+  // LIMPAR FILTROS
+  // ==========================================================
+
+  function clearFilters() {
+    setSelectedDate("");
+    setSelectedActions([]);
+  }
+
+  // ==========================================================
+  // FILTRAR HISTÓRICO
+  // ==========================================================
+
+  const filteredHistory = useMemo(() => {
+    return history.filter((item) => {
+      // FILTRO DE AÇÃO
+      if (
+        selectedActions.length > 0 &&
+        !selectedActions.includes(item.action)
+      ) {
+        return false;
+      }
+
+      // FILTRO DE DATA
+      if (selectedDate) {
+        const itemDate = new Date(item.createdAt);
+
+        const year = itemDate.getFullYear();
+        const month = String(itemDate.getMonth() + 1).padStart(2, "0");
+        const day = String(itemDate.getDate()).padStart(2, "0");
+
+        const itemDateString = `${year}-${month}-${day}`;
+
+        if (itemDateString !== selectedDate) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [history, selectedDate, selectedActions]);
+
+  // ==========================================================
+  // ORGANIZAR
+  // ==========================================================
+
+  const sections = organizeHistory(filteredHistory);
+
+  // ==========================================================
+  // LOADING
+  // ==========================================================
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#242424] text-white">
+        <main className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
+          <div className="w-full rounded-xl border border-[#575757] bg-[#242424] overflow-hidden">
+            <div className="flex items-center gap-[0.7vw] px-[1.2vw] py-[0.8vw] border-b border-[#575757]">
+              <FiShare2 className="text-[#12B98B] text-[1vw]" />
+
+              <h1 className="font-semibold text-[1vw]">Histórico</h1>
+            </div>
+
+            <div className="p-[1.5vw] text-center text-gray-400 text-[0.7vw]">
+              Carregando histórico...
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
     <div className="min-h-screen bg-[#242424] text-white">
-
       <main className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
-
         <div className="w-full rounded-xl border border-[#575757] bg-[#242424] overflow-hidden">
-
           {/* ==================================================
               CABEÇALHO
           ================================================== */}
 
           <div className="flex items-center justify-between px-[1.2vw] py-[0.8vw] border-b border-[#575757]">
-
             <div className="flex items-center gap-[0.7vw]">
+              <FiShare2 className="text-[#12B98B] text-[1vw]" />
 
-              <FiShare2
-                className="text-[#12B98B] text-[1vw]"
-              />
-
-              <h1 className="font-semibold text-[1vw]">
-                Histórico
-              </h1>
-
+              <h1 className="font-semibold text-[1vw]">Histórico</h1>
             </div>
 
-
             <button
+              type="button"
+              onClick={() => setShowFilters((current) => !current)}
               className="
                 flex
                 items-center
@@ -323,231 +482,431 @@ export default function History() {
                 text-gray-300
                 text-[0.7vw]
                 hover:bg-[#373737]
+                transition
               "
             >
-              <FiFilter className="text-[0.8vw]" />
+              {showFilters ? (
+                <FiX className="text-[0.8vw]" />
+              ) : (
+                <FiFilter className="text-[0.8vw]" />
+              )}
 
-              Filtrar
+              {showFilters ? "Fechar" : "Filtrar"}
             </button>
-
           </div>
 
+          {/* ==================================================
+              FILTROS
+          ================================================== */}
+
+          {showFilters && (
+            <div className="px-[1.2vw] py-[0.9vw] border-b border-[#575757] bg-[#292929]">
+              <div className="flex items-end gap-[1vw] flex-wrap">
+                {/* DATA */}
+
+                <div className="flex flex-col gap-[0.3vw]">
+                  <label className="text-[0.58vw] text-gray-400">Data</label>
+
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(event) => setSelectedDate(event.target.value)}
+                    className="
+                      h-[1.8vw]
+                      px-[0.6vw]
+                      rounded-md
+                      border
+                      border-[#575757]
+                      bg-[#202020]
+                      text-gray-200
+                      text-[0.62vw]
+                      outline-none
+                      focus:border-[#12B98B]
+                    "
+                  />
+                </div>
+
+                {/* AÇÕES */}
+
+                <div className="flex flex-col gap-[0.3vw]">
+                  <span className="text-[0.58vw] text-gray-400">
+                    Tipo de atividade
+                  </span>
+
+                  <div className="flex items-center gap-[0.4vw]">
+                    {/* CRIADO */}
+
+                    <button
+                      type="button"
+                      onClick={() => toggleAction("CRIADO")}
+                      className={`
+                        h-[1.8vw]
+                        px-[0.7vw]
+                        rounded-md
+                        border
+                        text-[0.6vw]
+                        transition
+                        ${
+                          selectedActions.includes("CRIADO")
+                            ? "border-[#18C18A] bg-[#155A46] text-[#18C18A]"
+                            : "border-[#575757] bg-[#202020] text-gray-400 hover:bg-[#303030]"
+                        }
+                      `}
+                    >
+                      Criado
+                    </button>
+
+                    {/* ATUALIZADO */}
+
+                    <button
+                      type="button"
+                      onClick={() => toggleAction("UPDATE")}
+                      className={`
+                        h-[1.8vw]
+                        px-[0.7vw]
+                        rounded-md
+                        border
+                        text-[0.6vw]
+                        transition
+                        ${
+                          selectedActions.includes("UPDATE")
+                            ? "border-[#65BBDD] bg-[#465157] text-[#65BBDD]"
+                            : "border-[#575757] bg-[#202020] text-gray-400 hover:bg-[#303030]"
+                        }
+                      `}
+                    >
+                      Atualizado
+                    </button>
+
+                    {/* EXCLUÍDO */}
+
+                    <button
+                      type="button"
+                      onClick={() => toggleAction("DELETE")}
+                      className={`
+                        h-[1.8vw]
+                        px-[0.7vw]
+                        rounded-md
+                        border
+                        text-[0.6vw]
+                        transition
+                        ${
+                          selectedActions.includes("DELETE")
+                            ? "border-[#F07878] bg-[#5A3030] text-[#F07878]"
+                            : "border-[#575757] bg-[#202020] text-gray-400 hover:bg-[#303030]"
+                        }
+                      `}
+                    >
+                      Excluído
+                    </button>
+                  </div>
+                </div>
+
+                {/* LIMPAR */}
+
+                {(selectedDate || selectedActions.length > 0) && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="
+                      h-[1.8vw]
+                      px-[0.8vw]
+                      rounded-md
+                      border
+                      border-[#575757]
+                      bg-[#202020]
+                      text-gray-400
+                      text-[0.6vw]
+                      hover:bg-[#353535]
+                      hover:text-white
+                      transition
+                    "
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
+
+              {/* RESUMO */}
+
+              {(selectedDate || selectedActions.length > 0) && (
+                <div className="mt-[0.6vw] text-[0.55vw] text-gray-500">
+                  Exibindo {filteredHistory.length} de {history.length}{" "}
+                  atividades
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ==================================================
               LISTA
           ================================================== */}
 
           <div className="p-[0.8vw]">
+            {filteredHistory.length === 0 ? (
+              <div className="py-[2vw] text-center text-gray-500 text-[0.7vw]">
+                {history.length === 0
+                  ? "Nenhuma atividade registrada neste caso."
+                  : "Nenhuma atividade encontrada com os filtros selecionados."}
+              </div>
+            ) : (
+              <div className="w-full overflow-hidden">
+                {sections.map((section) => (
+                  <div key={section.title} className="mb-[0.8vw]">
+                    {/* TÍTULO */}
 
-            <div className="w-full ] overflow-hidden">
+                    <div className="flex items-center gap-[0.4vw] px-[0.1vw] mb-[0.35vw]">
+                      <span className="whitespace-nowrap text-[0.65vw] font-medium">
+                        {section.title}
+                      </span>
 
-              {sections.map((section) => (
+                      <div className="flex-1 h-px bg-gray-300" />
+                    </div>
 
-                <div key={section.title}>
+                    {/* ITENS */}
 
-                  {/* ==========================================
-                      TÍTULO DA SEÇÃO
-                  ========================================== */}
+                    <div className="flex flex-col gap-[0.2vw]">
+                      {section.items.map((item) => {
+                        console.log(item)
+                        const itemDate = new Date(item.createdAt);
 
-                  <div className="flex items-center gap-[0.4vw] px-[0.1vw]">
+                        const actionColor = getActionColor(item.action);
 
-                    <span className="whitespace-nowrap text-[0.65vw] font-medium">
-                      {section.title}
-                    </span>
+                        const firstName = item.user?.primeiroNome || "Usuário";
 
-                    <div className="flex-1 h-[1px] bg-gray-300" />
+                        const lastName = item.user?.sobrenome || "";
 
-                  </div>
+                        const fullName = `${firstName} ${lastName}`.trim();
 
+                        const changes =
+                          item.action === "UPDATE"
+                            ? parseChanges(item.details)
+                            : null;
 
-                  {/* ==========================================
-                      ITENS
-                  ========================================== */}
+                        return (
+                          <div
+                            key={item.id}
+                            className="
+                              flex
+                              items-center
+                              gap-[0.7vw]
+                              w-full
+                              rounded-md
+                              px-[0.7vw]
+                              py-[0.55vw]
+                              bg-[#2B2B2B]
+                              border-b
+                              border-[#202020]
+                              hover:bg-[#303030]
+                              transition
+                            "
+                          >
+                            {/* FOTO */}
 
-                  {section.items.map((item, index) => {
+                            {item.user?.fotoUrl ? (
+                              <img
+                                src={item.user.fotoUrl}
+                                alt={fullName}
+                                className="
+                                  shrink-0
+                                  w-[1.8vw]
+                                  h-[1.8vw]
+                                  rounded-full
+                                  object-cover
+                                "
+                              />
+                            ) : (
+                              <div
+                                className="
+                                  shrink-0
+                                  w-[1.8vw]
+                                  h-[1.8vw]
+                                  rounded-full
+                                  bg-[#555]
+                                  flex
+                                  items-center
+                                  justify-center
+                                  text-[0.65vw]
+                                  font-semibold
+                                  text-gray-200
+                                "
+                              >
+                                {firstName.charAt(0).toUpperCase()}
+                              </div>
+                            )}
 
-                    const itemDate = new Date(item.date);
+                            {/* TEXTO */}
 
-                    return (
-                      <div
-                        key={`${section.title}-${index}`}
-                        className="
-                          flex
-                          items-center
-                          gap-[0.7vw]
-                          w-full
-                          rounded-md
-                          px-[0.7vw]
-                          py-[0.55vw]
-                          bg-[#2B2B2B]
-                          border-b
-                          border-[#202020]
-                          hover:bg-[#303030]
-                          transition
-                        "
-                      >
+                            <div
+                              className="
+                                flex-1
+                                min-w-0
+                                flex
+                                items-center
+                                gap-[0.35vw]
+                                text-[0.72vw]
+                              "
+                            >
+                              <span className="font-semibold whitespace-nowrap">
+                                {fullName}
+                              </span>
 
-                        {/* FOTO */}
+                              <span className="text-gray-400 whitespace-nowrap">
+                                {getActionLabel(item.action)}
+                              </span>
 
-                        <img
-                          src={item.image}
-                          alt=""
-                          className="
-                            shrink-0
-                            w-[1.8vw]
-                            h-[1.8vw]
-                            rounded-full
-                            object-cover
-                          "
-                        />
+                              {/* ATUALIZAÇÃO */}
 
+                              {changes ? (
+                                <div className="flex items-center gap-[0.5vw] min-w-0">
+                                  {item.entityType && (
+                                    <span className="text-gray-200 whitespace-nowrap">
+                                      {getEntityLabel(item.entityType)}
+                                    </span>
+                                  )}
 
-                        {/* TEXTO */}
+                                  {changes.map((change, index) => (
+                                    <div
+                                      key={`${change.campo}-${index}`}
+                                      className="
+          flex
+          items-center
+          gap-[0.3vw]
+          min-w-0
+          text-[0.62vw]
+        "
+                                    >
+                                      <span className="text-gray-400 whitespace-nowrap">
+                                        {getFieldLabel(change.campo)}:
+                                      </span>
 
-                        <div className="
-                          flex-1
-                          min-w-0
-                          flex
-                          items-center
-                          gap-[0.35vw]
-                          text-[0.72vw]
-                        ">
+                                      <span
+                                        className="
+            text-gray-500
+            line-through
+            truncate
+            max-w-[10vw]
+          "
+                                      >
+                                        {formatChangeValue(change.antes)}
+                                      </span>
 
-                          <span className="font-semibold whitespace-nowrap">
-                            {item.name}
-                          </span>
+                                      <span className="text-gray-600">→</span>
 
-                          <span className="text-gray-400 whitespace-nowrap">
-                            {item.action}
-                          </span>
+                                      <span
+                                        className="
+            text-gray-200
+            font-medium
+            truncate
+            max-w-[10vw]
+          "
+                                      >
+                                        {formatChangeValue(change.depois)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                               <>
+  {item.entityType && (
+    <span className="text-gray-200 whitespace-nowrap">
+      {getEntityLabel(item.entityType)}
+    </span>
+  )}
 
+  { item.entityType == "CASO" && item.entityName && (
+    <>
+      <span className="text-gray-400">:</span>
 
-                          {/* STATUS */}
+      <span className="font-semibold text-gray-200 whitespace-nowrap">
+        {item.entityName}
+      </span>
+    </>
+  )}
 
-                          {item.status && (
+  {item.entityType == "EVIDENCIA" && (
+    <span className="text-gray-400 whitespace-nowrap truncate">
+      — {item.details}
+    </span>
+  )}
+
+  {item.entityType == "SUSPEITO" && (
+    <span className="text-gray-400 whitespace-nowrap truncate">
+     {getEntityNameFromDetails(item.details)}
+    </span>
+  )}
+</>
+                              )}
+                            </div>
+
+                            {/* TAG */}
+
                             <span
                               className={`
                                 shrink-0
-                                w-[0.35vw]
-                                h-[0.35vw]
                                 rounded-full
-
-                                ${
-                                  item.status === "green"
-                                    ? "bg-[#19C58C]"
-                                    : "bg-[#F4A340]"
-                                }
+                                px-[0.65vw]
+                                py-[0.18vw]
+                                text-[0.5vw]
+                                whitespace-nowrap
+                                ${actionColor.background}
+                                ${actionColor.text}
                               `}
-                            />
-                          )}
+                            >
+                              {getActionLabel(item.action)}
+                            </span>
 
+                            {/* DATA */}
 
-                          {/* TEXTO */}
-
-                          <span
-                            className={`
-                              whitespace-nowrap
-
-                              ${
-                                item.status
-                                  ? "font-semibold"
-                                  : "text-gray-200"
-                              }
-                            `}
-                          >
-                            {item.text}
-                          </span>
-
-                        </div>
-
-
-                        {/* TAG */}
-
-                        <span
-                          className={`
-                            shrink-0
-                            rounded-full
-                            px-[0.65vw]
-                            py-[0.18vw]
-                            text-[0.5vw]
-                            whitespace-nowrap
-
-                            ${
-                              item.type === "blue"
-                                ? "bg-[#465157] text-[#65BBDD]"
-                                : ""
-                            }
-
-                            ${
-                              item.type === "green"
-                                ? "bg-[#155A46] text-[#18C18A]"
-                                : ""
-                            }
-
-                            ${
-                              item.type === "yellow"
-                                ? "bg-[#B69B1A] text-[#282200]"
-                                : ""
-                            }
-                          `}
-                        >
-                          {item.tag}
-                        </span>
-
-
-                        {/* DATA / HORA */}
-
-                        <span className="
-                          shrink-0
-                          text-[0.52vw]
-                          text-gray-300
-                          whitespace-nowrap
-                        ">
-                          {formatDate(itemDate)}{" "}
-                          {formatTime(itemDate)}
-                        </span>
-
-                      </div>
-                    );
-                  })}
-
-                </div>
-              ))}
-
-            </div>
-
+                            <span
+                              className="
+                                shrink-0
+                                text-[0.52vw]
+                                text-gray-300
+                                whitespace-nowrap
+                              "
+                            >
+                              {formatDate(itemDate)} {formatTime(itemDate)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* ==================================================
                 VER MAIS
             ================================================== */}
 
-            <button
-              className="
-                mt-[0.7vw]
-                flex
-                items-center
-                gap-[0.4vw]
-                px-[0.7vw]
-                py-[0.35vw]
-                border
-                border-[#575757]
-                rounded-md
-                bg-[#292929]
-                text-[0.65vw]
-                hover:bg-[#353535]
-              "
-            >
-              <FiPlus className="text-[0.8vw]" />
-
-              Ver mais
-            </button>
-
+            {filteredHistory.length > 0 && (
+              <button
+                type="button"
+                className="
+                  mt-[0.7vw]
+                  flex
+                  items-center
+                  gap-[0.4vw]
+                  px-[0.7vw]
+                  py-[0.35vw]
+                  border
+                  border-[#575757]
+                  rounded-md
+                  bg-[#292929]
+                  text-[0.65vw]
+                  hover:bg-[#353535]
+                  transition
+                "
+              >
+                <FiPlus className="text-[0.8vw]" />
+                Ver mais
+              </button>
+            )}
           </div>
-
         </div>
-
       </main>
-
     </div>
   );
 }
