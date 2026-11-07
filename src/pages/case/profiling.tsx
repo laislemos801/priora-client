@@ -319,7 +319,7 @@ function ProfilingContent({ id }: { id: string | undefined }) {
                 </ActionButton>
               </div>
             ) : (
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+              <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-stretch">
                 <section className="flex min-w-0 flex-1 flex-col gap-6 rounded-xl bg-[#2A2A2A] p-4 md:p-6">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <SuspectHeader
@@ -349,14 +349,14 @@ function ProfilingContent({ id }: { id: string | undefined }) {
                   )}
                 </section>
 
-                <aside className="w-full lg:w-[320px] lg:flex-shrink-0">
+                <aside className="relative w-full lg:w-[320px] lg:flex-shrink-0">
                   <ComparisonList
                     axes={visibleAxes}
                     estimado={estimatedValues}
                     suspeito={activeSuspect.perfil}
                     tipos={visibleTypes}
                     colors={COLORS}
-                    className="lg:max-h-[640px]"
+                    className="max-h-[480px] lg:absolute lg:inset-0 lg:max-h-none"
                   />
                 </aside>
               </div>
