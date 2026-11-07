@@ -194,7 +194,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
   return (
     <aside
       className={[
-        "flex flex-col h-screen bg-[#1D1D1D] border-r border-[#242426] flex-shrink-0",
+        "flex flex-col h-screen bg-[#1D1D1D] border-r border-[#242426] flex-shrink-0 print:hidden",
         "overflow-hidden transition-all duration-[180ms] ease-[cubic-bezier(0.4,0,0.2,1)]",
         collapsed ? "w-[60px] min-w-[60px]" : "w-[250px] min-w-[250px]",
       ].join(" ")}

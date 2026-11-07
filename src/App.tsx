@@ -22,6 +22,7 @@ import { Help } from "./pages/case/help";
 import Contact from "./pages/contact";
 import Profile from "./pages/profile";
 import History from "./pages/case/history";
+import ExportReport from "@/pages/case/export";
 import Priority from "./pages/case/priority";
 
 function App() {
@@ -93,6 +94,7 @@ function App() {
             <Route path="priority" element={<Priority />} />
             <Route path="help" element={<Help />} />
             <Route path="history" element={<History />} />
+            <Route path="export" element={<ExportReport />} />
           </Route>
         </Route>
       </Routes>

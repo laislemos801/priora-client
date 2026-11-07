@@ -14,13 +14,15 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen print:block print:h-auto">
         <Sidebar onLogout={handleLogout} />
 
       <div className="flex flex-col flex-1">
-        <TopBar_cases />
+        <div className="print:hidden">
+          <TopBar_cases />
+        </div>
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto print:overflow-visible">
           <Outlet />
         </main>
       </div>
