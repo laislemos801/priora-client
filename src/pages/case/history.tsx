@@ -4,27 +4,13 @@ import { FiShare2, FiFilter, FiPlus } from "react-icons/fi";
 
 import Tag from "@/components/ui/Tag";
 import { apiFetch } from "@/lib/api";
+import { ENTITY_LABELS, describe } from "@/lib/history";
+import type { HistoryApiItem } from "@/lib/history";
 
 
 // ============================================================
 // TIPOS
 // ============================================================
-
-type HistoryApiItem = {
-  id: string;
-  action: "CREATE" | "UPDATE" | "DELETE" | string;
-  entityType: "CASO" | "SUSPEITO" | "EVIDENCIA" | "PERFIL_ESTIMADO" | string;
-  entityId: string | null;
-  entityName: string | null;
-  details: string | null;
-  createdAt: string;
-  user: {
-    id: string;
-    primeiroNome: string;
-    sobrenome: string;
-    fotoUrl: string | null;
-  } | null;
-};
 
 type HistorySection = {
   title: string;
@@ -32,22 +18,6 @@ type HistorySection = {
 };
 
 const PAGE_SIZE = 20;
-
-const VERBS: Record<string, string> = {
-  CREATE: "criou",
-  UPDATE: "alterou",
-  DELETE: "excluiu",
-};
-
-const ENTITY_LABELS: Record<string, { noun: string; tag: string; color: "blue" | "green" | "yellow" }> = {
-  SUSPEITO: { noun: "o suspeito", tag: "Suspeitos", color: "blue" },
-  EVIDENCIA: { noun: "a evidência", tag: "Evidências", color: "green" },
-  CASO: { noun: "o caso", tag: "Caso", color: "yellow" },
-  PERFIL_ESTIMADO: { noun: "o perfil estimado", tag: "Perfilamento", color: "blue" },
-  CONTATO: { noun: "o contato", tag: "Contatos", color: "yellow" },
-  ACESSO: { noun: "o acesso de colaborador", tag: "Acessos", color: "blue" },
-  ACAO: { noun: "a ação investigativa", tag: "Ações", color: "green" },
-};
 
 const TAG_STYLES = {
   blue: "bg-[#465157] text-[#65BBDD]",
@@ -90,52 +60,6 @@ function formatTime(date: Date) {
 // ============================================================
 // TEXTO DO EVENTO
 // ============================================================
-
-// `details` vem do backend como texto puro ("Caso criado") ou como JSON
-// (lista de {campo, antes, depois} ou objeto com os campos alterados).
-function summarizeDetails(details: string | null): string {
-  if (!details) return "";
-
-  try {
-    const parsed = JSON.parse(details);
-
-    if (Array.isArray(parsed)) {
-      const campos = parsed
-        .map((c) => (c && typeof c === "object" ? c.campo : null))
-        .filter(Boolean);
-      return campos.length ? `campos: ${campos.join(", ")}` : "";
-    }
-
-    if (parsed && typeof parsed === "object") {
-      const campos = Object.keys(parsed).filter((k) => k !== "id");
-      return campos.length ? `campos: ${campos.join(", ")}` : "";
-    }
-  } catch {
-    // não é JSON: texto puro
-  }
-
-  return details;
-}
-
-function describe(item: HistoryApiItem) {
-  const verb = VERBS[item.action] ?? item.action.toLowerCase();
-  const entity = ENTITY_LABELS[item.entityType];
-  const action = entity ? `${verb} ${entity.noun}` : verb;
-
-  // campos técnicos (JSON) só interessam nas alterações; em criação/exclusão
-  // mostramos apenas o nome da entidade e eventuais textos livres.
-  const detail = summarizeDetails(item.details);
-  const isTechnical = detail.startsWith("campos:");
-  const isGenericDetail = ["Caso criado", "Evidência criada", "Evidência excluída", "Caso excluído"].includes(detail);
-  const showDetail = item.action === "UPDATE" ? true : !isTechnical && !isGenericDetail;
-
-  const text = [item.entityName, showDetail ? detail : ""]
-    .filter(Boolean)
-    .join(" — ");
-
-  return { action, text };
-}
-
 
 // ============================================================
 // CLASSIFICAÇÃO DOS HISTÓRICOS

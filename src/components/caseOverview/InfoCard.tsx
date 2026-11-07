@@ -54,7 +54,7 @@ export default function InfoCard({ caseData, onEdit }: InfoCardProps) {
           label="Data:"
           value={
             caseData?.dataOcorrencia
-              ? new Date(caseData.dataOcorrencia).toLocaleDateString("pt-BR")
+              ? String(caseData.dataOcorrencia).slice(0, 10).split("-").reverse().join("/")
               : "-"
           }
         />

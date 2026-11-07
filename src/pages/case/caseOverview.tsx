@@ -24,6 +24,11 @@ import CreateCaseModal from "@/components/mycases/CreateCaseModal";
 import CaseOverviewSkeleton from "@/components/caseOverview/CaseOverviewSkeleton";
 import { apiFetch } from "@/lib/api";
 import { useCaseRole } from "@/hooks/useCaseRole";
+import { describe, timeAgo } from "@/lib/history";
+import type { HistoryApiItem } from "@/lib/history";
+import { getEstimatedProfile } from "@/services/profilingService";
+import type { ProfileValues } from "@/components/profiling/types";
+import type { InvestigativeAction } from "@/components/priority/types";
 
 const icons = {
   dashboard: (
@@ -41,8 +46,45 @@ export default function CaseOverview() {
   const [contacts, setContacts] = useState<any[]>([]);
   const [editCaseOpen, setEditCaseOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState<HistoryApiItem[]>([]);
+  const [actions, setActions] = useState<InvestigativeAction[]>([]);
+  const [profile, setProfile] = useState<ProfileValues | null>(null);
 
   const navigate = useNavigate();
+
+  async function fetchHistory() {
+    if (!id) return;
+    try {
+      const response = await apiFetch(`/history/cases/${id}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setHistory(Array.isArray(data) ? data : (data?.items ?? []));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function fetchActions() {
+    if (!id) return;
+    try {
+      const response = await apiFetch(`/priority-actions/case/${id}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setActions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async function fetchProfile() {
+    if (!id) return;
+    try {
+      const estimated = await getEstimatedProfile(id);
+      setProfile(estimated.perfil);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   async function fetchContacts() {
     if (!id) return;
@@ -100,12 +142,28 @@ export default function CaseOverview() {
   useEffect(() => {
     if (!id) return;
 
-    Promise.all([fetchCase(), fetchContacts()]).finally(() => {
+    Promise.all([fetchCase(), fetchContacts(), fetchHistory(), fetchActions(), fetchProfile()]).finally(() => {
       setLoading(false);
     });
   }, [id]);
 
   if (loading) return <CaseOverviewSkeleton />;
+
+  const goToProfiling = () => navigate(`/case/${id}/profiling`);
+
+  // Ação sugerida com maior ganho de informação (a mesma lógica da tela de Priorização).
+  const nextAction = actions
+    .filter((a) => a.status === "Sugerida")
+    .sort((a, b) => b.recompensa - a.recompensa)[0];
+
+  const incertezaTexto =
+    caseData?.incerteza != null ? `A incerteza do caso está em ${Number(caseData.incerteza).toFixed(1)}%. ` : "";
+
+  const nextStepText = nextAction
+    ? `${incertezaTexto}Ação com maior ganho de informação: ${nextAction.titulo} (ganho estimado de ${nextAction.recompensa.toFixed(1)}% da incerteza).`
+    : (caseData?.totalSuspeitos ?? 0) === 0
+      ? "Cadastre suspeitos e evidências para receber sugestões de próximos passos."
+      : `${incertezaTexto}Nenhuma ação sugerida no momento.`;
 
   return (
     <div className="min-h-screen bg-[#242424]">
@@ -124,7 +182,7 @@ export default function CaseOverview() {
 
                 <div className="flex items-center gap-2 text-xs text-white/65 md:text-sm">
                   <RefreshCw size={14} />
-                  <span>Última atualização: há 2 horas</span>
+                  <span>Última atualização: {history[0] ? timeAgo(history[0].createdAt) : "—"}</span>
                 </div>
               </div>
 
@@ -167,34 +225,57 @@ export default function CaseOverview() {
               </div>
 
               <div className="grid gap-6 lg:grid-cols-[1fr_280px] xl:hidden">
-                <ProfileCard />
+                <ProfileCard perfil={profile} onEdit={goToProfiling} />
                 <UncertaintyCard incerteza={caseData?.incerteza ?? null} />
               </div>
 
-              <Panel title="Histórico Recente">
-                <ul className="space-y-3 text-sm text-white/65">
-                  <HistoryItem>
-                    <span className="text-white">Há 2 horas:</span> Nova evidência de DNA aumentou a probabilidade
-                    de Elvin Bond em 15%.
-                  </HistoryItem>
+              <Panel
+                title="Histórico Recente"
+                action={
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/case/${id}/history`)}
+                    className="text-xs text-emerald-400 underline-offset-2 hover:underline"
+                  >
+                    Ver histórico completo
+                  </button>
+                }
+              >
+                {history.length === 0 ? (
+                  <p className="text-sm text-white/65">Nenhuma atividade registrada ainda.</p>
+                ) : (
+                  <ul className="space-y-3 text-sm text-white/65">
+                    {history.slice(0, 4).map((item) => {
+                      const { action, text } = describe(item);
+                      const user = item.user
+                        ? `${item.user.primeiroNome} ${item.user.sobrenome}`.trim()
+                        : "Usuário removido";
 
-                  <HistoryItem>
-                    <span className="text-white">Há 10 horas:</span> A inserção da evidência 'Digital no local'
-                    elevou Elvin Bond para o topo do ranking (81,5%).
-                  </HistoryItem>
-
-                  <HistoryItem>
-                    <span className="text-white">Há 17 horas:</span> A nova análise de álibi reduziu a
-                    probabilidade de Louis Mason em 22%.
-                  </HistoryItem>
-                </ul>
+                      return (
+                        <HistoryItem key={item.id}>
+                          <span className="text-white">{timeAgo(item.createdAt)}:</span>{" "}
+                          {user} {action}
+                          {text ? ` — ${text}` : ""}.
+                        </HistoryItem>
+                      );
+                    })}
+                  </ul>
+                )}
               </Panel>
 
-              <Panel title="Próximo Passo Sugerido">
-                <p className="text-sm text-white/65">
-                  "A incerteza ainda está em 14,1%. Tente validar o Depoimento
-                  de Nicholas Roy para refinar o ranking."
-                </p>
+              <Panel
+                title="Próximo Passo Sugerido"
+                action={
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/case/${id}/priority`)}
+                    className="text-xs text-emerald-400 underline-offset-2 hover:underline"
+                  >
+                    Ver priorização de ações
+                  </button>
+                }
+              >
+                <p className="text-sm text-white/65">{nextStepText}</p>
               </Panel>
 
               <div className="grid gap-4 lg:grid-cols-2">
@@ -224,7 +305,7 @@ export default function CaseOverview() {
 
             <aside className="hidden space-y-4 xl:block">
               {id && <AccessCard casoId={id} canInvite={canEdit} isOwner={isOwner} />}
-              <ProfileCard />
+              <ProfileCard perfil={profile} onEdit={goToProfiling} />
               <UncertaintyCard incerteza={caseData?.incerteza ?? null} />
             </aside>
           </main>
