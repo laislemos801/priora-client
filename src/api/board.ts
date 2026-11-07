@@ -1,9 +1,11 @@
+import { apiFetch } from "@/lib/api";
+
 export async function uploadBoardImage(caseId: string, file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(
-    `http://localhost:8000/cases/${caseId}/board/images`,
+  const response = await apiFetch(
+    `/cases/${caseId}/board/images`,
     {
       method: "POST",
       body: formData,

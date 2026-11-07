@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { apiFetch } from '@/lib/api';
+import { useCaseRole } from '@/hooks/useCaseRole';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -34,12 +36,14 @@ function BoardCanvas({
   onSave,
   isSaving,
   caseId,
+  readOnly,
 }: {
   initialNodes: BoardNode[];
   initialEdges: BoardEdge[];
   onSave: (nodes: BoardNode[], edges: BoardEdge[]) => void;
   isSaving: boolean;
   caseId: string;
+  readOnly: boolean;
 }) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -158,12 +162,18 @@ function BoardCanvas({
   return (
     // Altura da área abaixo da TopBar_cases (h-16), para o quadro não rolar e esconder a toolbar
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-zinc-950">
-      <BoardToolbar
-        onAddShape={handleAddShape}
-        onSave={handleSaveClick}
-        onDeleteSelected={handleDeleteSelected}
-        isSaving={isSaving}
-      />
+      {readOnly ? (
+        <div className="px-4 py-2 text-xs text-zinc-400 border-b border-zinc-800 bg-zinc-900">
+          Modo somente leitura: seu papel neste caso não permite editar o quadro.
+        </div>
+      ) : (
+        <BoardToolbar
+          onAddShape={handleAddShape}
+          onSave={handleSaveClick}
+          onDeleteSelected={handleDeleteSelected}
+          isSaving={isSaving}
+        />
+      )}
 
       <div ref={wrapperRef} className="flex-1">
         <ReactFlow
@@ -173,6 +183,9 @@ function BoardCanvas({
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
+          nodesDraggable={!readOnly}
+          nodesConnectable={!readOnly}
+          deleteKeyCode={readOnly ? null : 'Backspace'}
           fitView
           proOptions={{ hideAttribution: true }}
         >
@@ -187,6 +200,7 @@ function BoardCanvas({
 export default function EvidenceBoard() {
   // mesma chave "id" que o TopBar.tsx já usa pra buscar o caso
   const { id } = useParams<{ id: string }>();
+  const { canEdit, loading: roleLoading } = useCaseRole(id);
 
   const [nodes, setNodes] = useState<BoardNode[]>([]);
   const [edges, setEdges] = useState<BoardEdge[]>([]);
@@ -200,7 +214,7 @@ export default function EvidenceBoard() {
     async function loadBoard() {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:8000/cases/${id}/board`);
+        const response = await apiFetch(`/cases/${id}/board`);
 
         if (response.status === 404) {
           if (!cancelled) {
@@ -235,7 +249,7 @@ export default function EvidenceBoard() {
       if (!id) return;
       setIsSaving(true);
       try {
-        const response = await fetch(`http://localhost:8000/cases/${id}/board`, {
+        const response = await apiFetch(`/cases/${id}/board`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nodes: updatedNodes, edges: updatedEdges }),
@@ -251,7 +265,7 @@ export default function EvidenceBoard() {
     [id]
   );
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
         Carregando quadro investigativo...
@@ -269,6 +283,7 @@ export default function EvidenceBoard() {
         onSave={handleSave}
         isSaving={isSaving}
         caseId={id!}
+        readOnly={!canEdit}
       />
     </ReactFlowProvider>
   );
