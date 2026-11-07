@@ -13,7 +13,7 @@ export default function Panel({
 }: PanelProps) {
   return (
     <section
-      className={`overflow-hidden rounded-lg border border-[#3d3d3d] ${className}`}
+      className={`flex flex-col overflow-hidden rounded-lg border border-[#3d3d3d] ${className}`}
     >
       <div className="flex items-center justify-between border-b border-[#3d3d3d] px-5 py-3">
         <h2 className="font-medium text-white">
@@ -23,7 +23,7 @@ export default function Panel({
         {action}
       </div>
 
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         {children}
       </div>
     </section>

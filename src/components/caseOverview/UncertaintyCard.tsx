@@ -3,9 +3,10 @@ import { useState } from "react";
 
 type Props = {
   incerteza: number | null;
+  className?: string;
 };
 
-export default function UncertaintyCard({ incerteza }: Props) {
+export default function UncertaintyCard({ incerteza, className = "" }: Props) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const value = incerteza ?? 0;
@@ -16,7 +17,7 @@ export default function UncertaintyCard({ incerteza }: Props) {
   const angle = (value / 100) * 180 - 90;
 
   return (
-    <section className="rounded-lg border border-[#3d3d3d] bg-[#2B2B2B] p-5">
+    <section className={`flex flex-col rounded-lg border border-[#3d3d3d] bg-[#2B2B2B] p-5 ${className}`}>
       <div className="mb-6 flex items-center justify-between relative">
         <h2 className="font-medium text-white">
           Nível de incerteza:{" "}
@@ -49,7 +50,7 @@ export default function UncertaintyCard({ incerteza }: Props) {
         </div>
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <div className="relative h-[170px] w-[280px]">
 
           {/* Arco colorido */}

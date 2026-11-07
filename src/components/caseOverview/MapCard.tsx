@@ -66,14 +66,16 @@ export default function MapCard({ endereco }: MapCardProps) {
           </button>
         }
       >
-        <div className="h-[195px] overflow-hidden rounded-md bg-[#303030]">
-          {coords ? (
-            <MapView coords={coords} endereco={endereco} />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-white/65">
-              Localização não encontrada
-            </div>
-          )}
+        <div className="relative min-h-[195px] flex-1 overflow-hidden rounded-md bg-[#303030]">
+          <div className="absolute inset-0">
+            {coords ? (
+              <MapView coords={coords} endereco={endereco} />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-white/65">
+                Localização não encontrada
+              </div>
+            )}
+          </div>
         </div>
       </Panel>
 

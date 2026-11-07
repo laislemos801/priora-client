@@ -202,7 +202,7 @@ export default function CaseOverview() {
           </header>
 
           <main className="grid gap-6 p-6 xl:grid-cols-[1fr_285px]">
-            <section className="space-y-6">
+            <section className="flex flex-col gap-6">
               <div className="grid gap-4 lg:grid-cols-[1fr_190px]">
                 <InfoCard
                   caseData={caseData}
@@ -278,7 +278,7 @@ export default function CaseOverview() {
                 <p className="text-sm text-white/65">{nextStepText}</p>
               </Panel>
 
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid flex-1 gap-4 lg:grid-cols-2">
                 <ContactsCard
                 casoId={id!}
                 contacts={contacts}
@@ -303,10 +303,10 @@ export default function CaseOverview() {
               </div>
             </section>
 
-            <aside className="hidden space-y-4 xl:block">
+            <aside className="hidden flex-col gap-4 xl:flex">
               {id && <AccessCard casoId={id} canInvite={canEdit} isOwner={isOwner} />}
               <ProfileCard perfil={profile} onEdit={goToProfiling} />
-              <UncertaintyCard incerteza={caseData?.incerteza ?? null} />
+              <UncertaintyCard incerteza={caseData?.incerteza ?? null} className="flex-1" />
             </aside>
           </main>
         </div>
