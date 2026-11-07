@@ -44,6 +44,9 @@ const ENTITY_LABELS: Record<string, { noun: string; tag: string; color: "blue" |
   EVIDENCIA: { noun: "a evidência", tag: "Evidências", color: "green" },
   CASO: { noun: "o caso", tag: "Caso", color: "yellow" },
   PERFIL_ESTIMADO: { noun: "o perfil estimado", tag: "Perfilamento", color: "blue" },
+  CONTATO: { noun: "o contato", tag: "Contatos", color: "yellow" },
+  ACESSO: { noun: "o acesso de colaborador", tag: "Acessos", color: "blue" },
+  ACAO: { noun: "a ação investigativa", tag: "Ações", color: "green" },
 };
 
 const TAG_STYLES = {
