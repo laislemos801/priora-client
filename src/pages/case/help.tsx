@@ -1,6 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { MdOutlineSupportAgent } from "react-icons/md";
+import NavIcon from "@/components/ui/NavIcon";
 import { IoIosArrowBack } from "react-icons/io";
 import { FiAlertCircle, FiHelpCircle, FiInbox, FiLock, FiMessageSquare } from "react-icons/fi";
 import PrimaryButton from "@/components/ui/PrimaryButton";
@@ -107,7 +107,7 @@ export function Help({ onBack }: Props) {
                 <IoIosArrowBack size={16} />
               </button>
             )}
-            <MdOutlineSupportAgent size={18} className="text-emerald-400" />
+            <NavIcon name="help" className="text-emerald-400" />
             <h1 className="text-lg font-semibold text-slate-100">Contato</h1>
           </header>
 

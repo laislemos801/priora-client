@@ -9,7 +9,7 @@ import PrimaryButton from "@/components/ui/PrimaryButton";
 import SuspectModal from "@/components/suspect/SuspectModal";
 import { useCaseRole } from "@/hooks/useCaseRole";
 
-import ProfilingIcon from "@/components/profiling/ProfilingIcon";
+import NavIcon from "@/components/ui/NavIcon";
 import RadarChart from "@/components/profiling/RadarChart";
 import SuspectHeader from "@/components/profiling/SuspectHeader";
 import ComparisonList from "@/components/profiling/ComparisonList";
@@ -223,7 +223,7 @@ function ProfilingContent({ id }: { id: string | undefined }) {
           <header className="flex flex-col gap-4 border-b border-[#575757] px-4 py-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
               <span className="text-[#139C73]">
-                <ProfilingIcon />
+                <NavIcon name="profiling" />
               </span>
 
               <h1 className="text-lg font-semibold text-white">

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { FiShare2, FiFilter, FiPlus } from "react-icons/fi";
+import { FiFilter, FiPlus } from "react-icons/fi";
+import NavIcon from "@/components/ui/NavIcon";
 
 import Tag from "@/components/ui/Tag";
 import { apiFetch } from "@/lib/api";
@@ -185,7 +186,7 @@ export default function History() {
           <div className="flex items-center justify-between px-[1.2vw] py-[0.8vw] border-b border-[#575757]">
 
             <div className="flex items-center gap-[0.7vw]">
-              <FiShare2 className="text-[#12B98B] text-[1vw]" />
+              <NavIcon name="history" className="text-[#12B98B]" />
               <h1 className="font-semibold text-[1vw]">Histórico</h1>
             </div>
 
@@ -226,7 +227,7 @@ export default function History() {
 
             {!loading && !error && filtered.length === 0 && (
               <EmptyState
-                icon={<FiShare2 />}
+                icon={<NavIcon name="history" />}
                 title={history.length === 0 ? "Nenhuma alteração registrada" : "Nenhum registro encontrado"}
                 description={
                   history.length === 0

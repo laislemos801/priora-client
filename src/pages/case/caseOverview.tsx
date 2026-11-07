@@ -24,20 +24,12 @@ import CreateCaseModal from "@/components/mycases/CreateCaseModal";
 import CaseOverviewSkeleton from "@/components/caseOverview/CaseOverviewSkeleton";
 import { apiFetch } from "@/lib/api";
 import { useCaseRole } from "@/hooks/useCaseRole";
+import NavIcon from "@/components/ui/NavIcon";
 import { describe, timeAgo } from "@/lib/history";
 import type { HistoryApiItem } from "@/lib/history";
 import { getEstimatedProfile } from "@/services/profilingService";
 import type { ProfileValues } from "@/components/profiling/types";
 import type { InvestigativeAction } from "@/components/priority/types";
-
-const icons = {
-  dashboard: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  ),
-};
 
 export default function CaseOverview() {
   const { id } = useParams();
@@ -173,7 +165,7 @@ export default function CaseOverview() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <span className="text-emerald-400">{icons.dashboard}</span>
+                  <span className="text-emerald-400"><NavIcon name="dashboard" /></span>
 
                   <h1 className="text-lg font-semibold text-slate-100">
                     Painel do Caso

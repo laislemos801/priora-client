@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { FiDownload, FiPrinter } from "react-icons/fi";
 import toast from "react-hot-toast";
 
+import NavIcon from "@/components/ui/NavIcon";
 import ReportSkeleton from "@/components/report/ReportSkeleton";
 import { apiFetch } from "@/lib/api";
 import { describe } from "@/lib/history";
@@ -170,7 +171,10 @@ export default function ExportReport() {
       {/* barra de ações (não sai na impressão) */}
       <div className="mx-auto mb-3 flex max-w-[900px] flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
-          <h1 className="text-lg font-semibold text-slate-100">Exportar Relatório</h1>
+          <h1 className="flex items-center gap-2.5 text-lg font-semibold text-slate-100">
+            <NavIcon name="export" className="text-emerald-400" />
+            Exportar Relatório
+          </h1>
           <p className="text-xs text-white/65">
             Prévia do relatório. Use “Imprimir / Salvar PDF” e escolha “Salvar como PDF” no destino.
           </p>

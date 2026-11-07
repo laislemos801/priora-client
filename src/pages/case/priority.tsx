@@ -1,8 +1,9 @@
 import ActionCardSkeleton from "@/components/priority/ActionCardSkeleton";
+import NavIcon from "@/components/ui/NavIcon";
 import EmptyState, { PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Target, ListChecks } from "lucide-react";
+import { ListChecks } from "lucide-react";
 import ActionButton from "@/components/ui/ActionButton";
 import { IoFilterSharp } from "react-icons/io5";
 import toast from "react-hot-toast";
@@ -83,7 +84,7 @@ export default function Priority() {
           {/* Toolbar */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-6 py-4 border-b border-[#575757]">
             <div className="flex items-center gap-2.5">
-              <Target size={18} className="text-emerald-400" />
+              <NavIcon name="priority" className="text-emerald-400" />
               <span className="text-slate-100 font-semibold text-base md:text-lg">
                 Priorização de Ações investigativas
               </span>

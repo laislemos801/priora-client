@@ -1,4 +1,5 @@
-import { Search, Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
+import NavIcon from "@/components/ui/NavIcon";
 import { PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import EvidenciasTable from "@/components/evidence/table_evidence";
@@ -92,7 +93,7 @@ export default function Evidence() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-6 py-4 border-b border-[#575757]">
 
             <div className="flex items-center gap-2.5">
-              <Search size={16} className="text-emerald-400" />
+              <NavIcon name="evidence" className="text-emerald-400" />
               <span className="text-slate-100 font-semibold text-base md:text-lg">
                 Evidências
               </span>

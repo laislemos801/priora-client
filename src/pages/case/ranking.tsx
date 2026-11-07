@@ -7,7 +7,7 @@ import { PAGE_BODY_FILL, PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import ActionButton from "@/components/ui/ActionButton";
 
-import BarIcon from "@/components/suspect/BarIcon";
+import NavIcon from "@/components/ui/NavIcon";
 import RankingTable from "@/components/suspect/RankingTable";
 import SuspectModal from "@/components/suspect/SuspectModal";
 import EmptySuspectState from "@/components/suspect/EmptySuspectState";
@@ -214,7 +214,7 @@ export default function Ranking() {
           <header className="flex flex-col gap-4 border-b border-[#575757] px-4 py-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
               <span className="text-[#139C73]">
-                <BarIcon />
+                <NavIcon name="ranking" />
               </span>
 
               <h1 className="text-lg font-semibold text-white">
