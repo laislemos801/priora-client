@@ -57,8 +57,6 @@ type Props = {
 
 export default function FilterPanelCases({ onClose, onApply, initialFilters }: Props) {
   const [filters, setFilters] = useState<Filters>(initialFilters ?? EMPTY_FILTERS);
-  // controla qual datepicker está aberto para expandir o painel
-  const [openPicker, setOpenPicker] = useState<"dataInicio" | "dataFim" | null>(null);
 
   function toggleList(group: "status" | "prioridade" | "estado" | "cidade", value: string) {
     setFilters((prev) => {
@@ -83,7 +81,6 @@ export default function FilterPanelCases({ onClose, onApply, initialFilters }: P
 
   function handleDateChange(name: string, value: string) {
     setFilters((p) => ({ ...p, [name]: value }));
-    setOpenPicker(null);
   }
 
   return (

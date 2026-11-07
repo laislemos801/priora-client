@@ -11,7 +11,7 @@ export default function TopBar() {
       {/* LEFT */}
       <div className="flex items-center gap-3">
         {/* Logo */}
-        <img src="../../../logo.webp" alt="Logo do sistema" className="h-8" />
+        <img src="/logo.webp" alt="Logo do sistema" className="h-8" />
       </div>
 
       {/* RIGHT */}

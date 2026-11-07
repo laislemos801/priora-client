@@ -1,20 +1,23 @@
+import erImg from "@/assets/er.png";
+import logoHorizonImg from "@/assets/logoHorizon.png";
+import foldersImg from "@/assets/folders.png";
 export default function EmailSend() {
   return (
    <div className="dark-circuit-wrapper flex w-full h-screen justify-between items-center">
     <div className="dark-circuit-background" />
       <div className="w-[60%] ml-4 lg:block hidden h-[95%] transition-all">
         <img
-          src="..\src\assets\er.png"
+          src={erImg}
           alt="imagem-decorativa"
           className=" w-full h-full lg:block hidden"
         />
       </div>
       <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-10 mx-auto gap-10">
         <div className="">
-          <img src="..\src\assets\logoHorizon.png" alt="logo" />
+          <img src={logoHorizonImg} alt="logo" />
         </div>
         <div className="">
-          <img src="..\src\assets\folders.png" alt="logo" />
+          <img src={foldersImg} alt="logo" />
         </div>
         <div className="w-full flex flex-col items-center">
           <p className="text-[#D9D9D9] text-[20px] font-semibold mb-4">

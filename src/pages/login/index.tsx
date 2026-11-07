@@ -4,6 +4,8 @@ import { MdOutlineMail } from "react-icons/md";
 import { MdOutlineVisibility } from "react-icons/md";
 import { MdOutlineVisibilityOff } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import erImg from "@/assets/er.png";
+import logoVerticalImg from "@/assets/logoVertical.png";
 import toast from "react-hot-toast"; 
 
 export default function Login() {
@@ -43,14 +45,14 @@ export default function Login() {
       <div className="dark-circuit-background" />
       <div className="w-[60%] ml-4 hidden lg:block  h-[95%] transition-all">
         <img
-          src="src\assets\er.png"
+          src={erImg}
           alt="imagem-decorativa"
           className=" w-full h-full hidden lg:block "
         />
       </div>
       <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-10 mx-auto gap-10">
         <div className="">
-          <img src="src\assets\logoVertical.png" alt="logo" />
+          <img src={logoVerticalImg} alt="logo" />
         </div>
         <div>
           <p className="text-[#D9D9D9]  sm:text-sm  md:text-2xl font-semibold mb-4">Login</p>

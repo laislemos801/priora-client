@@ -7,6 +7,8 @@ import {
 } from "react-icons/md";
 import toast from "react-hot-toast"; 
 import { useNavigate } from "react-router-dom";
+import erImg from "@/assets/er.png";
+import logoHorizonImg from "@/assets/logoHorizon.png";
 
 export default function Register() {
   const [visibilityPassword, setVisibilityPassword] = useState(false);
@@ -102,7 +104,7 @@ export default function Register() {
       <div className="dark-circuit-background" />
       <div className="w-[60%] ml-4 lg:block hidden h-[95%] transition-all">
         <img
-          src="src/assets/er.png"
+          src={erImg}
           alt="imagem-decorativa"
           className="w-full h-full"
         />
@@ -110,7 +112,7 @@ export default function Register() {
 
       <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-6 mx-auto gap-10">
         <div>
-          <img src="src/assets/logoHorizon.png" alt="logo" />
+          <img src={logoHorizonImg} alt="logo" />
         </div>
 
         <div>

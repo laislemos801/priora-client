@@ -3,6 +3,9 @@ import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
+import erImg from "@/assets/er.png";
+import logoHorizonImg from "@/assets/logoHorizon.png";
+import logoPadlockImg from "@/assets/logoPadlock.png";
 
 export default function NewPassword() {
   const [visibilityPassword, setVisibilityPassword] = useState(false);
@@ -67,17 +70,17 @@ export default function NewPassword() {
     <div className="dark-circuit-background" />
       <div className="w-[60%] ml-4 hidden lg:block  h-[95%] transition-all">
         <img
-          src="..\src\assets\er.png"
+          src={erImg}
           alt="imagem-decorativa"
           className=" w-full h-full hidden lg:block "
         />
       </div>
       <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-10 mx-auto gap-10">
         <div className="">
-          <img src="..\src\assets\logoHorizon.png" alt="logo" />
+          <img src={logoHorizonImg} alt="logo" />
         </div>
         <div className="">
-          <img src="..\src\assets\logoPadlock.png" alt="logo" />
+          <img src={logoPadlockImg} alt="logo" />
         </div>
         <div>
           <p className="text-[#D9D9D9] text-[20px] font-semibold ">
