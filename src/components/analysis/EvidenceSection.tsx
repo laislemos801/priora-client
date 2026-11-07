@@ -1,4 +1,5 @@
 import type { Evidence } from "./types";
+import { contributionOf, linkedSuspects } from "./contribution";
 
 type Props = { evidencias: Evidence[] };
 
@@ -21,8 +22,8 @@ export default function EvidenceSection({ evidencias }: Props) {
 
       <div className="space-y-3">
         {evidencias.map((ev) => {
-          const competitors = ev.suspectIds?.length || 1;
-          const contribution = 1 + ev.pesoFinal * (1 / competitors);
+          const competitors = linkedSuspects(ev);
+          const contribution = contributionOf(ev);
 
           return (
             <div key={ev.id} className="rounded-lg border border-[#333] bg-[#2A2A2A] p-4">

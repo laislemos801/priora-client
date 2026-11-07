@@ -1,4 +1,5 @@
 import type { Evidence } from "./types";
+import { contributionOf } from "./contribution";
 
 type Props = {
   evidencias: Evidence[];
@@ -16,12 +17,7 @@ export default function LRScoreSection({ evidencias, pEH }: Props) {
       <div className="text-center">
         <div className="text-[#139C73] font-semibold break-all text-lg">
           {evidencias.length > 0
-            ? evidencias
-                .map((ev) => {
-                  const competitors = ev.suspectIds?.length || 1;
-                  return (1 + ev.pesoFinal * (1 / competitors)).toFixed(2);
-                })
-                .join(" × ")
+            ? evidencias.map((ev) => contributionOf(ev).toFixed(2)).join(" × ")
             : "1.00"}
         </div>
 

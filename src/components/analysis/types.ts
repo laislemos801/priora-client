@@ -6,6 +6,8 @@ export type Evidence = {
   pesoVinculo: number;
   pesoFinal: number;
   suspectIds?: string[];
+  /** C = 1 + r × v × 1/|S|, calculada pelo backend com a mesma função do modelo. */
+  contribuicao?: number;
   status?: string;
   dataColeta?: string;
   descricao?: string | null;
