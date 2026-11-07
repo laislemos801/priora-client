@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { apiFetch } from '@/lib/api';
+import BoardSkeleton from "@/components/evidenceboard/BoardSkeleton";
 import { useCaseRole } from '@/hooks/useCaseRole';
 import {
   ReactFlow,
@@ -265,13 +266,7 @@ export default function EvidenceBoard() {
     [id]
   );
 
-  if (loading || roleLoading) {
-    return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
-        Carregando quadro investigativo...
-      </div>
-    );
-  }
+  if (loading || roleLoading) return <BoardSkeleton />;
 
   
 

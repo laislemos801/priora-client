@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import EmptyState, { PAGE_BODY_FILL, PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import ReactFlow, { Background, Controls, type Node, type Edge } from "reactflow";
 import "reactflow/dist/style.css";
 
@@ -30,6 +31,7 @@ function AnalysisIcon() {
 
 export default function Analysis() {
   const { id: casoId } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const [suspects, setSuspects] = useState<SuspectAnalysis[]>([]);
@@ -99,6 +101,31 @@ export default function Analysis() {
   }, [selected]);
 
   if (loading) return <AnalysisSkeleton />;
+
+  // sem suspeitos não há o que analisar: mesmo estado vazio das outras abas
+  if (suspects.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#242424]">
+        <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
+          <div className={`overflow-hidden rounded-xl border border-[#575757] bg-[#1e1e1e] ${PAGE_CARD_FILL}`}>
+            <header className="flex items-center gap-3 border-b border-[#575757] px-5 py-4">
+              <span className="text-[#139C73]"><AnalysisIcon /></span>
+              <h1 className="text-lg font-semibold text-white">Análise Probabilística</h1>
+            </header>
+
+            <main className={`${PAGE_BODY_FILL} p-4 md:p-6`}>
+              <EmptyState
+                icon={<AnalysisIcon />}
+                title="Nenhum suspeito para analisar"
+                description="A análise probabilística mostra como cada evidência pesa no cálculo de um suspeito. Cadastre suspeitos e evidências para começar."
+                action={{ label: "Ir para Ranking de suspeitos", onClick: () => navigate(`/case/${casoId}/ranking`) }}
+              />
+            </main>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#242424]">

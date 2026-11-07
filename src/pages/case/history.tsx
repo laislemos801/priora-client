@@ -4,6 +4,8 @@ import { FiShare2, FiFilter, FiPlus } from "react-icons/fi";
 
 import Tag from "@/components/ui/Tag";
 import { apiFetch } from "@/lib/api";
+import HistoryListSkeleton from "@/components/history/HistorySkeleton";
+import EmptyState, { PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import { ENTITY_LABELS, describe } from "@/lib/history";
 import type { HistoryApiItem } from "@/lib/history";
 
@@ -177,7 +179,7 @@ export default function History() {
 
       <main className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
 
-        <div className="w-full rounded-xl border border-[#575757] bg-[#242424] overflow-hidden">
+        <div className={`w-full rounded-xl border border-[#575757] bg-[#242424] overflow-hidden ${PAGE_CARD_FILL}`}>
 
           {/* CABEÇALHO */}
           <div className="flex items-center justify-between px-[1.2vw] py-[0.8vw] border-b border-[#575757]">
@@ -216,18 +218,22 @@ export default function History() {
           )}
 
           {/* LISTA */}
-          <div className="p-[0.8vw]">
+          <div className="flex flex-1 flex-col p-[0.8vw]">
 
-            {loading && <p className="p-4 text-sm text-white/50">Carregando histórico...</p>}
+            {loading && <HistoryListSkeleton />}
 
             {!loading && error && <p className="p-4 text-sm text-red-400">{error}</p>}
 
             {!loading && !error && filtered.length === 0 && (
-              <p className="p-4 text-sm text-white/50">
-                {history.length === 0
-                  ? "Nenhuma alteração registrada neste caso ainda."
-                  : "Nenhum registro para os filtros selecionados."}
-              </p>
+              <EmptyState
+                icon={<FiShare2 />}
+                title={history.length === 0 ? "Nenhuma alteração registrada" : "Nenhum registro encontrado"}
+                description={
+                  history.length === 0
+                    ? "As ações feitas neste caso (suspeitos, evidências, contatos, acessos...) aparecem aqui."
+                    : "Ajuste os filtros para ver outros registros."
+                }
+              />
             )}
 
             <div className="w-full overflow-hidden">

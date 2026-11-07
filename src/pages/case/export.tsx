@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { FiDownload, FiPrinter } from "react-icons/fi";
 import toast from "react-hot-toast";
 
+import ReportSkeleton from "@/components/report/ReportSkeleton";
 import { apiFetch } from "@/lib/api";
 import { describe } from "@/lib/history";
 import type { HistoryApiItem } from "@/lib/history";
@@ -153,11 +154,7 @@ export default function ExportReport() {
     toast.success("CSV baixado.");
   }
 
-  if (loading || !data) {
-    return (
-      <div className="min-h-screen bg-[#242424] p-6 text-sm text-white/65">Montando o relatório…</div>
-    );
-  }
+  if (loading || !data) return <ReportSkeleton />;
 
   const { caso, suspects, evidences, actions, profile, contacts, access, history } = data;
   const ranking = [...suspects].sort((a, b) => (a.posicaoRanking ?? 999) - (b.posicaoRanking ?? 999));

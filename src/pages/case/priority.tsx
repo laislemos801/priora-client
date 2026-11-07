@@ -1,3 +1,5 @@
+import ActionCardSkeleton from "@/components/priority/ActionCardSkeleton";
+import EmptyState, { PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Target, ListChecks } from "lucide-react";
@@ -76,7 +78,7 @@ export default function Priority() {
   return (
     <div className="min-h-screen bg-[#242424]">
       <div className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
-        <div className="rounded-xl border border-[#575757] bg-[#242424]">
+        <div className={`rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
 
           {/* Toolbar */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-6 py-4 border-b border-[#575757]">
@@ -116,22 +118,20 @@ export default function Priority() {
           </div>
 
           {/* Content */}
-          <div className="grid gap-6 p-6 xl:grid-cols-[1fr_320px]">
+          <div className="grid flex-1 gap-6 p-6 xl:grid-cols-[1fr_320px]">
             <section className="flex flex-col space-y-4">
               {loading ? (
-                <p className="text-sm text-white/50 p-6">Calculando ganho de informação...</p>
+                <ActionCardSkeleton />
               ) : filtered.length === 0 ? (
-                <div className="flex flex-1 min-h-[400px] w-full flex-col items-center justify-center text-center">
-                  <ListChecks size={90} className="text-white/10" />
-                  <h2 className="mt-6 text-2xl font-medium text-white/60">
-                    {actions.length === 0 ? "Nenhuma ação sugerida no momento." : "Nenhuma ação encontrada."}
-                  </h2>
-                  <p className="mt-2 max-w-md text-sm text-white/35">
-                    {actions.length === 0
+                <EmptyState
+                  icon={<ListChecks />}
+                  title={actions.length === 0 ? "Nenhuma ação sugerida no momento" : "Nenhuma ação encontrada"}
+                  description={
+                    actions.length === 0
                       ? "O sistema sugere ações automaticamente a partir de evidências pendentes de confirmação e de suspeitos que mais contribuem para a incerteza do caso."
-                      : "Ajuste os filtros para ver outras ações."}
-                  </p>
-                </div>
+                      : "Ajuste os filtros para ver outras ações."
+                  }
+                />
               ) : (
                 filtered.map((action) => (
                   <ActionCard

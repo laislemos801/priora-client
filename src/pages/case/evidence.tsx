@@ -1,4 +1,5 @@
 import { Search, Edit, Trash2 } from "lucide-react";
+import { PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import EvidenciasTable from "@/components/evidence/table_evidence";
 import ActionButton from "@/components/ui/ActionButton";
@@ -85,7 +86,7 @@ export default function Evidence() {
   return (
     <div className="flex min-h-screen bg-[#242424] flex-col overflow-hidden">
       <div className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
-        <div className="rounded-xl border border-[#575757] bg-[#242424] overflow-y">
+        <div className={`rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
 
           {/* ── Toolbar ── */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-6 py-4 border-b border-[#575757]">

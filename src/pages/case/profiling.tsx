@@ -15,6 +15,7 @@ import SuspectHeader from "@/components/profiling/SuspectHeader";
 import ComparisonList from "@/components/profiling/ComparisonList";
 import EstimatedProfileModal from "@/components/profiling/EstimatedProfileModal";
 import FilterPanelProfiling from "@/components/profiling/Filter_profiling";
+import { PAGE_BODY_FILL, PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import ProfilingSkeleton from "@/components/profiling/ProfilingSkeleton";
 import EmptyProfilingState from "@/components/profiling/EmptyProfilingState";
 import {
@@ -218,7 +219,7 @@ function ProfilingContent({ id }: { id: string | undefined }) {
   return (
     <div className="min-h-screen bg-[#242424]">
       <div className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
-        <div className="relative rounded-xl border border-[#575757] bg-[#242424]">
+        <div className={`relative rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
           <header className="flex flex-col gap-4 border-b border-[#575757] px-4 py-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
               <span className="text-[#139C73]">
@@ -300,7 +301,7 @@ function ProfilingContent({ id }: { id: string | undefined }) {
             )}
           </header>
 
-          <main className="p-4 md:p-6">
+          <main className={`${PAGE_BODY_FILL} p-4 md:p-6`}>
             {isEmpty ? (
               <EmptyProfilingState
                 onGoToRanking={() => navigate(`/case/${id}/ranking`)}
