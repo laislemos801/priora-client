@@ -14,11 +14,24 @@ function withAuthHeaders(extra?: HeadersInit): HeadersInit {
  * automaticamente o header Authorization com o token salvo no login.
  * `path` pode ser relativo ("/cases/...") ou uma URL absoluta.
  */
-export function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const url = path.startsWith("http") ? path : `${API_URL}${path}`;
+  const hadToken = !!localStorage.getItem("token");
 
-  return fetch(url, {
+  const response = await fetch(url, {
     ...init,
     headers: withAuthHeaders(init.headers),
   });
+
+  // Sessão expirada (o token dura 12 h): limpa a sessão e volta ao login.
+  // Não se aplica ao próprio login, onde 401 significa senha errada.
+  if (response.status === 401 && hadToken && !path.includes("/users/login")) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    if (window.location.pathname !== "/login") {
+      window.location.assign("/login");
+    }
+  }
+
+  return response;
 }
