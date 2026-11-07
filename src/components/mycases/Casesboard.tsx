@@ -10,6 +10,8 @@ import { useState, useEffect, useRef } from "react";
 import EmptyState from "./EmptyState";
 import CasesSectionSkeleton from "./CasesSectionSkeleton";
 import { apiFetch } from "@/lib/api";
+import UncertaintyEvolutionChart from "./UncertaintyEvolutionChart";
+import type { EvolutionPoint } from "./UncertaintyEvolutionChart";
 
 type CaseFromAPI = {
   id: string;
@@ -126,6 +128,7 @@ export default function CasesSection({ onCreateCase }: { onCreateCase: () => voi
   const [cases, setCases] = useState<CaseFromAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [evolution, setEvolution] = useState<EvolutionPoint[]>([]);
   const [search, setSearch] = useState("");
   const [showFilter, setShowFilter] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Filters>({
@@ -151,7 +154,18 @@ export default function CasesSection({ onCreateCase }: { onCreateCase: () => voi
         setLoading(false);
       }
     }
+    async function fetchEvolution() {
+      try {
+        const res = await apiFetch(`/cases/user/${userId}/uncertainty-evolution`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setEvolution(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+      }
+    }
     fetchCases();
+    fetchEvolution();
   }, []);
 
   // Fecha o painel ao clicar fora
@@ -301,7 +315,7 @@ export default function CasesSection({ onCreateCase }: { onCreateCase: () => voi
               </div>
             )}
             <p className="text-sm text-white">Incerteza média:</p>
-            <h3 className="text-4xl md:text-6xl font-bold mt-2">{incertezaMedia}%</h3>
+            <h3 className="text-4xl md:text-6xl font-bold mt-2">{incertezaMedia}{incertezaMedia !== "—" && "%"}</h3>
             <MdOutlineBrokenImage className="absolute bottom-3 right-3 text-[#139C73]/48 text-4xl md:text-6xl" />
           </div>
 
@@ -314,8 +328,8 @@ export default function CasesSection({ onCreateCase }: { onCreateCase: () => voi
 
           <div className={`bg-[#2A2A2A] p-4 rounded-xl border border-[#3a3a3a] flex flex-col gap-2 ${CARD_H}`}>
             <p className="text-sm text-white">Evolução da Incerteza Média:</p>
-            <div className="flex h-full items-center justify-center text-gray-500 text-xs">
-              Gráfico aqui
+            <div className="flex-1 min-h-0">
+              <UncertaintyEvolutionChart points={evolution} />
             </div>
           </div>
         </div>
