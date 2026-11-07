@@ -127,12 +127,12 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
     const pesoNum = parseFloat(form.peso);
 
-    if (isNaN(pesoNum) || pesoNum < 0 || pesoNum > 1)
-      return setError("Peso deve ser entre 0 e 1.");
+    if (isNaN(pesoNum) || pesoNum <= 0 || pesoNum >= 1)
+      return setError("O peso deve ser maior que 0 e menor que 1 (nunca 0% nem 100%).");
 
     for (const s of selectedSuspects) {
-      if (isNaN(s.pesoVinculo) || s.pesoVinculo < 0 || s.pesoVinculo > 1) {
-        return setError(`Peso de vínculo de ${s.nome} deve ser entre 0 e 1.`);
+      if (isNaN(s.pesoVinculo) || s.pesoVinculo <= 0 || s.pesoVinculo >= 1) {
+        return setError(`O peso de vínculo de ${s.nome} deve ser maior que 0 e menor que 1 (nunca 0% nem 100%).`);
       }
     }
 
@@ -240,11 +240,11 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
               </div>
 
               <div>
-                <label className={LABEL}>Peso (0 a 1)</label>
+                <label className={LABEL}>Peso (entre 0 e 1, exclusivo)</label>
                 <input
                   name="peso"
                   type="number"
-                  step="0.01" min="0" max="1"
+                  step="0.01" min="0.01" max="0.99"
                   placeholder="ex: 0.5"
                   value={form.peso}        
                   onChange={handleInput}
@@ -314,7 +314,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
                         </label>
                         <input
                           type="number"
-                          step="0.01" min="0" max="1"
+                          step="0.01" min="0.01" max="0.99"
                           value={s.pesoVinculo}
                           onChange={(e) => updateSuspectPeso(s.id, e.target.value)}
                           className="w-16 bg-[#1e1e1e] border border-[#434343] rounded px-1.5 py-1 text-xs text-[#e8e8e8] outline-none"
