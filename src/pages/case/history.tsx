@@ -1,52 +1,82 @@
-import {
-  FiShare2,
-  FiFilter,
-  FiPlus,
-} from "react-icons/fi";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { FiShare2, FiFilter, FiPlus } from "react-icons/fi";
 
-import roseHines from "@/assets/rose.png";
-import aryanRoy from "@/assets/aryan.png";
-import lucasGoes from "@/assets/lucas.png";
+import Tag from "@/components/ui/Tag";
+import { apiFetch } from "@/lib/api";
+
+
+// ============================================================
+// TIPOS
+// ============================================================
+
+type HistoryApiItem = {
+  id: string;
+  action: "CREATE" | "UPDATE" | "DELETE" | string;
+  entityType: "CASO" | "SUSPEITO" | "EVIDENCIA" | "PERFIL_ESTIMADO" | string;
+  entityId: string | null;
+  entityName: string | null;
+  details: string | null;
+  createdAt: string;
+  user: {
+    id: string;
+    primeiroNome: string;
+    sobrenome: string;
+    fotoUrl: string | null;
+  } | null;
+};
+
+type HistorySection = {
+  title: string;
+  items: HistoryApiItem[];
+};
+
+const PAGE_SIZE = 20;
+
+const VERBS: Record<string, string> = {
+  CREATE: "criou",
+  UPDATE: "alterou",
+  DELETE: "excluiu",
+};
+
+const ENTITY_LABELS: Record<string, { noun: string; tag: string; color: "blue" | "green" | "yellow" }> = {
+  SUSPEITO: { noun: "o suspeito", tag: "Suspeitos", color: "blue" },
+  EVIDENCIA: { noun: "a evidência", tag: "Evidências", color: "green" },
+  CASO: { noun: "o caso", tag: "Caso", color: "yellow" },
+  PERFIL_ESTIMADO: { noun: "o perfil estimado", tag: "Perfilamento", color: "blue" },
+};
+
+const TAG_STYLES = {
+  blue: "bg-[#465157] text-[#65BBDD]",
+  green: "bg-[#155A46] text-[#18C18A]",
+  yellow: "bg-[#B69B1A] text-[#282200]",
+};
 
 
 // ============================================================
 // FUNÇÕES DE DATA
 // ============================================================
 
-// Remove horas e deixa somente a data
-function startOfDay(date) {
+function startOfDay(date: Date) {
   const result = new Date(date);
   result.setHours(0, 0, 0, 0);
   return result;
 }
 
-
 // Segunda-feira da semana atual
-function startOfWeek(date) {
+function startOfWeek(date: Date) {
   const result = startOfDay(date);
-
   const day = result.getDay();
-
-  // Domingo = 0
-  // Segunda = 1
   const difference = day === 0 ? 6 : day - 1;
-
   result.setDate(result.getDate() - difference);
-
   return result;
 }
 
-
-
-
-// Formata somente a data
-function formatDate(date) {
+function formatDate(date: Date) {
   return new Intl.DateTimeFormat("pt-BR").format(date);
 }
 
-
-// Formata somente o horário
-function formatTime(date) {
+function formatTime(date: Date) {
   return new Intl.DateTimeFormat("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -55,12 +85,61 @@ function formatTime(date) {
 
 
 // ============================================================
+// TEXTO DO EVENTO
+// ============================================================
+
+// `details` vem do backend como texto puro ("Caso criado") ou como JSON
+// (lista de {campo, antes, depois} ou objeto com os campos alterados).
+function summarizeDetails(details: string | null): string {
+  if (!details) return "";
+
+  try {
+    const parsed = JSON.parse(details);
+
+    if (Array.isArray(parsed)) {
+      const campos = parsed
+        .map((c) => (c && typeof c === "object" ? c.campo : null))
+        .filter(Boolean);
+      return campos.length ? `campos: ${campos.join(", ")}` : "";
+    }
+
+    if (parsed && typeof parsed === "object") {
+      const campos = Object.keys(parsed).filter((k) => k !== "id");
+      return campos.length ? `campos: ${campos.join(", ")}` : "";
+    }
+  } catch {
+    // não é JSON: texto puro
+  }
+
+  return details;
+}
+
+function describe(item: HistoryApiItem) {
+  const verb = VERBS[item.action] ?? item.action.toLowerCase();
+  const entity = ENTITY_LABELS[item.entityType];
+  const action = entity ? `${verb} ${entity.noun}` : verb;
+
+  // campos técnicos (JSON) só interessam nas alterações; em criação/exclusão
+  // mostramos apenas o nome da entidade e eventuais textos livres.
+  const detail = summarizeDetails(item.details);
+  const isTechnical = detail.startsWith("campos:");
+  const isGenericDetail = ["Caso criado", "Evidência criada", "Evidência excluída", "Caso excluído"].includes(detail);
+  const showDetail = item.action === "UPDATE" ? true : !isTechnical && !isGenericDetail;
+
+  const text = [item.entityName, showDetail ? detail : ""]
+    .filter(Boolean)
+    .join(" — ");
+
+  return { action, text };
+}
+
+
+// ============================================================
 // CLASSIFICAÇÃO DOS HISTÓRICOS
 // ============================================================
 
-function organizeHistory(items) {
+function organizeHistory(items: HistoryApiItem[]): HistorySection[] {
   const today = startOfDay(new Date());
-
   const currentWeekStart = startOfWeek(today);
 
   const lastWeekStart = new Date(currentWeekStart);
@@ -69,94 +148,43 @@ function organizeHistory(items) {
   const lastWeekEnd = new Date(currentWeekStart);
   lastWeekEnd.setMilliseconds(-1);
 
-
-  const todayItems = [];
-  const thisWeekItems = [];
-  const lastWeekItems = [];
-
-  // Históricos antigos serão agrupados pela data
-  const oldItems = {};
-
+  const todayItems: HistoryApiItem[] = [];
+  const thisWeekItems: HistoryApiItem[] = [];
+  const lastWeekItems: HistoryApiItem[] = [];
+  const oldItems: Record<string, HistoryApiItem[]> = {};
 
   items.forEach((item) => {
-    const itemDate = new Date(item.date);
-
+    const itemDate = new Date(item.createdAt);
     const day = startOfDay(itemDate);
 
-
-    // HOJE
     if (day.getTime() === today.getTime()) {
       todayItems.push(item);
       return;
     }
 
-
-    // ESSA SEMANA
-    if (
-      day >= currentWeekStart &&
-      day <= today
-    ) {
+    if (day >= currentWeekStart && day <= today) {
       thisWeekItems.push(item);
       return;
     }
 
-
-    // SEMANA PASSADA
-    if (
-      day >= lastWeekStart &&
-      day <= lastWeekEnd
-    ) {
+    if (day >= lastWeekStart && day <= lastWeekEnd) {
       lastWeekItems.push(item);
       return;
     }
 
-
-    // ANTES DA SEMANA PASSADA
     const dateKey = formatDate(itemDate);
-
-    if (!oldItems[dateKey]) {
-      oldItems[dateKey] = [];
-    }
-
-    oldItems[dateKey].push(item);
+    (oldItems[dateKey] ??= []).push(item);
   });
 
+  const sections: HistorySection[] = [];
 
-  const sections = [];
+  if (todayItems.length > 0) sections.push({ title: "HOJE", items: todayItems });
+  if (thisWeekItems.length > 0) sections.push({ title: "ESSA SEMANA", items: thisWeekItems });
+  if (lastWeekItems.length > 0) sections.push({ title: "SEMANA PASSADA", items: lastWeekItems });
 
-
-  if (todayItems.length > 0) {
-    sections.push({
-      title: "HOJE",
-      items: todayItems,
-    });
-  }
-
-
-  if (thisWeekItems.length > 0) {
-    sections.push({
-      title: "ESSA SEMANA",
-      items: thisWeekItems,
-    });
-  }
-
-
-  if (lastWeekItems.length > 0) {
-    sections.push({
-      title: "SEMANA PASSADA",
-      items: lastWeekItems,
-    });
-  }
-
-
-  // Datas antigas
-  Object.entries(oldItems).forEach(([date, items]) => {
-    sections.push({
-      title: date,
-      items,
-    });
+  Object.entries(oldItems).forEach(([date, dateItems]) => {
+    sections.push({ title: date, items: dateItems });
   });
-
 
   return sections;
 }
@@ -167,123 +195,55 @@ function organizeHistory(items) {
 // ============================================================
 
 export default function History() {
+  const { id: casoId } = useParams();
 
-  // ==========================================================
-  // HISTÓRICOS
-  // ==========================================================
+  const [history, setHistory] = useState<HistoryApiItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [showFilter, setShowFilter] = useState(false);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
 
-  const history = [
-    {
-      date: "2026-09-16T01:09:00",
-      image: roseHines,
-      name: "Rose Hines",
-      action: "enviou imagem",
-      text: "Foto da cena do crime",
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
+  useEffect(() => {
+    if (!casoId) return;
+    let cancelled = false;
 
-    {
-      date: "2026-09-16T01:09:00",
-      image: roseHines,
-      name: "Rose Hines",
-      action: "conectou",
-      text: "Seta Suspeito 2 → Local do Crime",
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
+    async function loadHistory() {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await apiFetch(`/history/cases/${casoId}`);
+        if (!response.ok) throw new Error(`Erro ${response.status}`);
+        const data = await response.json();
+        if (!cancelled) setHistory(Array.isArray(data) ? data : []);
+      } catch {
+        if (!cancelled) setError("Não foi possível carregar o histórico.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
 
-    {
-      date: "2026-09-15T16:40:00",
-      image: aryanRoy,
-      name: "Aryan Roy",
-      action: "alterou status do Depoimento 01 para",
-      text: "Custodiada",
-      status: "green",
-      tag: "Evidências",
-      type: "green",
-    },
+    loadHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [casoId]);
 
-    {
-      date: "2026-09-14T16:07:00",
-      image: lucasGoes,
-      name: "Lucas Goes",
-      action: "enviou um convite para",
-      text: "Rhea Rull editar caso Alpha",
-      tag: "Convite",
-      type: "yellow",
-    },
+  const filtered = useMemo(
+    () =>
+      activeTags.length === 0
+        ? history
+        : history.filter((item) => activeTags.includes(ENTITY_LABELS[item.entityType]?.tag ?? "Outros")),
+    [history, activeTags]
+  );
 
-    {
-      date: "2026-09-12T13:34:00",
-      image: aryanRoy,
-      name: "Aryan Roy",
-      action: "adicionou texto",
-      text: '"Horário do crime"',
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
+  const visible = filtered.slice(0, visibleCount);
+  const sections = organizeHistory(visible);
 
-    {
-      date: "2026-09-11T13:09:00",
-      image: roseHines,
-      name: "Rose Hines",
-      action: "adicionou Nota",
-      text: '"Aguardar laudo"',
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
-
-    {
-      date: "2026-09-10T13:07:00",
-      image: lucasGoes,
-      name: "Lucas Goes",
-      action: "enviou um convite para",
-      text: "Sarika Jain editar caso Alpha",
-      tag: "Convite",
-      type: "yellow",
-    },
-
-    {
-      date: "2026-09-09T12:40:00",
-      image: lucasGoes,
-      name: "Lucas Goes",
-      action: "alterou status do DNA 01 para",
-      text: "Em análise",
-      status: "orange",
-      tag: "Evidências",
-      type: "green",
-    },
-
-    // ============================================
-    // EXEMPLOS ANTIGOS
-    // ============================================
-
-    {
-      date: "2026-09-01T09:40:00",
-      image: lucasGoes,
-      name: "Lucas Goes",
-      action: "editou foto do suspeito",
-      text: "",
-      tag: "Quadro investigativo",
-      type: "blue",
-    },
-
-    {
-      date: "2026-08-25T15:20:00",
-      image: roseHines,
-      name: "Rose Hines",
-      action: "adicionou documento",
-      text: "Laudo pericial",
-      tag: "Documentos",
-      type: "blue",
-    },
-  ];
-
-
-  // Organiza automaticamente
-  const sections = organizeHistory(history);
-
+  const toggleTag = (tag: string) => {
+    setVisibleCount(PAGE_SIZE);
+    setActiveTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
 
   return (
     <div className="min-h-screen bg-[#242424] text-white">
@@ -292,219 +252,125 @@ export default function History() {
 
         <div className="w-full rounded-xl border border-[#575757] bg-[#242424] overflow-hidden">
 
-          {/* ==================================================
-              CABEÇALHO
-          ================================================== */}
-
+          {/* CABEÇALHO */}
           <div className="flex items-center justify-between px-[1.2vw] py-[0.8vw] border-b border-[#575757]">
 
             <div className="flex items-center gap-[0.7vw]">
-
-              <FiShare2
-                className="text-[#12B98B] text-[1vw]"
-              />
-
-              <h1 className="font-semibold text-[1vw]">
-                Histórico
-              </h1>
-
+              <FiShare2 className="text-[#12B98B] text-[1vw]" />
+              <h1 className="font-semibold text-[1vw]">Histórico</h1>
             </div>
 
-
             <button
-              className="
-                flex
-                items-center
-                gap-[0.5vw]
-                px-[1vw]
-                py-[0.45vw]
-                rounded-md
-                bg-[#2D2D2D]
-                text-gray-300
-                text-[0.7vw]
-                hover:bg-[#373737]
-              "
+              onClick={() => setShowFilter((p) => !p)}
+              className={`
+                flex items-center gap-[0.5vw] px-[1vw] py-[0.45vw] rounded-md
+                text-[0.7vw] hover:bg-[#373737]
+                ${activeTags.length > 0 ? "bg-[#139C73]/20 text-[#139C73]" : "bg-[#2D2D2D] text-gray-300"}
+              `}
             >
               <FiFilter className="text-[0.8vw]" />
-
               Filtrar
+              {activeTags.length > 0 && ` (${activeTags.length})`}
             </button>
 
           </div>
 
+          {showFilter && (
+            <div className="flex flex-wrap gap-2 px-[1.2vw] py-[0.8vw] border-b border-[#575757]">
+              {Object.values(ENTITY_LABELS).map((entity) => (
+                <Tag
+                  key={entity.tag}
+                  label={entity.tag}
+                  active={activeTags.includes(entity.tag)}
+                  onClick={() => toggleTag(entity.tag)}
+                />
+              ))}
+            </div>
+          )}
 
-          {/* ==================================================
-              LISTA
-          ================================================== */}
-
+          {/* LISTA */}
           <div className="p-[0.8vw]">
 
-            <div className="w-full ] overflow-hidden">
+            {loading && <p className="p-4 text-sm text-white/50">Carregando histórico...</p>}
+
+            {!loading && error && <p className="p-4 text-sm text-red-400">{error}</p>}
+
+            {!loading && !error && filtered.length === 0 && (
+              <p className="p-4 text-sm text-white/50">
+                {history.length === 0
+                  ? "Nenhuma alteração registrada neste caso ainda."
+                  : "Nenhum registro para os filtros selecionados."}
+              </p>
+            )}
+
+            <div className="w-full overflow-hidden">
 
               {sections.map((section) => (
 
                 <div key={section.title}>
 
-                  {/* ==========================================
-                      TÍTULO DA SEÇÃO
-                  ========================================== */}
-
+                  {/* TÍTULO DA SEÇÃO */}
                   <div className="flex items-center gap-[0.4vw] px-[0.1vw]">
-
                     <span className="whitespace-nowrap text-[0.65vw] font-medium">
                       {section.title}
                     </span>
-
                     <div className="flex-1 h-[1px] bg-gray-300" />
-
                   </div>
 
+                  {/* ITENS */}
+                  {section.items.map((item) => {
 
-                  {/* ==========================================
-                      ITENS
-                  ========================================== */}
-
-                  {section.items.map((item, index) => {
-
-                    const itemDate = new Date(item.date);
+                    const itemDate = new Date(item.createdAt);
+                    const { action, text } = describe(item);
+                    const entity = ENTITY_LABELS[item.entityType];
+                    const userName = item.user
+                      ? `${item.user.primeiroNome} ${item.user.sobrenome}`.trim()
+                      : "Usuário removido";
 
                     return (
                       <div
-                        key={`${section.title}-${index}`}
+                        key={item.id}
                         className="
-                          flex
-                          items-center
-                          gap-[0.7vw]
-                          w-full
-                          rounded-md
-                          px-[0.7vw]
-                          py-[0.55vw]
-                          bg-[#2B2B2B]
-                          border-b
-                          border-[#202020]
-                          hover:bg-[#303030]
-                          transition
+                          flex items-center gap-[0.7vw] w-full rounded-md
+                          px-[0.7vw] py-[0.55vw] bg-[#2B2B2B]
+                          border-b border-[#202020] hover:bg-[#303030] transition
                         "
                       >
 
                         {/* FOTO */}
-
-                        <img
-                          src={item.image}
-                          alt=""
-                          className="
-                            shrink-0
-                            w-[1.8vw]
-                            h-[1.8vw]
-                            rounded-full
-                            object-cover
-                          "
-                        />
-
+                        {item.user?.fotoUrl ? (
+                          <img
+                            src={item.user.fotoUrl}
+                            alt=""
+                            className="shrink-0 w-[1.8vw] h-[1.8vw] min-w-[24px] min-h-[24px] rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="shrink-0 flex items-center justify-center w-[1.8vw] h-[1.8vw] min-w-[24px] min-h-[24px] rounded-full bg-[#3A3A3A] text-[0.6vw] font-semibold">
+                            {userName.charAt(0).toUpperCase()}
+                          </span>
+                        )}
 
                         {/* TEXTO */}
-
-                        <div className="
-                          flex-1
-                          min-w-0
-                          flex
-                          items-center
-                          gap-[0.35vw]
-                          text-[0.72vw]
-                        ">
-
-                          <span className="font-semibold whitespace-nowrap">
-                            {item.name}
-                          </span>
-
-                          <span className="text-gray-400 whitespace-nowrap">
-                            {item.action}
-                          </span>
-
-
-                          {/* STATUS */}
-
-                          {item.status && (
-                            <span
-                              className={`
-                                shrink-0
-                                w-[0.35vw]
-                                h-[0.35vw]
-                                rounded-full
-
-                                ${
-                                  item.status === "green"
-                                    ? "bg-[#19C58C]"
-                                    : "bg-[#F4A340]"
-                                }
-                              `}
-                            />
-                          )}
-
-
-                          {/* TEXTO */}
-
-                          <span
-                            className={`
-                              whitespace-nowrap
-
-                              ${
-                                item.status
-                                  ? "font-semibold"
-                                  : "text-gray-200"
-                              }
-                            `}
-                          >
-                            {item.text}
-                          </span>
-
+                        <div className="flex-1 min-w-0 flex items-center gap-[0.35vw] text-[0.72vw]">
+                          <span className="font-semibold whitespace-nowrap">{userName}</span>
+                          <span className="text-gray-400 whitespace-nowrap">{action}</span>
+                          <span className="text-gray-200 truncate">{text}</span>
                         </div>
 
-
                         {/* TAG */}
-
                         <span
                           className={`
-                            shrink-0
-                            rounded-full
-                            px-[0.65vw]
-                            py-[0.18vw]
-                            text-[0.5vw]
-                            whitespace-nowrap
-
-                            ${
-                              item.type === "blue"
-                                ? "bg-[#465157] text-[#65BBDD]"
-                                : ""
-                            }
-
-                            ${
-                              item.type === "green"
-                                ? "bg-[#155A46] text-[#18C18A]"
-                                : ""
-                            }
-
-                            ${
-                              item.type === "yellow"
-                                ? "bg-[#B69B1A] text-[#282200]"
-                                : ""
-                            }
+                            shrink-0 rounded-full px-[0.65vw] py-[0.18vw]
+                            text-[0.5vw] whitespace-nowrap
+                            ${entity ? TAG_STYLES[entity.color] : "bg-[#3A3A3A] text-gray-300"}
                           `}
                         >
-                          {item.tag}
+                          {entity?.tag ?? "Outros"}
                         </span>
 
-
                         {/* DATA / HORA */}
-
-                        <span className="
-                          shrink-0
-                          text-[0.52vw]
-                          text-gray-300
-                          whitespace-nowrap
-                        ">
-                          {formatDate(itemDate)}{" "}
-                          {formatTime(itemDate)}
+                        <span className="shrink-0 text-[0.52vw] text-gray-300 whitespace-nowrap">
+                          {formatDate(itemDate)} {formatTime(itemDate)}
                         </span>
 
                       </div>
@@ -516,31 +382,20 @@ export default function History() {
 
             </div>
 
-
-            {/* ==================================================
-                VER MAIS
-            ================================================== */}
-
-            <button
-              className="
-                mt-[0.7vw]
-                flex
-                items-center
-                gap-[0.4vw]
-                px-[0.7vw]
-                py-[0.35vw]
-                border
-                border-[#575757]
-                rounded-md
-                bg-[#292929]
-                text-[0.65vw]
-                hover:bg-[#353535]
-              "
-            >
-              <FiPlus className="text-[0.8vw]" />
-
-              Ver mais
-            </button>
+            {/* VER MAIS */}
+            {filtered.length > visibleCount && (
+              <button
+                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                className="
+                  mt-[0.7vw] flex items-center gap-[0.4vw]
+                  px-[0.7vw] py-[0.35vw] border border-[#575757] rounded-md
+                  bg-[#292929] text-[0.65vw] hover:bg-[#353535]
+                "
+              >
+                <FiPlus className="text-[0.8vw]" />
+                Ver mais
+              </button>
+            )}
 
           </div>
 
