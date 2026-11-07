@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import toast from "react-hot-toast";
+import { apiFetch } from "@/lib/api";
 import backImageProfile from "@/assets/backImageProfile.png";
 
 interface UserType {
@@ -49,7 +50,7 @@ export default function Profile() {
 
         const token = localStorage.getItem("token");
 
-        const response = await fetch("http://localhost:8000/users/me", {
+        const response = await apiFetch("/users/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -144,7 +145,7 @@ export default function Profile() {
   async function getCroppedImage(
     imageSrc: string,
     cropArea: Area,
-  ): Promise<string> {
+  ): Promise<Blob> {
     const image = new Image();
 
     image.src = imageSrc;
@@ -176,7 +177,13 @@ export default function Profile() {
       cropArea.height,
     );
 
-    return canvas.toDataURL("image/jpeg", 0.9);
+    return new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Não foi possível gerar a imagem."))),
+        "image/jpeg",
+        0.9,
+      );
+    });
   }
 
   async function handleConfirmCrop() {
@@ -188,22 +195,17 @@ export default function Profile() {
     try {
       setSavingPhoto(true);
 
-      const croppedBase64 = await getCroppedImage(
+      const croppedBlob = await getCroppedImage(
         selectedImage,
         croppedAreaPixels,
       );
 
-      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("file", croppedBlob, "foto.jpg");
 
-      const response = await fetch("http://localhost:8000/users/me/photo", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          fotoBase64: croppedBase64,
-        }),
+      const response = await apiFetch("/users/me/photo", {
+        method: "POST",
+        body: formData,
       });
 
       const data = await response.json();
@@ -259,7 +261,7 @@ export default function Profile() {
 
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:8000/users/me/password", {
+      const response = await apiFetch("/users/me/password", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -313,7 +315,7 @@ export default function Profile() {
 
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:8000/users/me", {
+      const response = await apiFetch("/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

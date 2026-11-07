@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Trash2, X } from "lucide-react";
 import PrimaryButton from "@/components/ui/PrimaryButton";
-import { supabase } from "@/lib/supabase";
 import type { Suspect } from "./types";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
@@ -58,25 +57,26 @@ export default function SuspectModal({
     setFotoFile(file);
   }
 
-  async function uploadSuspectPhoto(file: File) {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${crypto.randomUUID()}.${fileExt}`;
-    const filePath = `suspects/${fileName}`;
+  // A foto vai para o backend, que a guarda (Supabase ou disco local) e
+  // devolve a URL pública. O navegador não fala direto com o Supabase.
+  async function uploadSuspectPhoto(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const { error } = await supabase.storage
-      .from("suspect-photos")
-      .upload(filePath, file);
+    const response = await apiFetch(`/suspects/case/${casoId}/photo`, {
+      method: "POST",
+      body: formData,
+    });
 
-    if (error) {
-      console.error(error);
-      throw new Error(error.message);
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        typeof data.detail === "string" ? data.detail : "Não foi possível enviar a foto.",
+      );
     }
 
-    const { data } = supabase.storage
-      .from("suspect-photos")
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    return data.url as string;
   }
 
   async function handleSubmit() {
@@ -88,7 +88,12 @@ export default function SuspectModal({
     let uploadedPhotoUrl: string | null = null;
 
     if (fotoFile) {
-      uploadedPhotoUrl = await uploadSuspectPhoto(fotoFile);
+      try {
+        uploadedPhotoUrl = await uploadSuspectPhoto(fotoFile);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Não foi possível enviar a foto.");
+        return;
+      }
     }
 
     const url =
