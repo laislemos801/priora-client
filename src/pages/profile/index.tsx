@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { IoIosArrowBack } from "react-icons/io";
-import { FiCamera, FiCheck, FiCopy, FiLogOut, FiRefreshCw, FiUser } from "react-icons/fi";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  FiCamera,
+  FiCheck,
+  FiCopy,
+  FiHash,
+  FiKey,
+  FiLock,
+  FiLogOut,
+  FiMail,
+  FiRefreshCw,
+  FiShield,
+  FiUser,
+  FiUsers,
+} from "react-icons/fi";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import toast from "react-hot-toast";
-import TopBar from "@/components/ui/TopBar";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
+import RecentCases from "@/components/profile/RecentCases";
 import { PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 import { AuthField, FIELD_LABEL, PasswordField } from "@/components/auth/AuthField";
 import SubmitButton, { Spinner } from "@/components/auth/SubmitButton";
@@ -21,6 +33,16 @@ import {
 } from "@/components/auth/validation";
 import { apiFetch } from "@/lib/api";
 import { apiErrorMessage } from "@/routes/user";
+import { syncStoredUser } from "@/lib/navigation";
+
+/** Só os campos que a sidebar mostra (nome, e-mail e foto). */
+function pickSidebarFields(data: Partial<UserType>) {
+  const out: Record<string, unknown> = {};
+  for (const key of ["primeiroNome", "sobrenome", "email", "fotoUrl"] as const) {
+    if (data?.[key] !== undefined) out[key] = data[key];
+  }
+  return out;
+}
 
 interface UserType {
   email: string;
@@ -34,6 +56,29 @@ interface UserType {
 }
 
 const CARD = "rounded-xl border border-[#3d3d3d] bg-[#2B2B2B]";
+
+/** Cartão de informação da coluna lateral das abas. */
+function InfoCard({
+  icon,
+  title,
+  children,
+  className = "",
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`rounded-lg border border-[#3d3d3d] bg-[#242424] p-4 ${className}`}>
+      <h3 className="flex items-center gap-2 text-sm font-medium text-white">
+        <span className="text-emerald-400">{icon}</span>
+        {title}
+      </h3>
+      <div className="mt-1.5 text-xs leading-relaxed text-white/55">{children}</div>
+    </section>
+  );
+}
 
 type TabId = "dados" | "seguranca";
 const TABS: { id: TabId; label: string }[] = [
@@ -148,6 +193,7 @@ export default function Profile() {
 
       setUser(data);
       fillProfileForm(data);
+      syncStoredUser(pickSidebarFields(data));
       setLoadState("ready");
     } catch (error) {
       setLoadError(
@@ -250,6 +296,7 @@ export default function Profile() {
       if (!response.ok) throw new Error(apiErrorMessage(data, "Não foi possível atualizar a foto."));
 
       setUser((prev) => (prev ? { ...prev, ...data } : data));
+      syncStoredUser(pickSidebarFields(data));
       setSelectedImage(null);
       toast.success("Foto de perfil atualizada!");
     } catch (error) {
@@ -290,6 +337,7 @@ export default function Profile() {
       const updated = { ...user, ...data } as UserType;
       setUser(updated);
       fillProfileForm(updated);
+      syncStoredUser(pickSidebarFields(updated));
       toast.success("Dados atualizados!");
     } catch (error) {
       setProfileServerError(
@@ -381,15 +429,9 @@ export default function Profile() {
   if (loadState === "loading") return <ProfileSkeleton />;
 
   const header = (
-    <header className="flex items-center gap-2 border-b border-[#575757] px-4 py-4 md:px-6">
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        aria-label="Voltar"
-        className="-ml-2 rounded-full p-2 text-white/65 transition-colors hover:bg-[#363636] hover:text-white"
-      >
-        <IoIosArrowBack size={16} />
-      </button>
+    // O "voltar" fica na TopBar do layout; aqui só o título, como nas outras páginas
+    <header className="flex items-center gap-3 border-b border-[#575757] px-4 py-4 md:px-6">
+      <FiUser size={18} className="text-emerald-400" />
       <h1 className="text-lg font-semibold text-slate-100">Minha Conta</h1>
     </header>
   );
@@ -397,9 +439,8 @@ export default function Profile() {
   // ── Estado de erro ao carregar ──
   if (loadState === "error" || !user) {
     return (
-      <div className="flex min-h-screen flex-col bg-[#1D1D1D] text-white">
-        <TopBar />
-        <main className="flex flex-1 flex-col px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
+      <div className="min-h-full">
+        <div className="flex flex-col px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
           <section className={`overflow-hidden rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
             {header}
             <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center">
@@ -416,7 +457,7 @@ export default function Profile() {
               </SubmitButton>
             </div>
           </section>
-        </main>
+        </div>
       </div>
     );
   }
@@ -431,16 +472,14 @@ export default function Profile() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#1D1D1D] text-white">
-      <TopBar />
-
-      <main className="flex flex-1 flex-col px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
-        {/* O cartão abraça o conteúdo (sem forçar a altura da tela), para não sobrar vazio */}
-        <section className="flex flex-col overflow-hidden rounded-xl border border-[#575757] bg-[#242424]">
+    <div className="min-h-full">
+      <div className="flex flex-col px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
+        {/* Ocupa a altura da tela como as outras páginas; o cartão "Seus casos" preenche o espaço */}
+        <section className={`overflow-hidden rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
           {header}
 
-          {/* Perfil fixo à esquerda, abas no resto da largura; as duas colunas com a mesma altura */}
-          <div className="grid w-full gap-5 p-4 md:p-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]">
+          {/* Perfil fixo à esquerda, abas + casos no resto; as duas colunas com a mesma altura */}
+          <div className="grid w-full flex-1 grid-cols-[minmax(0,1fr)] gap-5 p-4 md:p-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]">
             {/* ══════════ Cartão do perfil ══════════ */}
             <aside className={`${CARD} flex flex-col`}>
               <div className="flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-8 text-center">
@@ -516,24 +555,25 @@ export default function Profile() {
               </button>
             </aside>
 
+            <div className="flex min-w-0 flex-col gap-5">
             {/* ══════════ Configurações em abas ══════════ */}
             <div className={`${CARD} flex min-w-0 flex-col`}>
               <Tabs active={tab} onChange={setTab} />
 
-              {/* ── Dados pessoais ── */}
+              {/* ── Dados pessoais ── formulário + coluna de informações ao lado */}
               <div
                 id="panel-dados"
                 role="tabpanel"
                 aria-labelledby="tab-dados"
                 hidden={tab !== "dados"}
-                className="flex-1 flex-col p-5 data-[on=true]:flex sm:p-7"
+                className="flex-1 grid-cols-[minmax(0,1fr)] gap-8 p-5 data-[on=true]:grid sm:p-7 2xl:grid-cols-[minmax(0,560px)_minmax(0,1fr)]"
                 data-on={tab === "dados"}
               >
-                <p className="mb-6 text-sm text-white/55">
-                  Seu nome aparece para a equipe nos casos compartilhados.
-                </p>
+                <form onSubmit={handleUpdateProfile} noValidate className="flex w-full min-w-0 max-w-[560px] flex-col gap-5">
+                  <p className="text-sm text-white/55">
+                    Mantenha seu nome e e-mail atualizados para a equipe te identificar.
+                  </p>
 
-                <form onSubmit={handleUpdateProfile} noValidate className="flex flex-1 flex-col gap-5">
                   {profileServerError && <FormAlert>{profileServerError}</FormAlert>}
 
                   <div className="grid gap-5 sm:grid-cols-2">
@@ -559,6 +599,7 @@ export default function Profile() {
                       error={profileErrors.sobrenome}
                       disabled={savingProfile}
                     />
+                  </div>
 
                   <AuthField
                     label="E-mail"
@@ -576,24 +617,6 @@ export default function Profile() {
                     disabled={savingProfile}
                   />
 
-                  {/* ID do perfil, só leitura */}
-                  <div>
-                    <span className={FIELD_LABEL}>ID do perfil</span>
-                    <div className="flex items-center gap-2 rounded-md border border-dashed border-[#434343] px-3 py-2.5">
-                      <span className="min-w-0 flex-1 truncate font-mono text-xs text-white/55">{user.id}</span>
-                      <button
-                        type="button"
-                        onClick={handleCopyId}
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded px-1.5 py-0.5 text-xs text-white/55 transition-colors hover:bg-[#363636] hover:text-white"
-                      >
-                        {copied ? <FiCheck size={13} className="text-emerald-400" /> : <FiCopy size={13} />}
-                        {copied ? "Copiado" : "Copiar"}
-                      </button>
-                    </div>
-                  </div>
-                  </div>
-
-                  {/* Rodapé fixo no fim do cartão */}
                   <div className="mt-auto flex flex-col-reverse items-stretch gap-3 border-t border-[#3d3d3d] pt-5 sm:flex-row sm:items-center sm:justify-end">
                     {profileDirty ? (
                       <SubmitButton
@@ -618,28 +641,52 @@ export default function Profile() {
                     </SubmitButton>
                   </div>
                 </form>
+
+                <aside className="grid grid-cols-[minmax(0,1fr)] content-start gap-3 md:grid-cols-3 2xl:grid-cols-2 2xl:border-l 2xl:border-[#3d3d3d] 2xl:pl-8" aria-label="Sobre seus dados">
+                  <InfoCard icon={<FiUsers size={15} />} title="Quem vê seus dados">
+                    Seu nome e sua foto aparecem para a equipe nos casos compartilhados com você.
+                  </InfoCard>
+                  <InfoCard icon={<FiMail size={15} />} title="E-mail de acesso">
+                    É com ele que você entra no Priora e recebe o link para redefinir a senha. Se trocar,
+                    use o novo e-mail no próximo login.
+                  </InfoCard>
+                  <InfoCard icon={<FiHash size={15} />} title="ID do perfil" className="2xl:col-span-2">
+                    <span className="mt-2 flex items-center gap-2 rounded-md border border-dashed border-[#434343] px-2.5 py-2">
+                      <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-white/60" title={user.id}>
+                        {user.id}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCopyId}
+                        aria-label="Copiar ID do perfil"
+                        className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs text-white/55 transition-colors hover:bg-[#363636] hover:text-white"
+                      >
+                        {copied ? <FiCheck size={13} className="text-emerald-400" /> : <FiCopy size={13} />}
+                        {copied ? "Copiado" : "Copiar"}
+                      </button>
+                    </span>
+                    <span className="mt-2 block">Identificador da sua conta, útil ao falar com o suporte.</span>
+                  </InfoCard>
+                </aside>
               </div>
 
-              {/* ── Segurança ── */}
+              {/* ── Segurança ── formulário + dicas ao lado */}
               <div
                 id="panel-seguranca"
                 role="tabpanel"
                 aria-labelledby="tab-seguranca"
                 hidden={tab !== "seguranca"}
-                className="flex-1 flex-col p-5 data-[on=true]:flex sm:p-7"
+                className="flex-1 grid-cols-[minmax(0,1fr)] gap-8 p-5 data-[on=true]:grid sm:p-7 2xl:grid-cols-[minmax(0,560px)_minmax(0,1fr)]"
                 data-on={tab === "seguranca"}
               >
-                <p className="mb-6 text-sm text-white/55">
-                  Para trocar a senha, confirme a atual e escolha uma nova com pelo menos 8 caracteres.
-                </p>
+                <form onSubmit={handleChangePassword} noValidate className="flex w-full min-w-0 max-w-[560px] flex-col gap-5">
+                  <p className="text-sm text-white/55">
+                    Confirme a senha atual e escolha uma nova com pelo menos 8 caracteres.
+                  </p>
 
-                <form onSubmit={handleChangePassword} noValidate className="flex flex-1 flex-col gap-5">
                   {passwordServerError && <FormAlert>{passwordServerError}</FormAlert>}
 
-                  {/* Em telas largas as três senhas ficam lado a lado */}
-                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   <PasswordField
-                    className="sm:col-span-2 xl:col-span-1"
                     label="Senha atual"
                     autoComplete="current-password"
                     value={senhaAntiga}
@@ -651,6 +698,7 @@ export default function Profile() {
                     disabled={savingPassword}
                   />
 
+                  <div className="grid gap-5 sm:grid-cols-2">
                     <PasswordField
                       label="Nova senha"
                       autoComplete="new-password"
@@ -683,11 +731,34 @@ export default function Profile() {
                     </SubmitButton>
                   </div>
                 </form>
+
+                <aside className="grid grid-cols-[minmax(0,1fr)] content-start gap-3 md:grid-cols-3 2xl:grid-cols-2 2xl:border-l 2xl:border-[#3d3d3d] 2xl:pl-8" aria-label="Dicas de segurança">
+                  <InfoCard icon={<FiShield size={15} />} title="Senha forte">
+                    <ul className="mt-1 list-disc space-y-1 pl-4">
+                      <li>Prefira uma frase longa a uma palavra curta.</li>
+                      <li>Misture letras, números e símbolos.</li>
+                      <li>Não reutilize a senha de outros sites.</li>
+                    </ul>
+                  </InfoCard>
+                  <InfoCard icon={<FiKey size={15} />} title="Esqueceu a senha atual?">
+                    Receba um link no seu e-mail para criar uma nova.{" "}
+                    <Link to="/recover" state={{ email: user.email }} className="font-medium text-[#18C18A] hover:underline">
+                      Redefinir por e-mail
+                    </Link>
+                  </InfoCard>
+                  <InfoCard icon={<FiLock size={15} />} title="Depois da troca" className="2xl:col-span-2">
+                    A nova senha passa a valer no próximo login, em qualquer dispositivo.
+                  </InfoCard>
+                </aside>
               </div>
+            </div>
+
+            {/* ══════════ Seus casos (preenche o resto da altura) ══════════ */}
+            <RecentCases userId={user.id} className="flex-1" />
             </div>
           </div>
         </section>
-      </main>
+      </div>
 
       {/* ── Modal de recorte da foto ── */}
       {selectedImage && (

@@ -26,7 +26,7 @@ function InsightCardSk() {
 
 export default function ProfilingSkeleton() {
   return (
-    <div className="min-h-screen bg-[#242424]">
+    <div className="min-h-full bg-[#242424]">
       <div className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className="relative rounded-xl border border-[#575757] bg-[#242424]">
 

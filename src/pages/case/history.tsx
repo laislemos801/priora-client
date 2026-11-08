@@ -176,7 +176,7 @@ export default function History() {
   };
 
   return (
-    <div className="min-h-screen bg-[#242424] text-white">
+    <div className="min-h-full bg-[#242424] text-white">
 
       <main className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
 

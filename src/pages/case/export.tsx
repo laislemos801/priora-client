@@ -168,7 +168,7 @@ export default function ExportReport() {
     .join(", ");
 
   return (
-    <div className="min-h-screen bg-[#242424] px-4 pb-8 pt-3 md:px-6 print:bg-white print:p-0">
+    <div className="min-h-full bg-[#242424] px-4 pb-8 pt-3 md:px-6 print:bg-white print:p-0">
       <style>{"@media print { @page { size: A4; margin: 14mm; } }"}</style>
 
       {/* barra de ações (não sai na impressão) */}

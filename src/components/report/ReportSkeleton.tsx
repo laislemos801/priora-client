@@ -3,7 +3,7 @@ import Sk from "@/components/ui/Skeleton";
 /** Relatório enquanto os dados do caso são reunidos (folha branca com tabelas). */
 export default function ReportSkeleton() {
   return (
-    <div className="min-h-screen bg-[#242424] px-4 pb-8 pt-3 md:px-6" role="status" aria-label="Montando o relatório">
+    <div className="min-h-full bg-[#242424] px-4 pb-8 pt-3 md:px-6" role="status" aria-label="Montando o relatório">
       <div className="mx-auto mb-3 flex max-w-[900px] items-center justify-between gap-3">
         <div className="space-y-2">
           <Sk className="h-5 w-44" />
