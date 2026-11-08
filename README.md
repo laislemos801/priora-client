@@ -88,6 +88,14 @@ Por padrão, espera-se que o backend esteja rodando em:
 http://localhost:8000
 ```
 
+Para apontar para outro endereço, defina `VITE_API_URL` (ele entra no build).
+
+---
+
+## 🌐 Publicação (produção)
+
+O front é publicado no **Vercel** e a API no **Render**. Passo a passo, variáveis e problemas comuns em [DEPLOY.md](DEPLOY.md).
+
 ---
 
 ## ⚠️ Importante
