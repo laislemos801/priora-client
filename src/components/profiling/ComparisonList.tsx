@@ -37,6 +37,8 @@ export default function ComparisonList({
           key={axis.key}
           titulo={axis.label}
           info={axis.info}
+          low={axis.low}
+          high={axis.high}
           estimado={estimado ? estimado[axis.key] : null}
           suspeito={suspeito[axis.key]}
           tipos={tipos}

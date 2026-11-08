@@ -5,6 +5,8 @@ import type { ProfileType } from "./types";
 type ComparisonCardProps = {
   titulo: string;
   info?: string;
+  low?: string;
+  high?: string;
   estimado: number | null;
   suspeito: number;
   tipos: ProfileType[];
@@ -39,6 +41,8 @@ function ValueRow({
 export default function ComparisonCard({
   titulo,
   info,
+  low,
+  high,
   estimado,
   suspeito,
   tipos,
@@ -61,6 +65,18 @@ export default function ComparisonCard({
           <InfoTip label={titulo} className="mt-1.5">
             <p className="mb-1 font-semibold text-white">{titulo}</p>
             {info}
+            {low && high && (
+              <dl className="mt-2 space-y-1.5 border-t border-[#3a3a3a] pt-2">
+                <div>
+                  <dt className="font-semibold text-white">Perto de 0</dt>
+                  <dd>{low}</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-white">Perto de 100</dt>
+                  <dd>{high}</dd>
+                </div>
+              </dl>
+            )}
           </InfoTip>
         )}
       </h3>
