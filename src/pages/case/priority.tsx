@@ -8,6 +8,7 @@ import ActionButton from "@/components/ui/ActionButton";
 import { IoFilterSharp } from "react-icons/io5";
 import toast from "react-hot-toast";
 import Panel from "@/components/caseOverview/Panel";
+import InfoTip from "@/components/ui/InfoTip";
 import ActionCard from "@/components/priority/ActionCard";
 import FilterPanelPriority from "@/components/priority/FilterPanelPriority";
 import DecisionMatrix from "@/components/priority/DecisionMatrix";
@@ -66,6 +67,21 @@ export default function Priority() {
     } catch (err) {
       console.error(err);
       toast.error("Erro ao atualizar status da ação.");
+      setActions(previous);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    const previous = actions;
+    setActions((prev) => prev.filter((a) => a.id !== id));
+
+    try {
+      const res = await apiFetch(`/priority-actions/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      toast.success("Ação excluída.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao excluir a ação.");
       setActions(previous);
     }
   }
@@ -139,21 +155,46 @@ export default function Priority() {
                     key={action.id}
                     action={action}
                     onChangeStatus={(status) => handleChangeStatus(action.id, status)}
+                    onDelete={() => handleDelete(action.id)}
                   />
                 ))
               )}
             </section>
 
             <aside className="space-y-4">
-              <Panel title="Matriz de decisão: Esforço vs Recompensa">
+              <Panel
+                title="Matriz de decisão: Esforço vs Recompensa"
+                action={
+                  <InfoTip label="Como ler a matriz de decisão">
+                    <p className="mb-1 font-semibold text-white">Como ler a matriz</p>
+                    Cada ponto é uma ação sugerida, numerada como nos cards. Quanto mais para cima, maior a
+                    recompensa (ganho de informação); quanto mais para a direita, maior o esforço. As ações
+                    do quadrante superior esquerdo rendem mais com menos esforço.
+                  </InfoTip>
+                }
+              >
                 <DecisionMatrix actions={filtered} />
               </Panel>
 
-              <Panel title="Resumo de estratégia">
-                <StrategyGauge
-                  importancia={importancia}
-                  resumo="A recompensa de cada ação é o ganho de informação esperado (redução de entropia de Shannon) sobre o ranking de suspeitos. O esforço é uma estimativa operacional, não probabilística."
-                />
+              <Panel
+                title="Resumo de estratégia"
+                action={
+                  <InfoTip label="Como funciona o resumo de estratégia">
+                    <p className="mb-1 font-semibold text-white">Resumo de estratégia</p>
+                    <p>
+                      A recompensa de cada ação é o ganho de informação esperado (redução de entropia de
+                      Shannon) sobre o ranking de suspeitos. O esforço é uma estimativa operacional, não
+                      probabilística.
+                    </p>
+                    <p className="mt-2">
+                      A <strong>importância</strong> é a média do ganho de informação das ações ainda ativas
+                      (sugeridas ou em progresso): quanto maior, mais as ações pendentes podem reduzir a
+                      incerteza do caso.
+                    </p>
+                  </InfoTip>
+                }
+              >
+                <StrategyGauge importancia={importancia} />
               </Panel>
             </aside>
           </div>

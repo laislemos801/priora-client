@@ -1,17 +1,14 @@
 type Props = {
   importancia: number;
-  resumo: string;
 };
 
-export default function StrategyGauge({ importancia, resumo }: Props) {
+export default function StrategyGauge({ importancia }: Props) {
   // 0% = -90°, 50% = 0°, 100% = 90°
   const angle = (importancia / 100) * 180 - 90;
 
   return (
     <div>
-      <p className="text-sm text-white/65 leading-relaxed">{resumo}</p>
-
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center">
         <div className="relative h-[130px] w-[220px]">
           <svg viewBox="0 0 200 100" className="absolute inset-0 h-full w-full">
             <path d="M20 100 A80 80 0 0 1 70 30" fill="none" stroke="#10B981" strokeWidth="18" />
@@ -25,10 +22,12 @@ export default function StrategyGauge({ importancia, resumo }: Props) {
           />
           <div className="absolute bottom-[12px] left-1/2 h-5 w-5 -translate-x-1/2 rounded-full bg-white border border-gray-300" />
 
-          <div className="absolute left-1/2 top-[68px] -translate-x-1/2 text-center">
-            <div className="text-sm text-gray-400">Importância: {importancia}%</div>
-          </div>
         </div>
+      </div>
+
+      <div className="mt-3 text-center">
+        <p className="text-3xl font-semibold leading-none text-white">{importancia}%</p>
+        <p className="mt-1 text-sm text-white/65">Importância</p>
       </div>
     </div>
   );

@@ -34,6 +34,53 @@ function LabelDot({ cx, cy, index }: { cx?: number; cy?: number; index?: number 
   );
 }
 
+type Point = InvestigativeAction & { index: number };
+
+// Distância (em unidades do gráfico, 0–100) abaixo da qual dois pontos se cobrem.
+const OVERLAP = 4;
+
+// Um balão por ponto (o padrão do Recharts cria uma linha por eixo, repetindo o texto).
+// Ações no mesmo ponto aparecem juntas; o texto quebra linha e fica dentro do gráfico.
+function ActionTooltip({
+  active,
+  payload,
+  data,
+  viewBox,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: Point }>;
+  data: Point[];
+  viewBox?: { width?: number };
+}) {
+  if (!active || !payload?.length) return null;
+  const hovered = payload[0].payload;
+  // Pontos que se sobrepõem no gráfico (círculos de ~9px) entram juntos no balão.
+  const same = data.filter(
+    (d) =>
+      Math.abs(d.esforco - hovered.esforco) <= OVERLAP &&
+      Math.abs(d.recompensa - hovered.recompensa) <= OVERLAP
+  );
+
+  return (
+    <div
+      style={{ maxWidth: Math.min(220, Math.max(120, (viewBox?.width ?? 220) - 16)) }}
+      className="rounded-lg border border-[#3a3a3a] bg-[#1f1f1f] p-3 text-xs text-white shadow-lg"
+    >
+      <ul className="space-y-2">
+        {same.map((a) => (
+          <li key={a.id} className="break-words">
+            <span className="font-semibold text-[#139C73]">Ação {a.index + 1}</span>
+            <span className="block text-white/90">{a.titulo}</span>
+            <span className="block text-white/50">
+              Esforço {Math.round(a.esforco)} · Recompensa {Math.round(a.recompensa)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function DecisionMatrix({ actions }: Props) {
   const data = actions.map((a, i) => ({ ...a, index: i }));
 
@@ -61,9 +108,8 @@ export default function DecisionMatrix({ actions }: Props) {
           <ReferenceLine y={50} stroke="#575757" strokeDasharray="4 4" />
           <Tooltip
             cursor={{ strokeDasharray: "3 3" }}
-            contentStyle={{ background: "#1f1f1f", border: "1px solid #3a3a3a", borderRadius: 8, fontSize: 12 }}
-            labelFormatter={() => ""}
-            formatter={(_value, _name, item) => [item.payload.titulo, `Ação ${(item.payload.index ?? 0) + 1}`]}
+            wrapperStyle={{ zIndex: 50, outline: "none" }}
+            content={<ActionTooltip data={data} />}
           />
           <Scatter data={data} shape={<LabelDot />}>
             {data.map((d) => (
