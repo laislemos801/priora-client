@@ -90,20 +90,18 @@ export default function CaseCard({
       </div>
 
       {/* Corpo da pasta */}
-      <div className="flex flex-col gap-2.5 rounded-b-xl rounded-tr-xl border border-[#3a3a3a] bg-[#2A2A2A] p-3.5">
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug" title={title}>
+      <div className="flex h-[258px] flex-col gap-2.5 overflow-hidden rounded-b-xl rounded-tr-xl border border-[#3a3a3a] bg-[#2A2A2A] p-3.5">
+        <div className="h-[40px] min-w-0 shrink-0">
+          <h3 className="truncate text-[15px] font-semibold leading-5" title={title}>
             {title}
           </h3>
-          {description && (
-            <p className="mt-0.5 line-clamp-1 text-xs text-gray-400" title={description}>
-              {description}
-            </p>
-          )}
+          <p className="mt-0.5 h-4 truncate text-xs leading-4 text-gray-400" title={description || undefined}>
+            {description || " "}
+          </p>
         </div>
 
         {/* Top suspeito */}
-        <div className="flex items-center gap-2.5 rounded-lg border border-[#444] px-2.5 py-2">
+        <div className="flex h-[52px] shrink-0 items-center gap-2.5 rounded-lg border border-[#444] px-2.5">
           {suspeitoNome ? (
             <>
               {suspeitoFotoUrl ? (
@@ -126,12 +124,12 @@ export default function CaseCard({
               </div>
             </>
           ) : (
-            <p className="text-xs italic text-white/40">Nenhum suspeito cadastrado ainda</p>
+            <p className="truncate text-xs italic text-white/40">Nenhum suspeito cadastrado ainda</p>
           )}
         </div>
 
         {/* Infos */}
-        <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs text-gray-400">
+        <ul className="grid h-[60px] shrink-0 grid-cols-2 content-start gap-x-3 gap-y-1.5 text-xs leading-4 text-gray-400">
           <li className="flex items-center gap-1.5">
             <MdOutlineGroup className="shrink-0 text-green-400" />
             <span className="truncate">{suspects} suspeitos</span>
@@ -155,13 +153,13 @@ export default function CaseCard({
         </ul>
 
         {/* Rodapé */}
-        <div className="mt-0.5 flex flex-wrap items-center justify-between gap-2 border-t border-[#3a3a3a] pt-2.5">
-          <span className="whitespace-nowrap rounded-md bg-[#3a3a3a] px-2.5 py-1.5 text-xs font-medium">
+        <div className="mt-auto flex shrink-0 items-center justify-between gap-2 border-t border-[#3a3a3a] pt-2.5">
+          <span className="min-w-0 truncate whitespace-nowrap rounded-md bg-[#3a3a3a] px-2.5 py-1.5 text-xs font-medium">
             Incerteza {uncertainty}%
           </span>
           <button
             onClick={() => navigate(`/case/${caseId}`)}
-            className="whitespace-nowrap rounded-md border border-[#525252] px-2.5 py-1.5 text-xs text-white transition hover:border-green-500 hover:bg-green-500/10"
+            className="shrink-0 whitespace-nowrap rounded-md border border-[#525252] px-2.5 py-1.5 text-xs text-white transition hover:border-green-500 hover:bg-green-500/10"
           >
             Ver Detalhes
           </button>
