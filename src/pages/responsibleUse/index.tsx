@@ -1,14 +1,8 @@
-import TopBar from "@/components/ui/TopBar";
-import { ResponsibleUse } from "../case/responsibleUse";
 import { useNavigate } from "react-router-dom";
+import { ResponsibleUse } from "../case/responsibleUse";
 
+/** Uso responsável e limitações: página geral (o "voltar" fica na TopBar do layout). */
 export default function ResponsibleUsePage() {
   const navigate = useNavigate();
-
-  return (
-    <div className="bg-[#1D1D1D] min-h-screen text-white flex flex-col">
-      <TopBar />
-      <ResponsibleUse onBack={() => navigate(-1)} onContact={() => navigate("/contact")} />
-    </div>
-  );
+  return <ResponsibleUse onContact={() => navigate("/contact")} />;
 }

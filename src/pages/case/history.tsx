@@ -176,29 +176,30 @@ export default function History() {
   };
 
   return (
-    <div className="min-h-screen bg-[#242424] text-white">
+    <div className="min-h-full bg-[#242424] text-white">
 
       <main className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
 
         <div className={`w-full rounded-xl border border-[#575757] bg-[#242424] overflow-hidden ${PAGE_CARD_FILL}`}>
 
           {/* CABEÇALHO */}
-          <div className="flex items-center justify-between px-[1.2vw] py-[0.8vw] border-b border-[#575757]">
+          {/* Tamanhos fixos (rem) em vez de vw: em vw o texto ficava ilegível no celular */}
+          <div className="flex items-center justify-between gap-3 px-4 py-4 md:px-6 border-b border-[#575757]">
 
-            <div className="flex items-center gap-[0.7vw]">
+            <div className="flex items-center gap-3">
               <NavIcon name="history" className="text-[#12B98B]" />
-              <h1 className="font-semibold text-[1vw]">Histórico</h1>
+              <h1 className="font-semibold text-lg">Histórico</h1>
             </div>
 
             <button
               onClick={() => setShowFilter((p) => !p)}
               className={`
-                flex items-center gap-[0.5vw] px-[1vw] py-[0.45vw] rounded-md
-                text-[0.7vw] hover:bg-[#373737]
+                flex items-center gap-2 px-3 py-1.5 rounded-md
+                text-sm hover:bg-[#373737]
                 ${activeTags.length > 0 ? "bg-[#139C73]/20 text-[#139C73]" : "bg-[#2D2D2D] text-gray-300"}
               `}
             >
-              <FiFilter className="text-[0.8vw]" />
+              <FiFilter className="text-sm" />
               Filtrar
               {activeTags.length > 0 && ` (${activeTags.length})`}
             </button>
@@ -206,7 +207,7 @@ export default function History() {
           </div>
 
           {showFilter && (
-            <div className="flex flex-wrap gap-2 px-[1.2vw] py-[0.8vw] border-b border-[#575757]">
+            <div className="flex flex-wrap gap-2 px-4 py-3 md:px-6 border-b border-[#575757]">
               {Object.values(ENTITY_LABELS).map((entity) => (
                 <Tag
                   key={entity.tag}
@@ -219,7 +220,7 @@ export default function History() {
           )}
 
           {/* LISTA */}
-          <div className="flex flex-1 flex-col p-[0.8vw]">
+          <div className="flex flex-1 flex-col p-3 md:p-4">
 
             {loading && <HistoryListSkeleton />}
 
@@ -244,8 +245,8 @@ export default function History() {
                 <div key={section.title}>
 
                   {/* TÍTULO DA SEÇÃO */}
-                  <div className="flex items-center gap-[0.4vw] px-[0.1vw]">
-                    <span className="whitespace-nowrap text-[0.65vw] font-medium">
+                  <div className="flex items-center gap-2 py-2">
+                    <span className="whitespace-nowrap text-xs font-medium">
                       {section.title}
                     </span>
                     <div className="flex-1 h-[1px] bg-gray-300" />
@@ -265,8 +266,8 @@ export default function History() {
                       <div
                         key={item.id}
                         className="
-                          flex items-center gap-[0.7vw] w-full rounded-md
-                          px-[0.7vw] py-[0.55vw] bg-[#2B2B2B]
+                          flex items-start sm:items-center gap-3 w-full rounded-md
+                          px-3 py-2.5 bg-[#2B2B2B]
                           border-b border-[#202020] hover:bg-[#303030] transition
                         "
                       >
@@ -276,36 +277,43 @@ export default function History() {
                           <img
                             src={item.user.fotoUrl}
                             alt=""
-                            className="shrink-0 w-[1.8vw] h-[1.8vw] min-w-[24px] min-h-[24px] rounded-full object-cover"
+                            className="shrink-0 w-7 h-7 rounded-full object-cover"
                           />
                         ) : (
-                          <span className="shrink-0 flex items-center justify-center w-[1.8vw] h-[1.8vw] min-w-[24px] min-h-[24px] rounded-full bg-[#3A3A3A] text-[0.6vw] font-semibold">
+                          <span className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-[#3A3A3A] text-xs font-semibold">
                             {userName.charAt(0).toUpperCase()}
                           </span>
                         )}
 
-                        {/* TEXTO */}
-                        <div className="flex-1 min-w-0 flex items-center gap-[0.35vw] text-[0.72vw]">
-                          <span className="font-semibold whitespace-nowrap">{userName}</span>
-                          <span className="text-gray-400 whitespace-nowrap">{action}</span>
-                          <span className="text-gray-200 truncate">{text}</span>
+                        {/* No celular: texto em cima, etiqueta e data embaixo */}
+                        <div className="flex-1 min-w-0 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+
+                          {/* TEXTO */}
+                          <div className="flex-1 min-w-0 flex flex-wrap sm:flex-nowrap items-center gap-x-1.5 text-sm">
+                            <span className="font-semibold whitespace-nowrap">{userName}</span>
+                            <span className="text-gray-400 whitespace-nowrap">{action}</span>
+                            <span className="text-gray-200 min-w-0 break-words sm:truncate">{text}</span>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            {/* TAG */}
+                            <span
+                              className={`
+                                shrink-0 rounded-full px-2.5 py-0.5
+                                text-[11px] whitespace-nowrap
+                                ${entity ? TAG_STYLES[entity.color] : "bg-[#3A3A3A] text-gray-300"}
+                              `}
+                            >
+                              {entity?.tag ?? "Outros"}
+                            </span>
+
+                            {/* DATA / HORA */}
+                            <span className="shrink-0 text-xs text-gray-300 whitespace-nowrap">
+                              {formatDate(itemDate)} {formatTime(itemDate)}
+                            </span>
+                          </div>
+
                         </div>
-
-                        {/* TAG */}
-                        <span
-                          className={`
-                            shrink-0 rounded-full px-[0.65vw] py-[0.18vw]
-                            text-[0.5vw] whitespace-nowrap
-                            ${entity ? TAG_STYLES[entity.color] : "bg-[#3A3A3A] text-gray-300"}
-                          `}
-                        >
-                          {entity?.tag ?? "Outros"}
-                        </span>
-
-                        {/* DATA / HORA */}
-                        <span className="shrink-0 text-[0.52vw] text-gray-300 whitespace-nowrap">
-                          {formatDate(itemDate)} {formatTime(itemDate)}
-                        </span>
 
                       </div>
                     );
@@ -321,12 +329,12 @@ export default function History() {
               <button
                 onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
                 className="
-                  mt-[0.7vw] flex items-center gap-[0.4vw]
-                  px-[0.7vw] py-[0.35vw] border border-[#575757] rounded-md
-                  bg-[#292929] text-[0.65vw] hover:bg-[#353535]
+                  mt-3 self-start flex items-center gap-2
+                  px-3 py-1.5 border border-[#575757] rounded-md
+                  bg-[#292929] text-sm hover:bg-[#353535]
                 "
               >
-                <FiPlus className="text-[0.8vw]" />
+                <FiPlus className="text-sm" />
                 Ver mais
               </button>
             )}

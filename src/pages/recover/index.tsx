@@ -1,103 +1,83 @@
-import { useState } from "react";
-import { MdOutlineMail } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { apiFetch } from "@/lib/api";
-import erImg from "@/assets/er.png";
-import logoHorizonImg from "@/assets/logoHorizon.png";
-import logoPadlockImg from "@/assets/logoPadlock.png";
+import { useState, type FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FiArrowLeft, FiKey, FiMail } from "react-icons/fi";
+import { ApiError, requestPasswordReset } from "@/routes/user";
+import AuthLayout, { AUTH_LINK } from "@/components/auth/AuthLayout";
+import { AuthField } from "@/components/auth/AuthField";
+import SubmitButton from "@/components/auth/SubmitButton";
+import FormAlert from "@/components/auth/FormAlert";
+import { validateEmail } from "@/components/auth/validation";
 
+/** Passo 1 da recuperação: pedir o e-mail e enviar o link de redefinição. */
 export default function Recover() {
-  const [email, setEmail] = useState("");
-
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialEmail = (location.state as { email?: string } | null)?.email ?? "";
 
-  async function handleRecover() {
+  const [email, setEmail] = useState(initialEmail);
+  const [error, setError] = useState<string | undefined>();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setServerError(null);
+
+    const emailError = validateEmail(email);
+    setError(emailError);
+    if (emailError) return;
+
+    setSubmitting(true);
     try {
-      const response = await apiFetch("/users/recover", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-        }),
-      });
-
-      if (!response.ok) {
-        toast.error("Erro ao enviar email");
-        return;
+      await requestPasswordReset(email.trim());
+      navigate("/recover/email-send", { state: { email: email.trim() } });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        setError("Não encontramos uma conta com este e-mail.");
+      } else {
+        setServerError(err instanceof Error ? err.message : "Não foi possível enviar o e-mail.");
       }
-
-      navigate("/recover/email-send");
-    } catch (error) {
-      console.log(error);
-
-      toast.error("Erro ao conectar");
+      setSubmitting(false);
     }
   }
 
   return (
-    <div className="dark-circuit-wrapper flex w-full h-screen justify-between items-center">
-      <div className="dark-circuit-background" />
-      <div className="w-[60%] ml-4 hidden lg:block  h-[95%] transition-all">
-        <img
-          src={erImg}
-          alt="imagem-decorativa"
-          className=" w-full h-full hidden lg:block "
+    <AuthLayout
+      icon={<FiKey size={20} />}
+      title="Esqueceu a senha?"
+      subtitle="Informe o e-mail da sua conta. Enviaremos um link para você criar uma nova senha."
+      footer={
+        <Link to="/login" className={`${AUTH_LINK} inline-flex items-center gap-1.5`}>
+          <FiArrowLeft size={14} />
+          Voltar para o login
+        </Link>
+      }
+    >
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        {serverError && <FormAlert>{serverError}</FormAlert>}
+
+        <AuthField
+          label="E-mail"
+          type="email"
+          name="email"
+          autoComplete="email"
+          inputMode="email"
+          placeholder="nome@exemplo.com"
+          icon={<FiMail size={16} />}
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) setError(undefined);
+          }}
+          error={error}
+          disabled={submitting}
+          autoFocus
         />
-      </div>
-      <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-6 mx-auto gap-10">
-        <div className="">
-          <img src={logoHorizonImg} alt="logo" />
-        </div>
-        <div className="">
-          <img src={logoPadlockImg} alt="logo" />
-        </div>
-        <div className="w-full flex flex-col items-center">
-          <p className="text-[#D9D9D9] text-[20px] font-semibold mb-4">
-            Redefinição de senha
-          </p>
-          <p className="text-[#D9D9D9] max-w-75 text-center text-[14px]">
-            Digite seu e-mail para redefinir a senha.
-          </p>
-        </div>
-        <div className="flex flex-col gap-6 w-full ">
-            <div className="bg-[#0E0E10] w-full text-[#A6A6A6] flex py-2 rounded-full items-center justify-between px-5 border border-transparent focus-within:border-[#139C73] transition-all duration-200">
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full bg-transparent text-white outline-none border-none focus:outline-none focus:ring-0 focus:border-none"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <i>
-              <MdOutlineMail size={28} />
-            </i>
-          </div>
-        </div>
-        <div className="w-full items-center flex flex-col gap-4">
-          <button
-            onClick={handleRecover}
-             className="
-                bg-[linear-gradient(90deg,#139C73,#136D52)]
-                w-full
-                py-3
-                rounded-full
-                text-white
-                font-bold
-                transition-all
-                duration-300
-                hover:scale-[1.02]
-                hover:shadow-[0_0_20px_rgba(19,156,115,0.35)]
-                hover:brightness-110
-                active:scale-[0.98]
-                cursor-pointer
-              "          >
-            RECUPERAR SENHA
-          </button>
-        </div>
-      </div>
-    </div>
+
+        <SubmitButton loading={submitting} loadingText="Enviando link...">
+          Enviar link de redefinição
+        </SubmitButton>
+      </form>
+    </AuthLayout>
   );
 }

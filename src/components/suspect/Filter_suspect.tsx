@@ -69,7 +69,7 @@ export default function FilterPanelRanking({
     local.suspects.length;
 
   return (
-    <div className="absolute right-0 top-full z-[9999] mt-2 w-[380px] rounded-xl border border-[#444] bg-[#242424] shadow-xl">
+    <div className="absolute right-0 top-full z-[9999] mt-2 w-[380px] max-w-[calc(100vw-2rem)] rounded-xl border border-[#444] bg-[#242424] shadow-xl">
       <div className="flex items-center justify-between border-b border-[#3a3a3a] px-4 py-3">
         <h2 className="text-sm font-semibold text-white/80">
           Filtrar

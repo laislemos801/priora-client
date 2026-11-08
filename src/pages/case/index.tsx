@@ -12,7 +12,7 @@ export default function CasePanel() {
   // dependem de dados que a API recusa (403).
   if (!loading && role === null) {
     return (
-      <div className="min-h-screen bg-[#242424] px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
+      <div className="min-h-full bg-[#242424] px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className={`rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
           <EmptyState
             icon={<Lock />}
@@ -26,7 +26,7 @@ export default function CasePanel() {
   }
 
   return (
-    <div className="h-screen bg-[#242424] print:h-auto print:bg-white">
+    <div className="min-h-full bg-[#242424] print:h-auto print:bg-white">
       <Outlet />
     </div>
   );

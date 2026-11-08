@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "@/layouts/AppLayout";
 import { Toaster } from "react-hot-toast";
 
@@ -18,15 +18,13 @@ import CaseOverview from "./pages/case/caseOverview";
 import Profiling from "./pages/case/profiling";
 import Register from "./pages/register";
 import EvidenceBoard from "./pages/case/evidenceBoard";
-import { Help } from "./pages/case/help";
 import Contact from "./pages/contact";
-import ResponsibleUsePage from "./pages/responsibleUse";
-import CaseResponsibleUse from "./pages/case/responsibleUse";
+import ResponsibleUse from "./pages/responsibleUse";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Profile from "./pages/profile";
 import History from "./pages/case/history";
 import ExportReport from "@/pages/case/export";
 import Priority from "./pages/case/priority";
-import ErrorBoundary from "./components/ErrorBoundary";
 
 function App() {
   return (
@@ -67,21 +65,7 @@ function App() {
         <Route path="/recover/updated-password" element={<UpdatedPassword />} />
       
 
-        {/* privadas sem sidebar */}
-        <Route
-          element={
-            <PrivateRoute>
-              <Outlet />
-            </PrivateRoute>
-          }
-        >
-          <Route path="/mycases" element={<Home />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/responsible-use" element={<ResponsibleUsePage />} />
-          <Route path="/profile" element={<Profile />} />
-        </Route>
-
-        {/* privadas com sidebar */}
+        {/* privadas: todas com a mesma moldura (sidebar + TopBar com breadcrumb) */}
         <Route
           element={
             <PrivateRoute>
@@ -89,6 +73,11 @@ function App() {
             </PrivateRoute>
           }
         >
+          <Route path="/mycases" element={<Home />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/responsible-use" element={<ResponsibleUse />} />
+          <Route path="/profile" element={<Profile />} />
+
           <Route path="/case/:id" element={<CasePanel />}>
             <Route index element={<CaseOverview />} />
             <Route path="ranking" element={<Ranking />} />
@@ -97,8 +86,10 @@ function App() {
             <Route path="profiling" element={<Profiling />} />
             <Route path="evidenceBoard" element={<EvidenceBoard />} />
             <Route path="priority" element={<Priority />} />
-            <Route path="help" element={<Help />} />
-            <Route path="responsible-use" element={<CaseResponsibleUse />} />
+            {/* O contato é geral (sidebar → Contato); o endereço antigo continua funcionando */}
+            <Route path="help" element={<Navigate to="/contact" replace />} />
+            {/* Uso responsável é geral; o endereço dentro do caso redireciona */}
+            <Route path="responsible-use" element={<Navigate to="/responsible-use" replace />} />
             <Route path="history" element={<History />} />
             <Route path="export" element={<ExportReport />} />
           </Route>

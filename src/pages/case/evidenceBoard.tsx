@@ -161,8 +161,8 @@ function BoardCanvas({
   }, [nodes, edges, onSave]);
 
   return (
-    // Altura da área abaixo da TopBar_cases (h-16), para o quadro não rolar e esconder a toolbar
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-zinc-950">
+    // Altura da área abaixo da AppTopBar (h-16), para o quadro não rolar e esconder a toolbar
+    <div className="flex flex-col h-[calc(100dvh-4rem)] bg-zinc-950">
       {readOnly ? (
         <div className="px-4 py-2 text-xs text-zinc-400 border-b border-zinc-800 bg-zinc-900">
           Modo somente leitura: seu papel neste caso não permite editar o quadro.

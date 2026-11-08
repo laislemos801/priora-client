@@ -97,7 +97,7 @@ export default function Analysis() {
   // sem suspeitos não há o que analisar: mesmo estado vazio das outras abas
   if (suspects.length === 0) {
     return (
-      <div className="min-h-screen bg-[#242424]">
+      <div className="min-h-full bg-[#242424]">
         <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
           <div className={`overflow-hidden rounded-xl border border-[#575757] bg-[#1e1e1e] ${PAGE_CARD_FILL}`}>
             <header className="flex items-center gap-3 border-b border-[#575757] px-5 py-4">
@@ -120,7 +120,7 @@ export default function Analysis() {
   }
 
   return (
-    <div className="min-h-screen bg-[#242424]">
+    <div className="min-h-full bg-[#242424]">
       <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className="rounded-xl border border-[#575757] bg-[#1e1e1e] overflow-hidden">
           <header className="flex flex-col gap-4 border-b border-[#575757] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">

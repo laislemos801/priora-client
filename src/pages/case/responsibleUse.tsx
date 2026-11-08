@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { IoIosArrowBack } from "react-icons/io";
 import {
   FiAlertTriangle,
   FiCpu,
@@ -15,8 +13,7 @@ import NavIcon from "@/components/ui/NavIcon";
 import { PAGE_CARD_FILL } from "@/components/ui/EmptyState";
 
 type Props = {
-  onBack?: () => void;
-  /** Leva à página de Contato (rota do caso ou global, conforme o contexto). */
+  /** Leva à página de Contato. */
   onContact?: () => void;
 };
 
@@ -120,22 +117,12 @@ const TOPICS: Topic[] = [
   },
 ];
 
-export function ResponsibleUse({ onBack, onContact }: Props) {
+export function ResponsibleUse({ onContact }: Props) {
   return (
     <div>
       <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className={`rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
           <header className="flex items-center gap-2.5 border-b border-[#575757] px-4 py-4 md:px-6">
-            {onBack && (
-              <button
-                type="button"
-                onClick={onBack}
-                aria-label="Voltar"
-                className="-ml-2 mr-1 rounded-full p-2 text-white/65 transition-colors hover:bg-[#363636] hover:text-white"
-              >
-                <IoIosArrowBack size={16} />
-              </button>
-            )}
             <NavIcon name="responsible" className="text-emerald-400" />
             <h1 className="text-lg font-semibold text-slate-100">Uso responsável e limitações</h1>
           </header>
@@ -184,11 +171,4 @@ export function ResponsibleUse({ onBack, onContact }: Props) {
       </div>
     </div>
   );
-}
-
-/** Rota dentro do caso (com o menu lateral). */
-export default function CaseResponsibleUse() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  return <ResponsibleUse onContact={() => navigate(`/case/${id}/help`)} />;
 }
