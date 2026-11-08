@@ -93,12 +93,17 @@ function createWindow() {
     win.webContents.once("did-finish-load", async () => {
       await new Promise((resolve) => setTimeout(resolve, 2500));
       const text = await win.webContents.executeJavaScript("document.body.innerText");
+      // Chama a API a partir do próprio aplicativo (confere endereço e CORS)
+      const apiStatus = await win.webContents
+        .executeJavaScript('fetch(window.priora.apiUrl + "/openapi.json").then((r) => r.status).catch((e) => "erro: " + e.message)')
+        .catch((e) => "erro: " + e.message);
       console.log(
         JSON.stringify({
           smoke: true,
           url: win.webContents.getURL(),
           title: win.getTitle(),
           apiUrl: readApiUrl(),
+          apiStatus,
           texto: String(text).replace(/\s+/g, " ").slice(0, 160),
         })
       );
