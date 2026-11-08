@@ -10,6 +10,7 @@ import {
   USER_UPDATED_EVENT,
   caseIdFromPath,
   casePath,
+  responsibleUsePath,
   getLastCase,
 } from "@/lib/navigation";
 import { useCaseName } from "@/hooks/useCaseName";
@@ -282,10 +283,10 @@ export default function Sidebar({ onLogout, mobileOpen = false, onMobileClose }:
         {/* ── Rodapé: contato, perfil e sair ── */}
         <footer className="flex shrink-0 flex-col gap-1 border-t border-[#242426] px-2 py-3">
           <NavItem
-            to={GENERAL_PAGES.responsible.path}
+            to={responsibleUsePath(caseId)}
             label="Uso responsável"
             icon={<NavIcon name="responsible" />}
-            active={isRouteActive(pathname, GENERAL_PAGES.responsible.path)}
+            active={isRouteActive(pathname, responsibleUsePath(caseId))}
             collapsed={isCollapsed}
           />
 

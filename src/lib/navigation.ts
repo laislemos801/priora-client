@@ -36,6 +36,11 @@ export const GENERAL_PAGES = {
   responsible: { path: "/responsible-use", label: "Uso responsável" },
 } as const;
 
+/** Uso responsável: dentro de um caso abre no próprio caso (o menu do caso continua). */
+export function responsibleUsePath(caseId?: string): string {
+  return caseId ? `/case/${caseId}/responsible-use` : GENERAL_PAGES.responsible.path;
+}
+
 /** Id do caso na URL atual (/case/:id/...), ou undefined fora de um caso. */
 export function caseIdFromPath(pathname: string): string | undefined {
   return pathname.match(/^\/case\/([^/]+)/)?.[1];

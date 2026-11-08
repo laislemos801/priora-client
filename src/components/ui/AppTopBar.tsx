@@ -22,6 +22,13 @@ function useNavContext(
   if (caseId) {
     const section = caseSectionFromPath(pathname);
     const caseCrumb: Crumb = { label: caseName ?? "…", to: `/case/${caseId}` };
+    if (pathname.split("/")[3] === "responsible-use") {
+      return {
+        crumbs: [cases, caseCrumb, { label: GENERAL_PAGES.responsible.label }],
+        back: { to: `/case/${caseId}`, label: "Voltar para o painel do caso" },
+      };
+    }
+
     const atDashboard = !section || section.path === "";
 
     if (atDashboard) {

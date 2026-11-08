@@ -88,8 +88,8 @@ function App() {
             <Route path="priority" element={<Priority />} />
             {/* O contato é geral (sidebar → Contato); o endereço antigo continua funcionando */}
             <Route path="help" element={<Navigate to="/contact" replace />} />
-            {/* Uso responsável é geral; o endereço dentro do caso redireciona */}
-            <Route path="responsible-use" element={<Navigate to="/responsible-use" replace />} />
+            {/* Uso responsável: dentro do caso mantém o menu do caso; fora dele, é geral */}
+            <Route path="responsible-use" element={<ResponsibleUse />} />
             <Route path="history" element={<History />} />
             <Route path="export" element={<ExportReport />} />
           </Route>
