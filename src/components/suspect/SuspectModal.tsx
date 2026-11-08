@@ -266,7 +266,7 @@ export default function SuspectModal({
           <div className="rounded-lg border border-[#434343] p-4">
             <p className="text-sm text-white/70">Antecedentes</p>
             <p className="mb-4 mt-1 text-xs text-white/45">
-              Informação de apoio ao investigador: aparece em “Dados do suspeito” no
+              Informação de apoio ao investigador: pode ser consultada pelo ícone de olho no
               ranking, mas não entra no cálculo de probabilidade.
             </p>
 

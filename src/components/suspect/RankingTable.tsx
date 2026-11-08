@@ -1,8 +1,9 @@
 import { HelpCircle } from "lucide-react";
 import CustomCheckbox from "./CustomCheckbox";
 import TrendIcon from "./TrendIcon";
-import SuspectData from "./SuspectData";
-import InfoTip from "@/components/ui/InfoTip";
+import { useState } from "react";
+import { Eye } from "lucide-react";
+import ViewSuspectModal from "./ViewSuspectModal";
 import type { Suspect } from "./types";
 import { useNavigate } from "react-router-dom";
 
@@ -17,7 +18,7 @@ type Props = {
   selectable?: boolean;
 };
 
-const GRID = "lg:grid-cols-[48px_64px_minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,2fr)_minmax(0,0.8fr)]";
+const GRID = "lg:grid-cols-[40px_56px_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.9fr)_40px]";
 
 export default function RankingTable({
   suspects,
@@ -29,11 +30,12 @@ export default function RankingTable({
   selectable = true,
 }: Props) {
   const navigate = useNavigate();
+  const [viewing, setViewing] = useState<Suspect | null>(null);
   const allSelected = suspects.length > 0 && suspects.every((s) => selectedIds.includes(s.id));
 
   return (
     <div className="space-y-3">
-      <div className={`hidden items-center px-6 text-center text-sm font-medium text-white lg:grid ${GRID}`}>
+      <div className={`hidden items-center gap-x-4 px-6 text-center text-sm font-medium text-white lg:grid ${GRID}`}>
         <div className="flex justify-center">
           {selectable && <CustomCheckbox checked={allSelected} onChange={onToggleAll} />}
         </div>
@@ -41,16 +43,8 @@ export default function RankingTable({
         <p>Posição</p>
         <p className="text-left">Nome</p>
         <p>Probabilidade Atual</p>
-        <p className="flex items-center gap-1.5 text-left">
-          Dados do suspeito
-          <InfoTip label="Dados do suspeito" size={14}>
-            <p className="mb-1 font-semibold text-white">Dados do suspeito</p>
-            Idade, antecedentes e evidências vinculadas, como foram cadastrados. Os antecedentes (crime
-            semelhante e descumprimento de medida) são informação de apoio e <strong>não entram no
-            cálculo de probabilidade</strong>.
-          </InfoTip>
-        </p>
         <p>Qtd. Evidências</p>
+        <span className="sr-only">Dados do suspeito</span>
       </div>
 
       <div className="max-h-[670px] space-y-2 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#139C73] scrollbar-track-transparent">
@@ -76,12 +70,15 @@ export default function RankingTable({
                   </div>
                 </div>
 
-                {selectable && (
-                  <CustomCheckbox
-                    checked={selectedIds.includes(suspect.id)}
-                    onChange={() => onToggleSelected(suspect.id)}
-                  />
-                )}
+                <div className="flex items-center gap-2">
+                  <ViewButton onClick={() => setViewing(suspect)} />
+                  {selectable && (
+                    <CustomCheckbox
+                      checked={selectedIds.includes(suspect.id)}
+                      onChange={() => onToggleSelected(suspect.id)}
+                    />
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -103,10 +100,9 @@ export default function RankingTable({
                 </div>
               </div>
 
-              <SuspectData suspect={suspect} />
             </div>
 
-            <div className={`hidden min-h-[72px] items-center gap-x-3 px-6 py-2 lg:grid ${GRID}`}>
+            <div className={`hidden min-h-[60px] items-center gap-x-4 px-6 py-1 lg:grid ${GRID}`}>
               <div className="flex justify-center">
                 {selectable && (
                   <CustomCheckbox
@@ -153,14 +149,34 @@ export default function RankingTable({
                 </button>
               </div>
 
-              <SuspectData suspect={suspect} />
-
               <p className="text-center text-base">{suspect.qtdEvidencias ?? 0}</p>
+
+              <div className="flex justify-center">
+                <ViewButton onClick={() => setViewing(suspect)} />
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {viewing && (
+        <ViewSuspectModal suspect={viewing} casoId={casoId} onClose={() => setViewing(null)} />
+      )}
     </div>
+  );
+}
+
+function ViewButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Ver dados do suspeito"
+      aria-label="Ver dados do suspeito"
+      className="rounded-md p-1.5 text-white/50 transition-colors hover:bg-black/20 hover:text-white"
+    >
+      <Eye size={16} />
+    </button>
   );
 }
 
