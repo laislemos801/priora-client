@@ -1,295 +1,189 @@
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { FiMail, FiLock, FiUser } from "react-icons/fi";
+import toast from "react-hot-toast";
 import { registerUser, checkEmailExists } from "@/routes/user";
-import { useState } from "react";
-import { MdOutlineMail } from "react-icons/md";
+import AuthLayout, { AUTH_LINK } from "@/components/auth/AuthLayout";
+import { AuthField, PasswordField } from "@/components/auth/AuthField";
+import SubmitButton from "@/components/auth/SubmitButton";
+import FormAlert from "@/components/auth/FormAlert";
+import PasswordChecklist from "@/components/auth/PasswordChecklist";
 import {
-  MdOutlineVisibility,
-  MdOutlineVisibilityOff,
-} from "react-icons/md";
-import toast from "react-hot-toast"; 
-import { useNavigate } from "react-router-dom";
-import erImg from "@/assets/er.png";
-import logoHorizonImg from "@/assets/logoHorizon.png";
+  isValid,
+  validateConfirm,
+  validateEmail,
+  validateNewPassword,
+  validateRequired,
+} from "@/components/auth/validation";
 
-export default function Register() {
-  const [visibilityPassword, setVisibilityPassword] = useState(false);
-  const [visibilityPasswordConfirm, setVisibilityPasswordConfirm] =
-    useState(false);
+type Form = {
+  primeiroNome: string;
+  sobrenome: string;
+  email: string;
+  senha: string;
+  confirmSenha: string;
+};
+type Errors = Partial<Record<keyof Form, string>>;
 
-  const [email, setEmail] = useState("");
-  const [primeiroNome, setPrimeiroNome] = useState("");
-  const [sobrenome, setSobrenome] = useState("");
-  const [senha, setSenha] = useState("");
-  const [confirmSenha, setConfirmSenha] = useState("");
-  const navigate = useNavigate();
-  const [errors, setErrors] = useState({
-    email: false,
-    primeiroNome: false,
-    sobrenome: false,
-    senha: false,
-    confirmSenha: false,
-  });
+const EMPTY: Form = { primeiroNome: "", sobrenome: "", email: "", senha: "", confirmSenha: "" };
 
-  const inputClass = (hasError: boolean): string => {
-    return `bg-[#0E0E10] w-full h-12 text-[#A6A6A6] flex items-center justify-between px-5 rounded-full border transition-all duration-200 ${
-      hasError
-        ? "border-red-800"
-        : "border-transparent focus-within:border-[#139C73]"
-    }`;
+function validateForm(f: Form): Errors {
+  return {
+    primeiroNome: validateRequired(f.primeiroNome, "Informe seu nome."),
+    sobrenome: validateRequired(f.sobrenome, "Informe seu sobrenome."),
+    email: validateEmail(f.email),
+    senha: validateNewPassword(f.senha),
+    confirmSenha: validateConfirm(f.senha, f.confirmSenha),
   };
-
- async function handleRegister() {
-  const newErrors = {
-    email: !email.trim(),
-    primeiroNome: !primeiroNome.trim(),
-    sobrenome: !sobrenome.trim(),
-    senha: !senha.trim(),
-    confirmSenha: !confirmSenha.trim(),
-  };
-
-  setErrors(newErrors);
-
-  if (Object.values(newErrors).some(Boolean)) {
-    toast.error("Todos os campos são obrigatórios");
-    return;
-  }
-
-  if (senha.length < 8) {
-    toast.error("A senha deve conter pelo menos 8 caracteres");
-    return;
-  }
-
-  if (senha !== confirmSenha) {
-    toast.error("As senhas não coincidem");
-    return;
-  }
-
-  
-  try {
-    const emailJaCadastrado = await checkEmailExists(email);
-    if (emailJaCadastrado) {
-      setErrors((prev) => ({ ...prev, email: true }));
-      toast.error("Este email já está cadastrado");
-      return;
-    }
-  } catch (error) {
-    console.error("Erro ao verificar email:", error);
-    toast.error("Não foi possível verificar o email");
-    return;
-  }
-  try {
-    const data = await registerUser({
-      email,
-      primeiroNome,
-      sobrenome,
-      senha,
-    });
-
-    console.log(data);
-
-    toast.success("Usuário cadastrado com sucesso!");
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
-  } catch (error) {
-    if (error instanceof Error) {
-      toast.error(error.message);
-    } else {
-      toast.error("Erro inesperado");
-    }
-  }
 }
 
+export default function Register() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState<Form>(EMPTY);
+  const [errors, setErrors] = useState<Errors>({});
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [emailTaken, setEmailTaken] = useState(false);
+
+  function update<K extends keyof Form>(key: K, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+    if (key === "email") setEmailTaken(false);
+  }
+
+  /** Valida um campo ao sair dele, mas só depois que a pessoa digitou algo. */
+  function validateOnBlur(key: keyof Form) {
+    if (!form[key]) return;
+    setErrors((e) => ({ ...e, [key]: validateForm(form)[key] }));
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setServerError(null);
+
+    const next = validateForm(form);
+    setErrors(next);
+    if (!isValid(next)) return;
+
+    setSubmitting(true);
+    try {
+      if (await checkEmailExists(form.email.trim())) {
+        setEmailTaken(true);
+        setErrors((p) => ({ ...p, email: "Já existe uma conta com este e-mail." }));
+        setSubmitting(false);
+        return;
+      }
+
+      await registerUser({
+        email: form.email.trim(),
+        primeiroNome: form.primeiroNome.trim(),
+        sobrenome: form.sobrenome.trim(),
+        senha: form.senha,
+      });
+
+      toast.success("Conta criada com sucesso!");
+      navigate("/login", { state: { registered: true, email: form.email.trim() } });
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : "Não foi possível concluir o cadastro.");
+      setSubmitting(false);
+    }
+  }
+
   return (
-    <div className="dark-circuit-wrapper flex w-full h-screen justify-between items-center">
-      <div className="dark-circuit-background" />
-      <div className="w-[60%] ml-4 lg:block hidden h-[95%] transition-all">
-        <img
-          src={erImg}
-          alt="imagem-decorativa"
-          className="w-full h-full"
+    <AuthLayout
+      title="Criar conta"
+      subtitle="Cadastre-se para criar casos e convidar sua equipe."
+      footer={
+        <>
+          Já tem uma conta?{" "}
+          <Link to="/login" className={AUTH_LINK}>
+            Entrar
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        {serverError && <FormAlert>{serverError}</FormAlert>}
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <AuthField
+            label="Nome"
+            name="given-name"
+            autoComplete="given-name"
+            placeholder="Ana"
+            icon={<FiUser size={16} />}
+            value={form.primeiroNome}
+            onChange={(e) => update("primeiroNome", e.target.value)}
+            error={errors.primeiroNome}
+            disabled={submitting}
+            autoFocus
+          />
+          <AuthField
+            label="Sobrenome"
+            name="family-name"
+            autoComplete="family-name"
+            placeholder="Silva"
+            value={form.sobrenome}
+            onChange={(e) => update("sobrenome", e.target.value)}
+            error={errors.sobrenome}
+            disabled={submitting}
+          />
+        </div>
+
+        <AuthField
+          label="E-mail"
+          type="email"
+          name="email"
+          autoComplete="email"
+          inputMode="email"
+          placeholder="nome@exemplo.com"
+          icon={<FiMail size={16} />}
+          value={form.email}
+          onChange={(e) => update("email", e.target.value)}
+          onBlur={() => validateOnBlur("email")}
+          error={errors.email}
+          disabled={submitting}
         />
-      </div>
-
-      <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-6 mx-auto gap-10">
-        <div>
-          <img src={logoHorizonImg} alt="logo" />
-        </div>
-
-        <div>
-          <p className="text-[#D9D9D9]  sm:text-sm  md:text-2xl font-semibold mb-4">
-            Cadastro
+        {emailTaken && (
+          <p className="-mt-3 text-xs text-white/60">
+            É você?{" "}
+            <Link to="/login" state={{ email: form.email.trim() }} className={AUTH_LINK}>
+              Entrar com este e-mail
+            </Link>
           </p>
-        </div>
+        )}
 
-        <div className="flex flex-col gap-6 w-full">
+        <PasswordField
+          label="Senha"
+          name="new-password"
+          autoComplete="new-password"
+          placeholder="Crie uma senha"
+          icon={<FiLock size={16} />}
+          value={form.senha}
+          onChange={(e) => update("senha", e.target.value)}
+          error={errors.senha}
+          disabled={submitting}
+        />
 
-          <div>
-            <div className={inputClass(errors.email)}>
-              <input
-                type="text"
-                placeholder="Email"
-                className="w-full bg-transparent text-white outline-none"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setErrors((prev) => ({ ...prev, email: false }));
-                }}
-              />
-              <MdOutlineMail size={24} />
-            </div>
+        <PasswordField
+          label="Confirmar senha"
+          name="confirm-password"
+          autoComplete="new-password"
+          placeholder="Repita a senha"
+          icon={<FiLock size={16} />}
+          value={form.confirmSenha}
+          onChange={(e) => update("confirmSenha", e.target.value)}
+          onBlur={() => validateOnBlur("confirmSenha")}
+          error={errors.confirmSenha}
+          disabled={submitting}
+        />
 
-            {errors.email && (
-              <p className="text-red-600 text-sm mt-1 ml-5">
-                Campo obrigatório
-              </p>
-            )}
-          </div>
+        <PasswordChecklist password={form.senha} confirm={form.confirmSenha} />
 
-          <div>
-          <div className={inputClass(errors.primeiroNome)}>
-            <input
-              type="text"
-              placeholder="Primeiro Nome"
-              className="w-full bg-transparent text-white outline-none"
-              value={primeiroNome}
-              onChange={(e) => {
-                setPrimeiroNome(e.target.value);
-                setErrors((prev) => ({ ...prev, primeiroNome: false }));
-              }}
-            />
-          </div>
-
-          {errors.primeiroNome && (
-            <p className="text-red-600 text-sm mt-1 ml-5">
-              Campo obrigatório
-            </p>
-          )}
-        </div>
-
-          <div>
-            <div className={inputClass(errors.sobrenome)}>
-              <input
-                type="text"
-                placeholder="Sobrenome"
-                className="w-full bg-transparent text-white outline-none"
-                value={sobrenome}
-                onChange={(e) => {
-                  setSobrenome(e.target.value);
-                  setErrors((prev) => ({ ...prev, sobrenome: false }));
-                }}
-              />
-            </div>
-
-            {errors.sobrenome && (
-              <p className="text-red-600 text-xs mt-1 ml-3">
-                Campo obrigatório
-              </p>
-            )}
-          </div>
-
-          <div>
-            <div className={inputClass(errors.senha)}>
-              <input
-                type={visibilityPassword ? "text" : "password"}
-                placeholder="Senha"
-                className="w-full bg-transparent text-white outline-none"
-                value={senha}
-                onChange={(e) => {
-                  setSenha(e.target.value);
-                  setErrors((prev) => ({ ...prev, senha: false }));
-                }}
-              />
-
-              {visibilityPassword ? (
-                <MdOutlineVisibilityOff
-                  size={24}
-                  className="cursor-pointer"
-                  onClick={() => setVisibilityPassword(false)}
-                />
-              ) : (
-                <MdOutlineVisibility
-                  size={24}
-                  className="cursor-pointer"
-                  onClick={() => setVisibilityPassword(true)}
-                />
-              )}
-            </div>
-            {errors.senha && (
-              <p className="text-red-600 text-sm mt-1 ml-5">
-                Campo obrigatório
-              </p>
-            )}
-
-            <p className="text-[#8B8B8B] text-sm ml-5 mt-2">
-              Sua senha deve conter 8 ou mais caracteres.
-            </p>
-            
-          </div>
-          <div> 
-            <div className={inputClass(errors.confirmSenha)}>
-              <input
-                type={visibilityPasswordConfirm ? "text" : "password"}
-                placeholder="Confirmar Senha"
-                className="w-full bg-transparent text-white outline-none"
-                value={confirmSenha}
-                onChange={(e) => {
-                  setConfirmSenha(e.target.value);
-                  setErrors((prev) => ({ ...prev, confirmSenha: false }));
-                }}
-              />
-
-              {visibilityPasswordConfirm ? (
-                <MdOutlineVisibilityOff
-                  size={24}
-                  className="cursor-pointer"
-                  onClick={() => setVisibilityPasswordConfirm(false)}
-                />
-              ) : (
-                <MdOutlineVisibility
-                  size={24}
-                  className="cursor-pointer"
-                  onClick={() => setVisibilityPasswordConfirm(true)}
-                />
-              )}
-            </div>
-            {errors.confirmSenha && (
-              <p className="text-red-600 text-xs mt-1 ml-3">
-                Campo obrigatório
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="w-full items-center flex flex-col gap-4">
-          <button
-            onClick={handleRegister}
-            className="
-                bg-[linear-gradient(90deg,#139C73,#136D52)]
-                w-full
-                py-3
-                rounded-full
-                text-white
-                font-bold
-                transition-all
-                duration-300
-                hover:scale-[1.02]
-                hover:shadow-[0_0_20px_rgba(19,156,115,0.35)]
-                hover:brightness-110
-                active:scale-[0.98]
-                cursor-pointer
-              "          >
-            CADASTRAR
-          </button>
-
-          <div>
-            <p className="text-white">
-              Já tem uma conta?{" "}
-              <a className="text-[#139C73] underline hover:text-[#4ea38a]" href="/login">
-                Login
-              </a>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+        <SubmitButton loading={submitting} loadingText="Criando conta..." className="mt-1">
+          Criar conta
+        </SubmitButton>
+      </form>
+    </AuthLayout>
   );
 }

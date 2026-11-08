@@ -1,53 +1,102 @@
-import erImg from "@/assets/er.png";
-import logoHorizonImg from "@/assets/logoHorizon.png";
-import foldersImg from "@/assets/folders.png";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { FiArrowLeft, FiMail } from "react-icons/fi";
+import toast from "react-hot-toast";
+import { requestPasswordReset } from "@/routes/user";
+import AuthLayout, { AUTH_LINK } from "@/components/auth/AuthLayout";
+import SubmitButton from "@/components/auth/SubmitButton";
+import FormAlert from "@/components/auth/FormAlert";
+
+const RESEND_WAIT = 30; // segundos entre reenvios
+
+/** Passo 2 da recuperação: confirmação de que o e-mail foi enviado. */
 export default function EmailSend() {
+  const location = useLocation();
+  const email = (location.state as { email?: string } | null)?.email;
+
+  const [cooldown, setCooldown] = useState(RESEND_WAIT);
+  const [resending, setResending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  async function handleResend() {
+    if (!email) return;
+    setError(null);
+    setResending(true);
+    try {
+      await requestPasswordReset(email);
+      toast.success("Enviamos um novo link.");
+      setCooldown(RESEND_WAIT);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível reenviar o e-mail.");
+    } finally {
+      setResending(false);
+    }
+  }
+
   return (
-   <div className="dark-circuit-wrapper flex w-full h-screen justify-between items-center">
-    <div className="dark-circuit-background" />
-      <div className="w-[60%] ml-4 lg:block hidden h-[95%] transition-all">
-        <img
-          src={erImg}
-          alt="imagem-decorativa"
-          className=" w-full h-full lg:block hidden"
-        />
+    <AuthLayout
+      icon={<FiMail size={20} />}
+      title="Verifique seu e-mail"
+      subtitle={
+        email ? (
+          <>
+            Enviamos um link de redefinição para <span className="font-medium text-white">{email}</span>.
+          </>
+        ) : (
+          "Enviamos um link de redefinição para o e-mail informado."
+        )
+      }
+      footer={
+        <Link to="/login" className={`${AUTH_LINK} inline-flex items-center gap-1.5`}>
+          <FiArrowLeft size={14} />
+          Voltar para o login
+        </Link>
+      }
+    >
+      <div className="flex flex-col gap-5">
+        {error && <FormAlert>{error}</FormAlert>}
+
+        <ol className="space-y-3 text-sm text-white/70">
+          {[
+            "Abra o e-mail enviado pelo Priora.",
+            "Clique no link para criar uma nova senha.",
+            "Não encontrou? Confira a caixa de spam ou lixo eletrônico.",
+          ].map((step, i) => (
+            <li key={step} className="flex gap-3">
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#139C73]/15 text-[11px] font-semibold text-emerald-400">
+                {i + 1}
+              </span>
+              {step}
+            </li>
+          ))}
+        </ol>
+
+        {email ? (
+          <SubmitButton
+            type="button"
+            onClick={handleResend}
+            loading={resending}
+            loadingText="Reenviando..."
+            disabled={cooldown > 0}
+            variant="secondary"
+          >
+            {cooldown > 0 ? `Reenviar e-mail em ${cooldown}s` : "Reenviar e-mail"}
+          </SubmitButton>
+        ) : (
+          <Link
+            to="/recover"
+            className="inline-flex h-11 items-center justify-center rounded-md border border-[#434343] text-sm font-semibold transition-colors hover:border-[#606060] hover:bg-[#2B2B2B]"
+          >
+            Usar outro e-mail
+          </Link>
+        )}
       </div>
-      <div className="relative z-10 flex w-full lg:w-[35%] max-w-125 h-full flex-col items-center justify-center px-10 mx-auto gap-10">
-        <div className="">
-          <img src={logoHorizonImg} alt="logo" />
-        </div>
-        <div className="">
-          <img src={foldersImg} alt="logo" />
-        </div>
-        <div className="w-full flex flex-col items-center">
-          <p className="text-[#D9D9D9] text-[20px] font-semibold mb-4">
-            E-mail enviado!
-          </p>
-          <p className="text-[#D9D9D9] w-[70%] text-center text-[14px]">
-            Verifique sua <span className="text-[#136D52] font-semibold semibold italic">caixa de mensagens</span> ou <span className="text-[#136D52] font-semibold italic">spam</span>, para redefinir sua senha.
-          </p>
-        </div>
-     
-        <div className="w-full items-center flex flex-col gap-4">
-          <button onClick={()=> window.location.href = "/login"}  className="
-                bg-[linear-gradient(90deg,#139C73,#136D52)]
-                w-full
-                py-3
-                rounded-full
-                text-white
-                font-bold
-                transition-all
-                duration-300
-                hover:scale-[1.02]
-                hover:shadow-[0_0_20px_rgba(19,156,115,0.35)]
-                hover:brightness-110
-                active:scale-[0.98]
-                cursor-pointer
-              ">
-            VOLTAR PARA O LOGIN
-          </button>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 }
