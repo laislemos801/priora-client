@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import PrimaryButton from "@/components/ui/PrimaryButton";
 import { saveEstimatedProfile } from "@/services/profilingService";
 
+import AxisInfo from "./AxisInfo";
 import { PROFILE_AXES } from "./types";
 import type { EstimatedProfile, ProfileAxisKey, ProfileValues } from "./types";
 
@@ -90,7 +91,10 @@ export default function EstimatedProfileModal({
           {PROFILE_AXES.map((axis) => (
             <div key={axis.key} className="mb-4 last:mb-0">
               <div className="mb-1 flex justify-between text-xs text-white/65">
-                <label htmlFor={`estimated-${axis.key}`}>{axis.label}</label>
+                <span className="flex items-center gap-1.5">
+                  <label htmlFor={`estimated-${axis.key}`}>{axis.label}</label>
+                  <AxisInfo axis={axis} size={14} />
+                </span>
                 <span>{values[axis.key]}</span>
               </div>
 

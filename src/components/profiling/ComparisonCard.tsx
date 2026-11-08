@@ -1,12 +1,9 @@
-import InfoTip from "@/components/ui/InfoTip";
+import AxisInfo from "./AxisInfo";
 import { PROFILE_TYPE_LABEL } from "./types";
-import type { ProfileType } from "./types";
+import type { ProfileAxis, ProfileType } from "./types";
 
 type ComparisonCardProps = {
-  titulo: string;
-  info?: string;
-  low?: string;
-  high?: string;
+  axis: ProfileAxis;
   estimado: number | null;
   suspeito: number;
   tipos: ProfileType[];
@@ -39,10 +36,7 @@ function ValueRow({
 
 // Só exibe os valores lado a lado: nenhuma regra além da diferença absoluta.
 export default function ComparisonCard({
-  titulo,
-  info,
-  low,
-  high,
+  axis,
   estimado,
   suspeito,
   tipos,
@@ -60,25 +54,8 @@ export default function ComparisonCard({
   return (
     <article className="rounded-xl bg-[#2A2A2A] p-5">
       <h3 className="flex items-start justify-between gap-2 text-xl font-medium leading-snug text-white">
-        <span>{titulo}</span>
-        {info && (
-          <InfoTip label={titulo} className="mt-1.5">
-            <p className="mb-1 font-semibold text-white">{titulo}</p>
-            {info}
-            {low && high && (
-              <dl className="mt-2 space-y-1.5 border-t border-[#3a3a3a] pt-2">
-                <div>
-                  <dt className="font-semibold text-white">Perto de 0</dt>
-                  <dd>{low}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold text-white">Perto de 100</dt>
-                  <dd>{high}</dd>
-                </div>
-              </dl>
-            )}
-          </InfoTip>
-        )}
+        <span>{axis.label}</span>
+        <AxisInfo axis={axis} className="mt-1.5" />
       </h3>
 
       <div className="mt-3 flex flex-col gap-2">

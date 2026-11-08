@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Trash2, X } from "lucide-react";
 import PrimaryButton from "@/components/ui/PrimaryButton";
+import AxisInfo from "@/components/profiling/AxisInfo";
+import { PROFILE_AXES } from "@/components/profiling/types";
+import type { ProfileAxisKey } from "@/components/profiling/types";
 import type { Suspect } from "./types";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
@@ -212,50 +216,68 @@ export default function SuspectModal({
 
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
           <div className="rounded-lg border border-[#434343] p-4">
-            <p className="mb-4 text-sm text-white/70">Perfil</p>
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <p className="text-sm text-white/70">Perfil</p>
+              <Link
+                to={`/case/${casoId}/profiling`}
+                onClick={onClose}
+                className="text-xs text-[#139C73] hover:underline"
+              >
+                Como funciona o perfilamento
+              </Link>
+            </div>
 
             <Slider
               label="Coerência interpessoal"
+              axisKey="coerenciaInterpessoal"
               value={coerenciaInterpessoal}
               setValue={setCoerenciaInterpessoal}
             />
 
             <Slider
               label="Significância do tempo e lugar"
+              axisKey="significanciaTempoLugar"
               value={significanciaTempoLugar}
               setValue={setSignificanciaTempoLugar}
             />
 
             <Slider
               label="Características criminais"
+              axisKey="caracteristicasCriminais"
               value={caracteristicasCriminais}
               setValue={setCaracteristicasCriminais}
             />
 
             <Slider
               label="Histórico criminal"
+              axisKey="historicoCriminal"
               value={historicoCriminal}
               setValue={setHistoricoCriminal}
             />
 
             <Slider
               label="Consciência forense"
+              axisKey="conscienciaForense"
               value={conscienciaForense}
               setValue={setConscienciaForense}
             />
           </div>
 
           <div className="rounded-lg border border-[#434343] p-4">
-            <p className="mb-4 text-sm text-white/70">Antecedentes</p>
+            <p className="text-sm text-white/70">Antecedentes</p>
+            <p className="mb-4 mt-1 text-xs text-white/45">
+              Informação de apoio ao investigador: fica registrada no cadastro, mas
+              não entra no cálculo de probabilidade.
+            </p>
 
             <RadioGroup
-              label="O suspeito possui passagem por algum crime prévio?"
+              label="O suspeito já cometeu algum crime semelhante a este antes?"
               value={crimeSimilarAntes}
               onChange={setCrimeSimilarAntes}
             />
 
             <RadioGroup
-              label="O suspeito já cometeu algum crime similar antes?"
+              label="O suspeito já descumpriu alguma medida judicial ou restritiva?"
               value={histDescumprimento}
               onChange={setHistDescumprimento}
             />
@@ -274,17 +296,24 @@ export default function SuspectModal({
 
 function Slider({
   label,
+  axisKey,
   value,
   setValue,
 }: {
   label: string;
+  axisKey: ProfileAxisKey;
   value: number;
   setValue: (value: number) => void;
 }) {
+  const axis = PROFILE_AXES.find((a) => a.key === axisKey);
+
   return (
     <div className="mb-4">
       <div className="mb-1 flex justify-between text-xs text-white/65">
-        <span>{label}</span>
+        <span className="flex items-center gap-1.5">
+          {label}
+          {axis && <AxisInfo axis={axis} size={14} />}
+        </span>
         <span>{value}</span>
       </div>
 
