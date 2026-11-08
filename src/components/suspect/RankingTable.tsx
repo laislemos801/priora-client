@@ -18,7 +18,7 @@ type Props = {
   selectable?: boolean;
 };
 
-const GRID = "lg:grid-cols-[40px_56px_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.9fr)_40px]";
+const GRID = "lg:grid-cols-[40px_56px_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.9fr)_72px]";
 
 export default function RankingTable({
   suspects,
@@ -44,7 +44,7 @@ export default function RankingTable({
         <p className="text-left">Nome</p>
         <p>Probabilidade Atual</p>
         <p>Qtd. Evidências</p>
-        <span className="sr-only">Dados do suspeito</span>
+        <p>Detalhes</p>
       </div>
 
       <div className="max-h-[670px] space-y-2 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#139C73] scrollbar-track-transparent">
