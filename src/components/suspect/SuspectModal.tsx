@@ -24,11 +24,11 @@ export default function SuspectModal({
   const [idade, setIdade] = useState("");
   const [fotoFile, setFotoFile] = useState<File | null>(null);
 
-  const [comportamento, setComportamento] = useState(50);
-  const [agressividade, setAgressividade] = useState(50);
-  const [proximidade, setProximidade] = useState(50);
-  const [conexoesSociais, setConexoesSociais] = useState(50);
-  const [nivelConfissao, setNivelConfissao] = useState(50);
+  const [historicoCriminal, setHistoricoCriminal] = useState(50);
+  const [caracteristicasCriminais, setCaracteristicasCriminais] = useState(50);
+  const [significanciaTempoLugar, setSignificanciaTempoLugar] = useState(50);
+  const [coerenciaInterpessoal, setCoerenciaInterpessoal] = useState(50);
+  const [conscienciaForense, setConscienciaForense] = useState(50);
 
   const [crimeSimilarAntes, setCrimeSimilarAntes] = useState("Não sei");
   const [histDescumprimento, setHistDescumprimento] = useState("Não sei");
@@ -40,11 +40,11 @@ export default function SuspectModal({
     setIdade(suspect.idade ? String(suspect.idade) : "");
     setFotoFile(null);
 
-    setComportamento(suspect.comportamento ?? 50);
-    setAgressividade(suspect.agressividade ?? 50);
-    setProximidade(suspect.proximidade ?? 50);
-    setConexoesSociais(suspect.conexoesSociais ?? 50);
-    setNivelConfissao(suspect.nivelConfissao ?? 50);
+    setHistoricoCriminal(suspect.historicoCriminal ?? 50);
+    setCaracteristicasCriminais(suspect.caracteristicasCriminais ?? 50);
+    setSignificanciaTempoLugar(suspect.significanciaTempoLugar ?? 50);
+    setCoerenciaInterpessoal(suspect.coerenciaInterpessoal ?? 50);
+    setConscienciaForense(suspect.conscienciaForense ?? 50);
 
     setCrimeSimilarAntes(suspect.crimeSimilarAntes || "Não sei");
     setHistDescumprimento(suspect.histDescumprimento || "Não sei");
@@ -113,11 +113,11 @@ export default function SuspectModal({
         fotoUrl:
           uploadedPhotoUrl ??
           (mode === "edit" ? suspect?.fotoUrl ?? null : null),
-        comportamento,
-        agressividade,
-        proximidade,
-        conexoesSociais,
-        nivelConfissao,
+        historicoCriminal,
+        caracteristicasCriminais,
+        significanciaTempoLugar,
+        coerenciaInterpessoal,
+        conscienciaForense,
         crimeSimilarAntes,
         histDescumprimento,
       }),
@@ -215,38 +215,38 @@ export default function SuspectModal({
             <p className="mb-4 text-sm text-white/70">Perfil</p>
 
             <Slider
-              label="Comportamento"
-              value={comportamento}
-              setValue={setComportamento}
+              label="Coerência interpessoal"
+              value={coerenciaInterpessoal}
+              setValue={setCoerenciaInterpessoal}
             />
 
             <Slider
-              label="Agressividade"
-              value={agressividade}
-              setValue={setAgressividade}
+              label="Significância do tempo e lugar"
+              value={significanciaTempoLugar}
+              setValue={setSignificanciaTempoLugar}
             />
 
             <Slider
-              label="Proximidade"
-              value={proximidade}
-              setValue={setProximidade}
+              label="Características criminais"
+              value={caracteristicasCriminais}
+              setValue={setCaracteristicasCriminais}
             />
 
             <Slider
-              label="Conexões Sociais"
-              value={conexoesSociais}
-              setValue={setConexoesSociais}
+              label="Histórico criminal"
+              value={historicoCriminal}
+              setValue={setHistoricoCriminal}
             />
 
             <Slider
-              label="Nível de Confissão"
-              value={nivelConfissao}
-              setValue={setNivelConfissao}
+              label="Consciência forense"
+              value={conscienciaForense}
+              setValue={setConscienciaForense}
             />
           </div>
 
           <div className="rounded-lg border border-[#434343] p-4">
-            <p className="mb-4 text-sm text-white/70">Histórico criminal</p>
+            <p className="mb-4 text-sm text-white/70">Antecedentes</p>
 
             <RadioGroup
               label="O suspeito possui passagem por algum crime prévio?"

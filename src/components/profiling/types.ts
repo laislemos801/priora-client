@@ -2,11 +2,11 @@ import type { Suspect } from "@/components/suspect/types";
 
 // Eixos do radar de perfilamento — mesmos campos do suspeito no backend (0–100).
 export type ProfileAxisKey =
-  | "conexoesSociais"
-  | "proximidade"
-  | "agressividade"
-  | "comportamento"
-  | "nivelConfissao";
+  | "coerenciaInterpessoal"
+  | "significanciaTempoLugar"
+  | "caracteristicasCriminais"
+  | "historicoCriminal"
+  | "conscienciaForense";
 
 export type ProfileAxis = {
   key: ProfileAxisKey;
@@ -15,11 +15,11 @@ export type ProfileAxis = {
 
 // Ordem no sentido horário a partir do topo, igual ao layout da tela.
 export const PROFILE_AXES: ProfileAxis[] = [
-  { key: "conexoesSociais", label: "Conexões sociais" },
-  { key: "proximidade", label: "Proximidade" },
-  { key: "agressividade", label: "Agressividade" },
-  { key: "comportamento", label: "Comportamento" },
-  { key: "nivelConfissao", label: "Nível de confissão" },
+  { key: "coerenciaInterpessoal", label: "Coerência interpessoal" },
+  { key: "significanciaTempoLugar", label: "SignificanciaTempoLugar" },
+  { key: "caracteristicasCriminais", label: "CaracteristicasCriminais" },
+  { key: "historicoCriminal", label: "HistoricoCriminal" },
+  { key: "conscienciaForense", label: "Consciência forense" },
 ];
 
 export type ProfileValues = Record<ProfileAxisKey, number>;

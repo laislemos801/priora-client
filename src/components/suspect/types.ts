@@ -7,11 +7,11 @@ export type Suspect = {
   posicaoRanking?: number | null;
   tendencia?: "Alta" | "Baixa" | "Estável";
   qtdEvidencias?: number;
-  comportamento?: number;
-  agressividade?: number;
-  proximidade?: number;
-  conexoesSociais?: number;
-  nivelConfissao?: number;
+  historicoCriminal?: number;
+  caracteristicasCriminais?: number;
+  significanciaTempoLugar?: number;
+  coerenciaInterpessoal?: number;
+  conscienciaForense?: number;
   crimeSimilarAntes?: string;
   histDescumprimento?: string;
 };
