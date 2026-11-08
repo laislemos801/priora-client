@@ -10,6 +10,7 @@ import SuspectModal from "@/components/suspect/SuspectModal";
 import { useCaseRole } from "@/hooks/useCaseRole";
 
 import NavIcon from "@/components/ui/NavIcon";
+import InfoTip from "@/components/ui/InfoTip";
 import RadarChart from "@/components/profiling/RadarChart";
 import SuspectHeader from "@/components/profiling/SuspectHeader";
 import ComparisonList from "@/components/profiling/ComparisonList";
@@ -229,6 +230,25 @@ function ProfilingContent({ id }: { id: string | undefined }) {
               <h1 className="text-lg font-semibold text-white">
                 Perfilamento Criminal
               </h1>
+
+              <InfoTip label="Como funciona o perfilamento criminal" size={17}>
+                <p className="mb-1 font-semibold text-white">Como funciona</p>
+                <p>
+                  O radar compara o <strong>perfil estimado</strong> do autor do crime com o{" "}
+                  <strong>perfil de cada suspeito</strong>, em cinco dimensões de 0 a 100 inspiradas
+                  na Psicologia Investigativa de Canter (2000).
+                </p>
+                <p className="mt-2">
+                  Todos os valores são atribuídos pelo investigador a partir do que a investigação
+                  indica. A diferença mostrada é a distância absoluta entre os dois perfis em cada
+                  dimensão.
+                </p>
+                <p className="mt-2">
+                  É um apoio visual à formulação de hipóteses: o perfil{" "}
+                  <strong>não entra no cálculo bayesiano</strong> e não altera a probabilidade dos
+                  suspeitos.
+                </p>
+              </InfoTip>
             </div>
 
             {!error && (

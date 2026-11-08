@@ -36,6 +36,7 @@ export default function ComparisonList({
         <ComparisonCard
           key={axis.key}
           titulo={axis.label}
+          info={axis.info}
           estimado={estimado ? estimado[axis.key] : null}
           suspeito={suspeito[axis.key]}
           tipos={tipos}

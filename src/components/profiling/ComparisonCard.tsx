@@ -1,8 +1,10 @@
+import InfoTip from "@/components/ui/InfoTip";
 import { PROFILE_TYPE_LABEL } from "./types";
 import type { ProfileType } from "./types";
 
 type ComparisonCardProps = {
   titulo: string;
+  info?: string;
   estimado: number | null;
   suspeito: number;
   tipos: ProfileType[];
@@ -36,6 +38,7 @@ function ValueRow({
 // Só exibe os valores lado a lado: nenhuma regra além da diferença absoluta.
 export default function ComparisonCard({
   titulo,
+  info,
   estimado,
   suspeito,
   tipos,
@@ -52,7 +55,15 @@ export default function ComparisonCard({
 
   return (
     <article className="rounded-xl bg-[#2A2A2A] p-5">
-      <h3 className="text-xl font-medium text-white">{titulo}</h3>
+      <h3 className="flex items-start justify-between gap-2 text-xl font-medium leading-snug text-white">
+        <span>{titulo}</span>
+        {info && (
+          <InfoTip label={titulo} className="mt-1.5">
+            <p className="mb-1 font-semibold text-white">{titulo}</p>
+            {info}
+          </InfoTip>
+        )}
+      </h3>
 
       <div className="mt-3 flex flex-col gap-2">
         {showEstimado && (
