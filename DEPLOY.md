@@ -5,7 +5,7 @@ O Priora em produção usa:
 | Parte | Onde | Repositório |
 |---|---|---|
 | Front (este repositório) | **Vercel** | `priora-client` |
-| API | **Render** | `priora-server` (veja o `DEPLOY.md` de lá) |
+| API | **Azure App Service** | `priora-server` (veja o `DEPLOY.md` de lá) |
 | Banco | Neo4j Aura | — |
 | Imagens | Supabase Storage | — |
 
@@ -24,7 +24,7 @@ Em **Settings → Environment Variables**:
 
 | Variável | Valor | Observação |
 |---|---|---|
-| `VITE_API_URL` | endereço da API no Render, ex.: `https://priora-api.onrender.com` | Sem barra no final. **Entra no build**: se mudar, publique de novo (**Deployments → Redeploy**). |
+| `VITE_API_URL` | endereço da API na Azure, ex.: `https://priora-api.azurewebsites.net` | Sem barra no final. **Entra no build**: se mudar, publique de novo (**Deployments → Redeploy**). |
 
 ## 3. Publicar
 
@@ -42,7 +42,7 @@ Anote o endereço gerado (ex.: `https://priora.vercel.app`): ele vai em `FRONTEN
 
 | Sintoma | Causa provável |
 |---|---|
-| Tela de login não entra / erro de conexão | `VITE_API_URL` errado, ou a API "dormindo" no Render (a 1ª requisição leva 30–60 s) |
+| Tela de login não entra / erro de conexão | `VITE_API_URL` errado, ou a API fora do ar na Azure (veja o Log stream no portal) |
 | Erro de CORS no console do navegador | `CORS_ORIGINS` da API não tem o endereço exato do Vercel |
 | Link do e-mail de recuperação abre `localhost` | `FRONTEND_URL` da API ainda aponta para `localhost` |
 | 404 ao dar F5 numa tela interna | `vercel.json` ausente na branch publicada |
