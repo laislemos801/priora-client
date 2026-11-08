@@ -23,8 +23,8 @@ export default function InfoRow({
 
     // STATUS
     if (value === "Ativo") return "text-[#139C73]";
-    if (value === "Concluído") return "text-[#FFE38D]";
-    if (value === "Arquivado") return "text-[#FFC067]";
+    if (value === "Finalizado") return "text-[#FFE38D]";
+    if (value === "Pendente") return "text-[#FFC067]";
 
     // FALLBACKS
     if (highlight) return "font-medium text-emerald-400";

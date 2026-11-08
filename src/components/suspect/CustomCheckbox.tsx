@@ -12,7 +12,7 @@ export default function CustomCheckbox({
       type="button"
       onClick={onChange}
       className={`
-        flex h-6 w-6 items-center justify-center rounded-md border transition
+        flex h-5 w-5 items-center justify-center rounded border transition
         ${
           checked
             ? "border-[#139C73] bg-[#139C73]"

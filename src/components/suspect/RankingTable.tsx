@@ -42,7 +42,7 @@ export default function RankingTable({
         <p>Qtd. Evidências</p>
       </div>
 
-      <div className="max-h-[670px] space-y-3 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#139C73] scrollbar-track-transparent">
+      <div className="max-h-[670px] space-y-2 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#139C73] scrollbar-track-transparent">
         {suspects.map((suspect, index) => (
           <div
             key={suspect.id}
@@ -50,13 +50,13 @@ export default function RankingTable({
               index === 0 ? "bg-[#139C73]/25" : "bg-[#2A2A2A]"
             }`}
           >
-            <div className="flex flex-col gap-4 p-4 lg:hidden">
+            <div className="flex flex-col gap-3 p-3 lg:hidden">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar suspect={suspect} />
 
                   <div className="min-w-0">
-                    <p className="truncate text-base font-semibold">
+                    <p className="truncate text-[15px] font-semibold">
                       {suspect.nome}
                     </p>
                     <p className="text-xs text-white/55">
@@ -93,7 +93,7 @@ export default function RankingTable({
               </div>
             </div>
 
-            <div className={`hidden min-h-[96px] items-center px-6 lg:grid ${GRID}`}>
+            <div className={`hidden min-h-[60px] items-center px-6 py-1 lg:grid ${GRID}`}>
               <div className="flex justify-center">
                 {selectable && (
                   <CustomCheckbox
@@ -103,16 +103,16 @@ export default function RankingTable({
                 )}
               </div>
 
-              <p className="text-center text-xl">
+              <p className="text-center text-base">
                 {suspect.posicaoRanking ?? index + 1}
               </p>
 
               <div className="flex min-w-0 items-center gap-4">
                 <Avatar suspect={suspect} />
-                <p className="truncate text-lg font-medium">{suspect.nome}</p>
+                <p className="truncate text-[15px] font-medium">{suspect.nome}</p>
               </div>
 
-              <div className="flex items-center justify-center gap-2 text-lg">
+              <div className="flex items-center justify-center gap-2 text-base">
                 <span>{(suspect.probabilidadeAtual ?? 0).toFixed(1)}%</span>
 
                 {(() => {
@@ -136,11 +136,11 @@ export default function RankingTable({
                   className="text-white/35 hover:text-[#139C73] transition-colors"
                   title="Ver análise probabilística"
                 >
-                  <HelpCircle size={16} />
+                  <HelpCircle size={15} />
                 </button>
               </div>
 
-              <p className="text-center text-lg">{suspect.qtdEvidencias ?? 0}</p>
+              <p className="text-center text-base">{suspect.qtdEvidencias ?? 0}</p>
             </div>
           </div>
         ))}
@@ -151,7 +151,7 @@ export default function RankingTable({
 
 function Avatar({ suspect }: { suspect: Suspect }) {
   return (
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#3A3A3A] text-sm font-semibold">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#3A3A3A] text-xs font-semibold">
       {suspect.fotoUrl ? (
         <img
           src={suspect.fotoUrl}

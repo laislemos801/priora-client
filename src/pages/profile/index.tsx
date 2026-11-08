@@ -477,7 +477,7 @@ export default function Profile() {
 
   const stats = [
     { label: "Casos ativos", value: user.casosAtivos, color: "text-[#29B893]" },
-    { label: "Concluídos", value: user.casosConcluidos, color: "text-[#E8CF75]" },
+    { label: "Finalizados", value: user.casosConcluidos, color: "text-[#E8CF75]" },
     { label: "Total de casos", value: user.totalCasos, color: "text-[#E8B768]" },
   ];
 

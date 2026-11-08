@@ -53,8 +53,8 @@ const ESTADO_OPTIONS = [
 
 const STATUS_MAP: Record<string, string> = {
   ativo:      "Ativo",
-  pendente:   "Arquivado",
-  finalizado: "Concluído",
+  pendente:   "Pendente",
+  finalizado: "Finalizado",
 };
 
 const PRIORIDADE_MAP: Record<string, string> = {
@@ -66,6 +66,9 @@ const PRIORIDADE_MAP: Record<string, string> = {
 
 const STATUS_REVERSE_MAP: Record<string, string> = {
   Ativo: "ativo",
+  Pendente: "pendente",
+  Finalizado: "finalizado",
+  // nomes antigos, de casos criados por versões anteriores
   Arquivado: "pendente",
   Concluído: "finalizado",
 };

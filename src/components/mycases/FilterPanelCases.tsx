@@ -27,8 +27,8 @@ const EMPTY_FILTERS: Filters = {
 
 const STATUS_LIST = [
   { value: "Ativo",     label: "Ativo" },
-  { value: "Arquivado", label: "Arquivado" },
-  { value: "Concluído", label: "Concluído" },
+  { value: "Pendente", label: "Pendente" },
+  { value: "Finalizado", label: "Finalizado" },
 ];
 
 const PRIORIDADE_LIST = [

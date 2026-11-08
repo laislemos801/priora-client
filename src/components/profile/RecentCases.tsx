@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { FiChevronRight, FiFolder } from "react-icons/fi";
 import { apiFetch } from "@/lib/api";
 import Sk from "@/components/ui/Skeleton";
+import { normalizeCaseStatus } from "@/lib/caseStatus";
+import type { CaseStatus } from "@/lib/caseStatus";
 
 type CaseSummary = {
   id: string;
   nome: string;
-  status: "Ativo" | "Arquivado" | "Concluído";
+  status: CaseStatus;
   prioridade: "Baixa" | "Média" | "Alta" | "Crítica";
   incerteza: number;
   qtdSuspeitos: number;
@@ -16,8 +18,8 @@ type CaseSummary = {
 
 const STATUS_STYLE: Record<CaseSummary["status"], string> = {
   Ativo: "border-[#139C73]/40 bg-[#139C73]/12 text-emerald-300",
-  Concluído: "border-[#E8CF75]/35 bg-[#E8CF75]/10 text-[#E8CF75]",
-  Arquivado: "border-[#575757] bg-[#333] text-white/55",
+  Finalizado: "border-[#E8CF75]/35 bg-[#E8CF75]/10 text-[#E8CF75]",
+  Pendente: "border-[#575757] bg-[#333] text-white/55",
 };
 
 const PRIORITY_COLOR: Record<CaseSummary["prioridade"], string> = {
@@ -38,7 +40,7 @@ export default function RecentCases({ userId, className = "" }: { userId: string
     let alive = true;
     apiFetch(`/cases/user/${userId}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: CaseSummary[]) => alive && setCases(data))
+      .then((data: CaseSummary[]) => alive && setCases(data.map((c) => ({ ...c, status: normalizeCaseStatus(c.status) }))))
       .catch(() => alive && setError(true));
     return () => {
       alive = false;
@@ -111,7 +113,7 @@ export default function RecentCases({ userId, className = "" }: { userId: string
                   <span className="min-w-0 flex-1 truncate text-sm text-white">{c.nome}</span>
 
                   <span
-                    className={`hidden shrink-0 rounded-full border px-2 py-0.5 text-[11px] sm:inline ${STATUS_STYLE[c.status] ?? STATUS_STYLE.Arquivado}`}
+                    className={`hidden shrink-0 rounded-full border px-2 py-0.5 text-[11px] sm:inline ${STATUS_STYLE[c.status] ?? STATUS_STYLE.Pendente}`}
                   >
                     {c.status}
                   </span>

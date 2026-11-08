@@ -10,6 +10,8 @@ import { useState, useEffect, useRef } from "react";
 import EmptyState from "./EmptyState";
 import CasesSectionSkeleton from "./CasesSectionSkeleton";
 import { apiFetch } from "@/lib/api";
+import { normalizeCaseStatus } from "@/lib/caseStatus";
+import type { CaseStatus } from "@/lib/caseStatus";
 import UncertaintyEvolutionChart from "./UncertaintyEvolutionChart";
 import type { EvolutionPoint } from "./UncertaintyEvolutionChart";
 
@@ -18,7 +20,7 @@ type CaseFromAPI = {
   caseId:string;
   nome: string;
   descricao: string;
-  status: "Ativo" | "Arquivado" | "Concluído";
+  status: CaseStatus;
   prioridade: "Baixa" | "Média" | "Alta" | "Crítica";
   incerteza: number;
   dataOcorrencia: string | null;
@@ -147,7 +149,11 @@ export default function CasesSection({ onCreateCase }: { onCreateCase: () => voi
         const res = await apiFetch(`/cases/user/${userId}`);
         if (!res.ok) throw new Error(`Erro ${res.status}`);
         const data = await res.json();
-        setCases(data);
+        setCases(
+          Array.isArray(data)
+            ? data.map((c) => ({ ...c, status: normalizeCaseStatus(c.status) }))
+            : data
+        );
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Erro ao buscar casos.");
       } finally {

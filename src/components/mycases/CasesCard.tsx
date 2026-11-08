@@ -6,7 +6,7 @@ import { LuCalendarDays, LuSearch } from "react-icons/lu";
 import { ArrowDown, Minus, ArrowUp } from "lucide-react";
 import { RiAlertFill } from "react-icons/ri";
 
-type CaseStatus = "Ativo" | "Arquivado" | "Concluído";
+import type { CaseStatus } from "@/lib/caseStatus";
 type CasePriority = "Baixa" | "Média" | "Alta" | "Crítica";
 
 type CaseCardProps = {
@@ -71,7 +71,7 @@ export default function CaseCard({
   const p = PRIORITY_CONFIG[priority];
   const navigate = useNavigate();
   const dot =
-    status === "Ativo" ? "bg-[#139C73]" : status === "Concluído" ? "bg-[#8B8B8B]" : "bg-[#e0a030]";
+    status === "Ativo" ? "bg-[#139C73]" : status === "Finalizado" ? "bg-[#8B8B8B]" : "bg-[#e0a030]";
 
   return (
     <div className="w-full max-w-sm">

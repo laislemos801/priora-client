@@ -1,6 +1,7 @@
 import { Edit } from "lucide-react";
 import Panel from "./Panel";
 import InfoRow from "./InfoRow";
+import { normalizeCaseStatus } from "@/lib/caseStatus";
 
 type InfoCardProps = {
   caseData: any;
@@ -36,7 +37,7 @@ export default function InfoCard({ caseData, onEdit }: InfoCardProps) {
       <div className="space-y-3 text-sm text-white/65">
         <InfoRow label="Nome:" value={caseData?.nome || "-"} />
         <InfoRow label="Descrição:" value={caseData?.descricao || "-"} />
-        <InfoRow label="Status:" value={caseData?.status || "-"} highlight />
+        <InfoRow label="Status:" value={normalizeCaseStatus(caseData?.status) || "-"} highlight />
         <InfoRow label="Prioridade:" value={caseData?.prioridade || "-"} warning />
 
         <InfoRow
