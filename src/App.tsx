@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "@/layouts/AppLayout";
 import { Toaster } from "react-hot-toast";
 
@@ -18,7 +18,6 @@ import CaseOverview from "./pages/case/caseOverview";
 import Profiling from "./pages/case/profiling";
 import Register from "./pages/register";
 import EvidenceBoard from "./pages/case/evidenceBoard";
-import { Help } from "./pages/case/help";
 import Contact from "./pages/contact";
 import Profile from "./pages/profile";
 import History from "./pages/case/history";
@@ -63,20 +62,7 @@ function App() {
         <Route path="/recover/updated-password" element={<UpdatedPassword />} />
       
 
-        {/* privadas sem sidebar */}
-        <Route
-          element={
-            <PrivateRoute>
-              <Outlet />
-            </PrivateRoute>
-          }
-        >
-          <Route path="/mycases" element={<Home />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/profile" element={<Profile />} />
-        </Route>
-
-        {/* privadas com sidebar */}
+        {/* privadas: todas com a mesma moldura (sidebar + TopBar com breadcrumb) */}
         <Route
           element={
             <PrivateRoute>
@@ -84,6 +70,10 @@ function App() {
             </PrivateRoute>
           }
         >
+          <Route path="/mycases" element={<Home />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/profile" element={<Profile />} />
+
           <Route path="/case/:id" element={<CasePanel />}>
             <Route index element={<CaseOverview />} />
             <Route path="ranking" element={<Ranking />} />
@@ -92,7 +82,8 @@ function App() {
             <Route path="profiling" element={<Profiling />} />
             <Route path="evidenceBoard" element={<EvidenceBoard />} />
             <Route path="priority" element={<Priority />} />
-            <Route path="help" element={<Help />} />
+            {/* O contato é geral (sidebar → Contato); o endereço antigo continua funcionando */}
+            <Route path="help" element={<Navigate to="/contact" replace />} />
             <Route path="history" element={<History />} />
             <Route path="export" element={<ExportReport />} />
           </Route>

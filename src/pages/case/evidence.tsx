@@ -85,7 +85,7 @@ export default function Evidence() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#242424] flex-col overflow-hidden">
+    <div className="flex min-h-full bg-[#242424] flex-col overflow-hidden">
       <div className="flex-1 px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
         <div className={`rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
 
