@@ -114,3 +114,23 @@ O client tem como objetivo fornecer uma interface clara, organizada e eficiente 
 * Apoiar a análise investigativa
 * Facilitar a interpretação dos dados
 * Melhorar a tomada de decisão baseada em evidências
+
+---
+
+## 🖥️ Aplicativo desktop (Electron)
+
+| Comando | O que faz |
+| --- | --- |
+| `npm start` | Desenvolvimento: sobe o Vite e abre o Electron em `http://localhost:5173`. |
+| `npm run electron:prod` | Compila a interface e abre o Electron em modo produção (sem Vite). |
+| `npm run electron:smoke` | Teste automático: abre o app em modo produção numa janela oculta, confere a tela inicial e chama a API. |
+| `npm run electron:pack` | Gera o aplicativo descompactado em `release/win-unpacked/` (rápido, para testar o `Priora.exe`). |
+| `npm run electron:dist` | Gera o instalador em `release/` (NSIS no Windows, AppImage no Linux, dmg no macOS; cada sistema gera o seu). |
+
+**Endereço da API.** O aplicativo procura, nesta ordem: a variável de ambiente `PRIORA_API_URL`; o arquivo
+`config.json` na pasta de dados do app (`%APPDATA%\Priora\config.json` no Windows) com
+`{ "apiUrl": "http://SERVIDOR:8000" }`; e, por fim, `http://127.0.0.1:8000`.
+
+**CORS.** O app empacotado usa a origem interna `app://priora`, que o servidor já libera sempre.
+
+**Ícone.** `build/icon.png` foi gerado a partir do ícone de 180 px; troque por uma arte de 512 px quando houver.
