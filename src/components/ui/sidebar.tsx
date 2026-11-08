@@ -36,7 +36,7 @@ export type SidebarProps = {
   onMobileClose?: () => void;
 };
 
-type StoredUser = { primeiroNome?: string; sobrenome?: string; fotoUrl?: string; email?: string };
+type StoredUser = { primeiroNome?: string; sobrenome?: string; fotoUrl?: string; email?: string; cargo?: string | null };
 
 function getStoredUser(): StoredUser {
   try {
@@ -310,7 +310,7 @@ export default function Sidebar({ onLogout, mobileOpen = false, onMobileClose }:
             )}
             <span className={isCollapsed ? "sr-only" : "min-w-0 flex-1"}>
               <span className="block truncate text-[13px] font-medium text-white">{fullName}</span>
-              <span className="block truncate text-[11px] text-white/45">Minha conta</span>
+              <span className="block truncate text-[11px] text-white/45">{user.cargo || "Minha conta"}</span>
             </span>
           </Link>
 
