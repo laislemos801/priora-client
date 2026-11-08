@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import logoHorizon from "@/assets/logoHorizonSideBar.png";
-import logoMobile from "@/assets/logoAlone.png";
 import { useNavigate, useLocation } from "react-router-dom";
 import NavIcon from "@/components/ui/NavIcon";
 
@@ -29,6 +28,12 @@ const icons = {
       <line x1="9" y1="3" x2="9" y2="21" />
     </svg>
   ),
+  close: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  ),
 };
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -44,6 +49,9 @@ export type SidebarProps = {
   activeItem?: string;
   onNavigate?: (id: string) => void;
   onLogout?: () => void;
+  /** Celular: a sidebar vira uma gaveta aberta pelo botão de menu da TopBar */
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -123,9 +131,14 @@ function NavButton({
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 
-export default function Sidebar({ onLogout }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+export default function Sidebar({ onLogout, mobileOpen = false, onMobileClose }: SidebarProps) {
+  // Tablet (768–1023px): começa recolhida para sobrar espaço ao conteúdo
+  const [collapsed, setCollapsed] = useState(
+    () => window.matchMedia("(max-width: 1023px)").matches
+  );
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia("(max-width: 767px)").matches
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -137,49 +150,107 @@ export default function Sidebar({ onLogout }: SidebarProps) {
     const mq = window.matchMedia("(max-width: 767px)");
     const update = (e: MediaQueryListEvent | MediaQueryList) => {
       setIsMobile(e.matches);
-      setCollapsed(e.matches);
+      // Ao voltar para o desktop, garante que a gaveta não fique "aberta"
+      if (!e.matches) onMobileClose?.();
     };
     update(mq);
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
+  }, [onMobileClose]);
+
+  // Ao cruzar 1024px (girar o tablet, redimensionar a janela), ajusta o recolhimento
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const update = (e: MediaQueryListEvent) => setCollapsed(e.matches);
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, []);
+
+  // Fecha a gaveta ao trocar de página
+  useEffect(() => {
+    onMobileClose?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Fecha a gaveta com Esc
+  useEffect(() => {
+    if (!isMobile || !mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onMobileClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMobile, mobileOpen, onMobileClose]);
 
   const handleCollapse = () => {
     if (!isMobile) setCollapsed((c) => !c);
   };
 
+  // No celular a gaveta sempre mostra os textos; "recolher" só existe no desktop
+  const isCollapsed = isMobile ? false : collapsed;
+
   return (
+    <>
+    {isMobile && (
+      <div
+        aria-hidden
+        onClick={onMobileClose}
+        className={[
+          "fixed inset-0 z-40 bg-black/60 transition-opacity duration-200 print:hidden",
+          mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+        ].join(" ")}
+      />
+    )}
     <aside
       className={[
-        "flex flex-col h-screen bg-[#1D1D1D] border-r border-[#242426] flex-shrink-0 print:hidden",
+        "flex flex-col h-dvh bg-[#1D1D1D] border-r border-[#242426] flex-shrink-0 print:hidden",
         "overflow-hidden transition-all duration-[180ms] ease-[cubic-bezier(0.4,0,0.2,1)]",
-        collapsed ? "w-[60px] min-w-[60px]" : "w-[250px] min-w-[250px]",
+        isMobile
+          ? [
+              "fixed inset-y-0 left-0 z-50 w-[260px] max-w-[85vw]",
+              mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full invisible",
+            ].join(" ")
+          : isCollapsed
+            ? "w-[60px] min-w-[60px]"
+            : "w-[250px] min-w-[250px]",
       ].join(" ")}
     >
       {/* ── Header ── */}
       <div
         className={[
           "flex items-center px-[14px] py-[18px] border-b border-[#242426] min-h-[60px] flex-shrink-0",
-          collapsed ? "justify-center" : "justify-between",
+          isCollapsed ? "justify-center" : "justify-between",
         ].join(" ")}
       >
         <div className="flex items-center gap-[9px] overflow-hidden">
-          {!collapsed && (
+          {!isCollapsed && (
             <img
-              src={isMobile ? logoMobile : logoHorizon}
+              src={logoHorizon}
               alt="Priora"
               className="w-[110px] h-[40px] flex-shrink-0 object-contain"
             />
           )}
         </div>
 
-        {!isMobile && (
+        {isMobile ? (
+          <button
+            onClick={onMobileClose}
+            title="Fechar menu"
+            aria-label="Fechar menu"
+            className="flex-shrink-0 flex items-center p-1 rounded-md
+            text-[#D9D9D9]/65 hover:text-[#e8edf8]
+            hover:bg-[#181c25] transition-all duration-[180ms]
+            border-none bg-transparent cursor-pointer"
+          >
+            {icons.close}
+          </button>
+        ) : (
           <button
             onClick={handleCollapse}
-            title={collapsed ? "Expandir" : "Recolher"}
-            className="flex-shrink-0 flex items-center p-1 rounded-md 
-            text-[#D9D9D9]/65 hover:text-[#e8edf8] 
-            hover:bg-[#181c25] transition-all duration-[180ms] 
+            title={isCollapsed ? "Expandir" : "Recolher"}
+            className="flex-shrink-0 flex items-center p-1 rounded-md
+            text-[#D9D9D9]/65 hover:text-[#e8edf8]
+            hover:bg-[#181c25] transition-all duration-[180ms]
             border-none bg-transparent cursor-pointer"
           >
             {icons.collapse}
@@ -205,7 +276,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
                 key={item.id}
                 item={item}
                 active={isActive}
-                collapsed={collapsed}
+                collapsed={isCollapsed}
                 onClick={() => navigate(fullPath)}
               />
             );
@@ -225,7 +296,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
                 key={item.id}
                 item={item}
                 active={isActive}
-                collapsed={collapsed}
+                collapsed={isCollapsed}
                 onClick={() => navigate(fullPath)}
               />
             );
@@ -243,7 +314,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
             "text-[#ffffff]/65 text-[15px] bg-transparent cursor-pointer",
             "hover:bg-red-400/8 hover:text-red-400 hover:border-red-400/25",
             "transition-all duration-180",
-            collapsed
+            isCollapsed
               ? "w-9.5 h-9.5 rounded-full! p-0 justify-center items-center"
               : "px-5 py-2",
           ].join(" ")}
@@ -252,7 +323,7 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           <span
             className={[
               "transition-opacity duration-180 whitespace-nowrap",
-              collapsed ? "hidden" : "opacity-100",
+              isCollapsed ? "hidden" : "opacity-100",
             ].join(" ")}
           >
             Sair
@@ -260,5 +331,6 @@ export default function Sidebar({ onLogout }: SidebarProps) {
         </button>
       </footer>
     </aside>
+    </>
   );
 }

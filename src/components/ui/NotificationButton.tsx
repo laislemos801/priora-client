@@ -162,7 +162,8 @@ export default function NotificationButton() {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-1 w-80 rounded-lg border border-[#3a3a3a] bg-[#2A2A2A] shadow-xl sm:w-96">
+        // max-w: no celular o painel não passa da largura da tela
+        <div className="absolute right-0 z-50 mt-1 w-80 max-w-[calc(100vw-1rem)] rounded-lg border border-[#3a3a3a] bg-[#2A2A2A] shadow-xl sm:w-96">
           <div className="flex items-center justify-between border-b border-[#3a3a3a] p-3 text-sm font-semibold text-white">
             <span>Notificações</span>
             {unread > 0 && (
