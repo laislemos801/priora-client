@@ -38,7 +38,7 @@ import { syncStoredUser } from "@/lib/navigation";
 /** Só os campos que a sidebar mostra (nome, e-mail e foto). */
 function pickSidebarFields(data: Partial<UserType>) {
   const out: Record<string, unknown> = {};
-  for (const key of ["primeiroNome", "sobrenome", "email", "fotoUrl"] as const) {
+  for (const key of ["primeiroNome", "sobrenome", "email", "fotoUrl", "cargo"] as const) {
     if (data?.[key] !== undefined) out[key] = data[key];
   }
   return out;
@@ -53,9 +53,13 @@ interface UserType {
   casosAtivos: number;
   casosConcluidos: number;
   totalCasos: number;
+  cargo?: string | null;
 }
 
 const CARD = "rounded-xl border border-[#3d3d3d] bg-[#2B2B2B]";
+
+/** Mesmo limite do back-end (CARGO_MAX em user_schema.py). */
+const CARGO_MAX = 60;
 
 /** Cartão de informação da coluna lateral das abas. */
 function InfoCard({
@@ -148,6 +152,8 @@ export default function Profile() {
   const [primeiroNome, setPrimeiroNome] = useState("");
   const [sobrenome, setSobrenome] = useState("");
   const [email, setEmail] = useState("");
+  const [cargo, setCargo] = useState("");
+  const cargoInputRef = useRef<HTMLInputElement>(null);
   const [profileErrors, setProfileErrors] = useState<{ primeiroNome?: string; sobrenome?: string; email?: string }>({});
   const [profileServerError, setProfileServerError] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -174,6 +180,7 @@ export default function Profile() {
     setPrimeiroNome(data.primeiroNome ?? "");
     setSobrenome(data.sobrenome ?? "");
     setEmail(data.email ?? "");
+    setCargo(data.cargo ?? "");
   };
 
   const loadProfile = useCallback(async () => {
@@ -225,7 +232,8 @@ export default function Profile() {
     !!user &&
     (primeiroNome.trim() !== (user.primeiroNome ?? "") ||
       sobrenome.trim() !== (user.sobrenome ?? "") ||
-      email.trim() !== (user.email ?? ""));
+      email.trim() !== (user.email ?? "") ||
+      cargo.trim() !== (user.cargo ?? ""));
 
   // ───────────────────────── Foto ─────────────────────────
 
@@ -329,6 +337,8 @@ export default function Profile() {
           primeiroNome: primeiroNome.trim(),
           sobrenome: sobrenome.trim(),
           email: email.trim(),
+          // "" remove o cargo no back-end
+          cargo: cargo.trim(),
         }),
       });
       const data = await readJson(response);
@@ -520,9 +530,23 @@ export default function Profile() {
 
                 <p className="mt-5 break-words text-lg font-semibold">{fullName || "Sem nome"}</p>
                 <p className="mt-0.5 max-w-full break-all text-sm text-white/55">{user.email}</p>
-                <span className="mt-3 inline-flex rounded-full border border-[#139C73]/40 bg-[#139C73]/12 px-2.5 py-0.5 text-xs text-emerald-300">
-                  Investigador Criminal
-                </span>
+                {/* Cargo editável na aba Dados pessoais; sem cargo, um atalho para preencher */}
+                {user.cargo ? (
+                  <span className="mt-3 inline-flex max-w-full rounded-full border border-[#139C73]/40 bg-[#139C73]/12 px-2.5 py-0.5 text-xs text-emerald-300">
+                    <span className="truncate" title={user.cargo}>{user.cargo}</span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTab("dados");
+                      setTimeout(() => cargoInputRef.current?.focus(), 0);
+                    }}
+                    className="mt-3 inline-flex rounded-full border border-dashed border-[#575757] px-2.5 py-0.5 text-xs text-white/55 transition-colors hover:border-[#139C73]/60 hover:text-emerald-300"
+                  >
+                    + Adicionar cargo
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -600,6 +624,18 @@ export default function Profile() {
                       disabled={savingProfile}
                     />
                   </div>
+
+                  <AuthField
+                    ref={cargoInputRef}
+                    label="Cargo"
+                    autoComplete="organization-title"
+                    placeholder="Ex.: Delegada, Perito criminal, Investigador"
+                    maxLength={CARGO_MAX}
+                    value={cargo}
+                    onChange={(e) => setCargo(e.target.value)}
+                    hint={`Aparece no seu perfil e no menu lateral. Opcional · ${cargo.length}/${CARGO_MAX}`}
+                    disabled={savingProfile}
+                  />
 
                   <AuthField
                     label="E-mail"
