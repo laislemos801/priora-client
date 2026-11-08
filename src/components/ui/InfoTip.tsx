@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Info } from "lucide-react";
@@ -22,6 +22,7 @@ const MARGIN = 12;
 export default function InfoTip({ label, children, size = 16, className = "" }: Props) {
   const id = useId();
   const btnRef = useRef<HTMLButtonElement>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
@@ -34,8 +35,17 @@ export default function InfoTip({ label, children, size = 16, className = "" }: 
       Math.max(MARGIN, r.left + r.width / 2 - WIDTH / 2),
       window.innerWidth - WIDTH - MARGIN
     );
-    setPos({ top: r.bottom + 8, left });
+    // Abre embaixo; se não couber, sobe para o balão não ficar escondido pelo fim da tela.
+    const height = tipRef.current?.offsetHeight ?? 0;
+    const fitsBelow = r.bottom + 8 + height <= window.innerHeight - MARGIN;
+    const top = fitsBelow ? r.bottom + 8 : Math.max(MARGIN, r.top - 8 - height);
+    setPos({ top, left });
   }
+
+  // Depois de renderizado o balão, mede a altura real e reposiciona.
+  useLayoutEffect(() => {
+    if (open) place();
+  }, [open]);
 
   function show() {
     place();
@@ -94,6 +104,7 @@ export default function InfoTip({ label, children, size = 16, className = "" }: 
         createPortal(
           <div
             id={id}
+            ref={tipRef}
             role="tooltip"
             style={{ top: pos.top, left: pos.left, width: WIDTH }}
             className="fixed z-[100] rounded-md border border-[#3a3a3a] bg-[#1f1f1f] p-3 text-left text-xs font-normal leading-relaxed text-white/90 shadow-lg"
