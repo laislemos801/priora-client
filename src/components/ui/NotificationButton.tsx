@@ -20,7 +20,7 @@ export default function NotificationButton() {
 
       {/* DROPDOWN */}
       {open && (
-        <div className="absolute right-0 mt-1 w-80 bg-[#2A2A2A] border border-[#3a3a3a] rounded-lg shadow-xl z-50">
+        <div className="absolute right-0 mt-1 w-80 max-w-[calc(100vw-1rem)] bg-[#2A2A2A] border border-[#3a3a3a] rounded-lg shadow-xl z-50">
 
           {/* HEADER */}
             <div className="p-3 border-b border-[#3a3a3a] text-white text-sm font-semibold flex items-center justify-between">

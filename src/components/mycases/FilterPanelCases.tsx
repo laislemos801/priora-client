@@ -84,7 +84,7 @@ export default function FilterPanelCases({ onClose, onApply, initialFilters }: P
   }
 
   return (
-    <div className="absolute right-0 top-full mt-2 z-50 w-[420px] bg-[#2b2b2b] border border-[#444] rounded-xl shadow-xl">
+    <div className="fixed inset-x-4 top-auto mt-2 z-50 md:absolute md:inset-x-auto md:right-0 md:top-full md:w-[420px] bg-[#2b2b2b] border border-[#444] rounded-xl shadow-xl">
 
       {/* HEADER */}
       <div className="flex justify-between items-center px-4 py-3 border-b border-[#3a3a3a]">

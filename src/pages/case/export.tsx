@@ -40,6 +40,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Table({ head, rows, empty }: { head: string[]; rows: React.ReactNode[][]; empty: string }) {
   if (rows.length === 0) return <p className="text-xs italic text-gray-500">{empty}</p>;
   return (
+    // Em telas estreitas a tabela rola dentro do próprio bloco, não a página toda
+    <div className="overflow-x-auto print:overflow-visible">
     <table className="w-full border-collapse text-xs">
       <thead>
         <tr>
@@ -62,6 +64,7 @@ function Table({ head, rows, empty }: { head: string[]; rows: React.ReactNode[][
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -198,7 +201,7 @@ export default function ExportReport() {
       </div>
 
       {/* folha do relatório */}
-      <article className="mx-auto max-w-[900px] rounded-md bg-white p-8 text-gray-900 shadow-lg print:max-w-none print:rounded-none print:p-0 print:shadow-none">
+      <article className="mx-auto max-w-[900px] rounded-md bg-white p-4 sm:p-8 text-gray-900 shadow-lg print:max-w-none print:rounded-none print:p-0 print:shadow-none">
         <header className="border-b-2 border-gray-800 pb-3">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-500">Priora · Relatório do caso</p>
           <h1 className="mt-1 text-2xl font-bold">{caso?.nome ?? "Caso"}</h1>

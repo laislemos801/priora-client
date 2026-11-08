@@ -38,23 +38,24 @@ export default function BoardToolbar({
   isSaving,
 }: BoardToolbarProps) {
   return (
-    <div className="flex items-center gap-3 px-4 py-2 border-b border-zinc-800 bg-zinc-950">
-      <span className="flex items-center gap-2 text-sm font-medium text-zinc-200">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 md:gap-3 px-2 md:px-4 py-2 border-b border-zinc-800 bg-zinc-950">
+      {/* No celular o título já aparece no breadcrumb da TopBar */}
+      <span className="hidden md:flex items-center gap-2 text-sm font-medium text-zinc-200 whitespace-nowrap">
         <MousePointer2 size={16} className="text-[#139C73]" />
         Quadro investigativo
       </span>
 
-      <div className="h-5 w-px bg-zinc-700 mx-1" />
+      <div className="hidden md:block h-5 w-px bg-zinc-700 mx-1" />
 
-      <span className="text-xs uppercase tracking-wide text-zinc-500">Ferramenta</span>
+      <span className="hidden lg:inline text-xs uppercase tracking-wide text-zinc-500">Ferramenta</span>
       <button className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-300" title="Selecionar">
         <MousePointer2 size={16} />
       </button>
 
-      <div className="h-5 w-px bg-zinc-700 mx-1" />
+      <div className="h-5 w-px bg-zinc-700 md:mx-1" />
 
-      <span className="text-xs uppercase tracking-wide text-zinc-500">Adicionar</span>
-      <div className="flex items-center gap-1">
+      <span className="hidden lg:inline text-xs uppercase tracking-wide text-zinc-500">Adicionar</span>
+      <div className="flex items-center gap-0.5 md:gap-1">
         {shapeButtons.map(({ tool, icon, label }) => (
           <button
             key={tool}
@@ -72,16 +73,16 @@ export default function BoardToolbar({
           onClick={onSave}
           disabled={isSaving}
           title="Salvar quadro"
-          className="p-2 rounded-md hover:bg-zinc-800 text-[#139C73] disabled:opacity-50"
+          className="p-1.5 md:p-2 rounded-md hover:bg-zinc-800 text-[#139C73] disabled:opacity-50"
         >
-          <Save size={22} />
+          <Save className="size-5 md:size-[22px]" />
         </button>
         <button
           onClick={onDeleteSelected}
           title="Excluir selecionado"
-          className="p-2 rounded-md hover:bg-red-950 text-red-500"
+          className="p-1.5 md:p-2 rounded-md hover:bg-red-950 text-red-500"
         >
-          <Trash2 size={22} />
+          <Trash2 className="size-5 md:size-[22px]" />
         </button>
       </div>
     </div>
