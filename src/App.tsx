@@ -20,10 +20,13 @@ import Register from "./pages/register";
 import EvidenceBoard from "./pages/case/evidenceBoard";
 import { Help } from "./pages/case/help";
 import Contact from "./pages/contact";
+import ResponsibleUsePage from "./pages/responsibleUse";
+import CaseResponsibleUse from "./pages/case/responsibleUse";
 import Profile from "./pages/profile";
 import History from "./pages/case/history";
 import ExportReport from "@/pages/case/export";
 import Priority from "./pages/case/priority";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function App() {
   return (
@@ -51,6 +54,7 @@ function App() {
         }}
       />
 
+      <ErrorBoundary>
       <Routes>
         <Route path="/" element={<Navigate to="/mycases" replace />} />
 
@@ -73,6 +77,7 @@ function App() {
         >
           <Route path="/mycases" element={<Home />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/responsible-use" element={<ResponsibleUsePage />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
 
@@ -93,11 +98,13 @@ function App() {
             <Route path="evidenceBoard" element={<EvidenceBoard />} />
             <Route path="priority" element={<Priority />} />
             <Route path="help" element={<Help />} />
+            <Route path="responsible-use" element={<CaseResponsibleUse />} />
             <Route path="history" element={<History />} />
             <Route path="export" element={<ExportReport />} />
           </Route>
         </Route>
       </Routes>
+      </ErrorBoundary>
     </>
   );
 }

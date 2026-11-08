@@ -34,6 +34,8 @@ export default function TopBar() {
         return "Quadro investigativo";
       case "help":
         return "Ajuda";
+      case "responsible-use":
+        return "Uso responsável";
       default:
         return null; 
     }

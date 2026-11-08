@@ -17,6 +17,7 @@ const icons = {
   history: <NavIcon name="history" />,
   export: <NavIcon name="export" />,
   help: <NavIcon name="help" />,
+  responsible: <NavIcon name="responsible" />,
   logout: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
@@ -73,6 +74,7 @@ const NAV_MAIN: NavItem[] = [
 
 const NAV_SECONDARY: NavItem[] = [
   { id: "export", label: "Exportar Relatório", icon: "export", path: "export" },
+  { id: "responsible", label: "Uso responsável", icon: "responsible", path: "responsible-use" },
   { id: "help", label: "Contato", icon: "help", path: "help" },
 ];
 

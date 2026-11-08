@@ -1,4 +1,5 @@
 import { FiUser } from "react-icons/fi";
+import NavIcon from "./NavIcon";
 import { MdOutlineSupportAgent } from "react-icons/md";
 import NotificationButton from "./NotificationButton";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +17,16 @@ export default function TopBar() {
 
       {/* RIGHT */}
       <div className="flex items-center gap-3">
+        {/* Uso responsável e limitações */}
+        <button
+          onClick={() => navigate("/responsible-use")}
+          aria-label="Uso responsável e limitações"
+          title="Uso responsável e limitações"
+          className="p-2 bg-[#363636] rounded-full hover:bg-[#4a4a4a]"
+        >
+          <NavIcon name="responsible" size={20} />
+        </button>
+
         {/* Ajuda */}
         <button
           onClick={() => navigate("/contact")}

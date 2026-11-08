@@ -15,7 +15,8 @@ export type NavIconName =
   | "board"
   | "history"
   | "export"
-  | "help";
+  | "help"
+  | "responsible";
 
 type Props = {
   name: NavIconName;
@@ -94,6 +95,12 @@ export default function NavIcon({ name, size = 18, className }: Props) {
         <>
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
+        </>
+      )}
+      {name === "responsible" && (
+        <>
+          <path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z" />
+          <polyline points="9 12 11 14 15 10" />
         </>
       )}
       {name === "export" && (
