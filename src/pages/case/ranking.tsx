@@ -8,6 +8,7 @@ import PrimaryButton from "@/components/ui/PrimaryButton";
 import ActionButton from "@/components/ui/ActionButton";
 
 import NavIcon from "@/components/ui/NavIcon";
+import InfoTip from "@/components/ui/InfoTip";
 import RankingTable from "@/components/suspect/RankingTable";
 import SuspectModal from "@/components/suspect/SuspectModal";
 import EmptySuspectState from "@/components/suspect/EmptySuspectState";
@@ -220,6 +221,27 @@ export default function Ranking() {
               <h1 className="text-lg font-semibold text-white">
                 Ranking de suspeitos
               </h1>
+
+              <InfoTip label="Como funciona o ranking de suspeitos" size={17}>
+                <p className="mb-1 font-semibold text-white">Como funciona o ranking</p>
+                <p>
+                  Os suspeitos aparecem da <strong>maior para a menor probabilidade</strong> de serem
+                  o autor. Essa probabilidade é calculada pelo modelo bayesiano a partir das
+                  evidências vinculadas e dos pesos que o investigador atribuiu. Sem evidências, todos
+                  partem da mesma probabilidade.
+                </p>
+                <p className="mt-2">
+                  A seta ao lado da probabilidade indica se o suspeito subiu (↑), desceu (↓) ou manteve (—)
+                  a posição desde a última vez que este ranking foi aberto neste navegador. A coluna
+                  “Detalhes” abre os dados do suspeito.
+                </p>
+                <p className="mt-2 border-t border-[#3a3a3a] pt-2">
+                  <strong className="text-white">Relação com a incerteza:</strong> a incerteza do caso
+                  é 100 − a probabilidade do primeiro colocado. Quanto maior a probabilidade do
+                  primeiro colocado, <strong>menor</strong> a incerteza.
+                </p>
+                <p className="mt-2 text-white/60">É apoio à decisão, não prova.</p>
+              </InfoTip>
             </div>
 
             <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">

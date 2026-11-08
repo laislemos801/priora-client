@@ -27,15 +27,15 @@ export default function ViewSuspectModal({ suspect, casoId, onClose }: Props) {
   const medida = suspect.histDescumprimento || "Não sei";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 sm:items-center sm:p-3" onClick={onClose}>
       <div
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[10px] border border-[#2e2e2e] bg-[#282828]"
+        className="max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-t-xl border border-[#2e2e2e] bg-[#282828] sm:max-h-[90vh] sm:rounded-[10px]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="Dados do suspeito"
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-[#2e2e2e] px-5 py-4">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#2e2e2e] bg-[#282828] px-4 py-3 sm:px-5 sm:py-4">
           <h2 className="text-[15px] font-medium text-[#e8e8e8]">Dados do suspeito</h2>
           <button
             onClick={onClose}
@@ -47,9 +47,9 @@ export default function ViewSuspectModal({ suspect, casoId, onClose }: Props) {
         </div>
 
         {/* BODY */}
-        <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2">
-          <div className="flex items-center gap-3 sm:col-span-2">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#3A3A3A] text-sm font-semibold text-white">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4 sm:gap-5 sm:p-5">
+          <div className="col-span-2 flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#3A3A3A] text-sm font-semibold text-white sm:h-12 sm:w-12">
               {suspect.fotoUrl ? (
                 <img src={suspect.fotoUrl} alt={suspect.nome} className="h-full w-full object-cover" />
               ) : (
@@ -76,14 +76,14 @@ export default function ViewSuspectModal({ suspect, casoId, onClose }: Props) {
             <p className="text-[14px] text-[#e8e8e8]">{suspect.qtdEvidencias ?? evidencias.length}</p>
           </div>
 
-          <div className="sm:col-span-2">
+          <div className="col-span-2">
             <span className={LABEL}>Antecedentes</span>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-[#3a3a3a] px-3 py-2.5">
+              <div className="rounded-lg border border-[#3a3a3a] px-3 py-2">
                 <p className="text-xs text-[#a6a6a6]">Já cometeu crime semelhante a este?</p>
                 <p className={`mt-0.5 text-[14px] font-medium ${ANSWER_TONE[crime] ?? "text-[#e8e8e8]"}`}>{crime}</p>
               </div>
-              <div className="rounded-lg border border-[#3a3a3a] px-3 py-2.5">
+              <div className="rounded-lg border border-[#3a3a3a] px-3 py-2">
                 <p className="text-xs text-[#a6a6a6]">Já descumpriu medida judicial ou restritiva?</p>
                 <p className={`mt-0.5 text-[14px] font-medium ${ANSWER_TONE[medida] ?? "text-[#e8e8e8]"}`}>{medida}</p>
               </div>
@@ -94,7 +94,7 @@ export default function ViewSuspectModal({ suspect, casoId, onClose }: Props) {
             </p>
           </div>
 
-          <div className="sm:col-span-2">
+          <div className="col-span-2">
             <span className={LABEL}>Evidências do suspeito</span>
             {evidencias.length === 0 ? (
               <p className="text-[14px] text-[#a6a6a6]">Nenhuma evidência vinculada.</p>
@@ -122,16 +122,16 @@ export default function ViewSuspectModal({ suspect, casoId, onClose }: Props) {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2 sm:col-span-2">
+          <div className="col-span-2 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:flex sm:flex-wrap">
             <Link
               to={`/case/${casoId}/analysis?suspect=${suspect.id}`}
-              className="rounded-md border border-[#525252] px-3.5 py-1.5 text-xs text-white transition hover:border-green-500 hover:bg-green-500/10"
+              className="rounded-md border border-[#525252] px-3.5 py-2 text-center text-xs text-white transition hover:border-green-500 hover:bg-green-500/10"
             >
               Ver análise probabilística
             </Link>
             <Link
               to={`/case/${casoId}/profiling?suspect=${suspect.id}`}
-              className="rounded-md border border-[#525252] px-3.5 py-1.5 text-xs text-white transition hover:border-green-500 hover:bg-green-500/10"
+              className="rounded-md border border-[#525252] px-3.5 py-2 text-center text-xs text-white transition hover:border-green-500 hover:bg-green-500/10"
             >
               Ver perfilamento
             </Link>
