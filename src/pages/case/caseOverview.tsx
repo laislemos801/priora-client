@@ -84,7 +84,7 @@ export default function CaseOverview() {
     try {
       const response = await apiFetch(`/contacts/case/${id}`);
       const data = await response.json();
-        setContacts(data);
+      setContacts(response.ok && Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
     }

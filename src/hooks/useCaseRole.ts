@@ -41,7 +41,8 @@ export function useCaseRole(casoId?: string) {
           ? data.find((a) => a.usuario?.id === currentUser.id)
           : undefined;
 
-        if (!mine) {
+        // convite ainda pendente = sem acesso
+        if (!mine || mine.status !== "Ativo") {
           setRole(null);
         } else if (mine.tipo === "Responsavel") {
           setRole("Responsavel");

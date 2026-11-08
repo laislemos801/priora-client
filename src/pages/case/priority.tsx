@@ -21,9 +21,11 @@ import type {
   PriorityFilters,
 } from "@/components/priority/types";
 import { apiFetch } from "@/lib/api";
+import { useCaseRole } from "@/hooks/useCaseRole";
 
 export default function Priority() {
   const { id: casoId } = useParams();
+  const { canEdit } = useCaseRole(casoId);
 
   const [actions, setActions] = useState<InvestigativeAction[]>([]);
   const [typeInfo, setTypeInfo] = useState<Record<string, ActionTypeInfo>>({});
@@ -171,6 +173,7 @@ export default function Priority() {
                     key={action.id}
                     action={action}
                     typeInfo={typeInfo[action.tipo]}
+                    canEdit={canEdit}
                     onChangeStatus={(status) => handleChangeStatus(action.id, status)}
                     onDelete={() => handleDelete(action.id)}
                   />

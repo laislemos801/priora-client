@@ -15,11 +15,13 @@ const STATUS_STYLES: Record<ActionStatus, string> = {
 type Props = {
   action: InvestigativeAction;
   typeInfo?: ActionTypeInfo;
+  /** Leitor só visualiza: sem menu de status/exclusão. */
+  canEdit?: boolean;
   onChangeStatus: (status: ActionStatus) => void;
   onDelete: () => void;
 };
 
-export default function ActionCard({ action, typeInfo, onChangeStatus, onDelete }: Props) {
+export default function ActionCard({ action, typeInfo, canEdit = true, onChangeStatus, onDelete }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const discarded = action.status === "Descartada";
@@ -49,6 +51,7 @@ export default function ActionCard({ action, typeInfo, onChangeStatus, onDelete 
             {action.status}
           </span>
 
+          {canEdit && (
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen((p) => !p)}
@@ -134,6 +137,7 @@ export default function ActionCard({ action, typeInfo, onChangeStatus, onDelete 
               </div>
             )}
           </div>
+          )}
         </div>
       </div>
 
