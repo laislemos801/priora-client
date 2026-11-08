@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
-import { FiCamera, FiCheck, FiCopy, FiLock, FiLogOut, FiMail, FiRefreshCw, FiUser } from "react-icons/fi";
+import { FiCamera, FiCheck, FiCopy, FiLogOut, FiRefreshCw, FiUser } from "react-icons/fi";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import toast from "react-hot-toast";
@@ -21,7 +21,6 @@ import {
 } from "@/components/auth/validation";
 import { apiFetch } from "@/lib/api";
 import { apiErrorMessage } from "@/routes/user";
-import backImageProfile from "@/assets/backImageProfile.png";
 
 interface UserType {
   email: string;
@@ -34,16 +33,53 @@ interface UserType {
   totalCasos: number;
 }
 
-const CARD = "rounded-lg border border-[#3d3d3d] bg-[#2B2B2B]";
+const CARD = "rounded-xl border border-[#3d3d3d] bg-[#2B2B2B]";
 
-/** Seção do painel de configurações (separadas por linha, sem cartão próprio). */
-function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+type TabId = "dados" | "seguranca";
+const TABS: { id: TabId; label: string }[] = [
+  { id: "dados", label: "Dados pessoais" },
+  { id: "seguranca", label: "Segurança" },
+];
+
+/** Abas acessíveis (clique ou setas ← →). */
+function Tabs({ active, onChange }: { active: TabId; onChange: (id: TabId) => void }) {
+  function handleKey(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const i = TABS.findIndex((t) => t.id === active);
+    const next = TABS[(i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length];
+    onChange(next.id);
+    document.getElementById(`tab-${next.id}`)?.focus();
+  }
+
   return (
-    <section className="p-5 md:p-7">
-      <h2 className="text-base font-medium text-white">{title}</h2>
-      {description && <p className="mt-1 text-sm text-white/55">{description}</p>}
-      <div className="mt-5">{children}</div>
-    </section>
+    <div role="tablist" aria-label="Configurações da conta" onKeyDown={handleKey} className="flex gap-1 border-b border-[#3d3d3d] px-3 sm:px-5">
+      {TABS.map(({ id, label }) => {
+        const selected = id === active;
+        return (
+          <button
+            key={id}
+            id={`tab-${id}`}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            aria-controls={`panel-${id}`}
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onChange(id)}
+            className={`relative -mb-px px-3 py-3.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-[#18C18A] ${
+              selected ? "text-white" : "text-white/50 hover:text-white/80"
+            }`}
+          >
+            {label}
+            <span
+              className={`absolute inset-x-3 bottom-0 h-0.5 rounded-full transition-colors ${
+                selected ? "bg-[#18C18A]" : "bg-transparent"
+              }`}
+            />
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -61,6 +97,7 @@ export default function Profile() {
   const [user, setUser] = useState<UserType>();
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
   const [loadError, setLoadError] = useState<string>("");
+  const [tab, setTab] = useState<TabId>("dados");
 
   // ── Dados pessoais ──
   const [primeiroNome, setPrimeiroNome] = useState("");
@@ -398,113 +435,111 @@ export default function Profile() {
       <TopBar />
 
       <main className="flex flex-1 flex-col px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-3">
-        <section className={`overflow-hidden rounded-xl border border-[#575757] bg-[#242424] ${PAGE_CARD_FILL}`}>
+        {/* O cartão abraça o conteúdo (sem forçar a altura da tela), para não sobrar vazio */}
+        <section className="flex flex-col overflow-hidden rounded-xl border border-[#575757] bg-[#242424]">
           {header}
 
-          <div className="mx-auto grid w-full max-w-6xl flex-1 gap-6 p-4 md:p-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-8 lg:p-8">
-            {/* ══════════ Coluna da identidade ══════════ */}
-            <aside className={`${CARD} overflow-hidden lg:sticky lg:top-4`}>
-              {/* Faixa da marca, contida no cartão */}
-              <div className="h-20 overflow-hidden border-b border-[#3d3d3d]">
-                <img src={backImageProfile} alt="" className="h-full w-full object-cover opacity-80" />
-              </div>
-
-              <div className="flex flex-col items-center px-6 pb-6 text-center">
-                {/* Avatar */}
-                <div className="relative -mt-12 size-24 shrink-0">
+          {/* Perfil fixo à esquerda, abas no resto da largura; as duas colunas com a mesma altura */}
+          <div className="grid w-full gap-5 p-4 md:p-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]">
+            {/* ══════════ Cartão do perfil ══════════ */}
+            <aside className={`${CARD} flex flex-col`}>
+              <div className="flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-8 text-center">
+                {/* Avatar: clicar troca a foto */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={savingPhoto}
+                  aria-label="Alterar foto de perfil"
+                  className="group relative size-28 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#18C18A]"
+                >
                   {user.fotoUrl ? (
                     <img
                       src={user.fotoUrl}
-                      alt="Foto de perfil"
-                      className="size-full rounded-full object-cover ring-4 ring-[#2B2B2B]"
+                      alt=""
+                      className="size-full rounded-full object-cover ring-2 ring-[#139C73]/50 ring-offset-4 ring-offset-[#2B2B2B]"
                     />
                   ) : (
-                    <div className="flex size-full items-center justify-center rounded-full bg-linear-to-br from-[#139C73] to-[#136D52] text-3xl font-semibold ring-4 ring-[#2B2B2B]">
+                    <span className="flex size-full items-center justify-center rounded-full bg-linear-to-br from-[#139C73] to-[#136D52] text-3xl font-semibold ring-2 ring-[#139C73]/50 ring-offset-4 ring-offset-[#2B2B2B]">
                       {initials || <FiUser />}
-                    </div>
+                    </span>
                   )}
-
-                  {savingPhoto && (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60">
-                      <Spinner className="size-6" />
-                    </div>
-                  )}
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoChange}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={savingPhoto}
-                    aria-label="Alterar foto de perfil"
-                    title="Alterar foto de perfil"
-                    className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-[#139C73] text-white ring-4 ring-[#2B2B2B] transition-colors hover:bg-[#18C18A] disabled:opacity-60"
+                  <span
+                    className={`absolute inset-0 flex items-center justify-center rounded-full bg-black/55 transition-opacity ${
+                      savingPhoto ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    }`}
                   >
-                    <FiCamera size={14} />
-                  </button>
-                </div>
+                    {savingPhoto ? <Spinner className="size-6" /> : <FiCamera size={20} />}
+                  </span>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoChange}
+                />
 
-                <p className="mt-4 break-words text-lg font-semibold">{fullName || "Sem nome"}</p>
+                <p className="mt-5 break-words text-lg font-semibold">{fullName || "Sem nome"}</p>
                 <p className="mt-0.5 max-w-full break-all text-sm text-white/55">{user.email}</p>
-                <span className="mt-3 inline-flex items-center rounded-full border border-[#139C73]/40 bg-[#139C73]/12 px-2.5 py-0.5 text-xs text-emerald-300">
+                <span className="mt-3 inline-flex rounded-full border border-[#139C73]/40 bg-[#139C73]/12 px-2.5 py-0.5 text-xs text-emerald-300">
                   Investigador Criminal
                 </span>
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={savingPhoto}
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-[#18C18A] transition-colors hover:bg-[#139C73]/10 disabled:opacity-60"
+                >
+                  <FiCamera size={13} />
+                  Alterar foto
+                </button>
               </div>
 
-              {/* Números dos casos, em linha */}
+              {/* Números dos casos */}
               <dl className="grid grid-cols-3 border-t border-[#3d3d3d]">
                 {stats.map(({ label, value, color }, i) => (
                   <div key={label} className={`px-2 py-4 text-center ${i > 0 ? "border-l border-[#3d3d3d]" : ""}`}>
                     <dd className={`text-xl font-semibold ${color}`}>{value ?? 0}</dd>
-                    <dt className="mt-0.5 text-[11px] leading-tight text-white/55">{label}</dt>
+                    <dt className="mt-0.5 text-[11px] leading-tight text-white/50">{label}</dt>
                   </div>
                 ))}
               </dl>
 
-              {/* ID do perfil */}
-              <div className="flex items-center justify-between gap-3 border-t border-[#3d3d3d] px-5 py-3">
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-widest text-white/45">ID do perfil</p>
-                  <p className="truncate font-mono text-xs text-white/70" title={user.id}>{user.id}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCopyId}
-                  aria-label="Copiar ID do perfil"
-                  title={copied ? "Copiado" : "Copiar ID"}
-                  className="shrink-0 rounded-md p-2 text-white/60 transition-colors hover:bg-[#363636] hover:text-white"
-                >
-                  {copied ? <FiCheck size={14} className="text-emerald-400" /> : <FiCopy size={14} />}
-                </button>
-              </div>
-
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex w-full items-center justify-center gap-2 border-t border-[#3d3d3d] px-5 py-3 text-sm text-white/65 transition-colors hover:bg-red-400/10 hover:text-red-300"
+                className="flex w-full items-center justify-center gap-2 rounded-b-xl border-t border-[#3d3d3d] px-5 py-3.5 text-sm text-white/65 transition-colors hover:bg-red-400/10 hover:text-red-300"
               >
                 <FiLogOut size={15} />
                 Sair da conta
               </button>
             </aside>
 
-            {/* ══════════ Painel de configurações ══════════ */}
-            <div className={`${CARD} divide-y divide-[#3d3d3d]`}>
-              {/* Dados pessoais */}
-              <Section title="Dados pessoais" description="Seu nome aparece para a equipe nos casos compartilhados.">
-                <form onSubmit={handleUpdateProfile} noValidate className="flex flex-col gap-5">
+            {/* ══════════ Configurações em abas ══════════ */}
+            <div className={`${CARD} flex min-w-0 flex-col`}>
+              <Tabs active={tab} onChange={setTab} />
+
+              {/* ── Dados pessoais ── */}
+              <div
+                id="panel-dados"
+                role="tabpanel"
+                aria-labelledby="tab-dados"
+                hidden={tab !== "dados"}
+                className="flex-1 flex-col p-5 data-[on=true]:flex sm:p-7"
+                data-on={tab === "dados"}
+              >
+                <p className="mb-6 text-sm text-white/55">
+                  Seu nome aparece para a equipe nos casos compartilhados.
+                </p>
+
+                <form onSubmit={handleUpdateProfile} noValidate className="flex flex-1 flex-col gap-5">
                   {profileServerError && <FormAlert>{profileServerError}</FormAlert>}
 
                   <div className="grid gap-5 sm:grid-cols-2">
                     <AuthField
                       label="Nome"
                       autoComplete="given-name"
-                      icon={<FiUser size={16} />}
                       value={primeiroNome}
                       onChange={(e) => {
                         setPrimeiroNome(e.target.value);
@@ -524,14 +559,12 @@ export default function Profile() {
                       error={profileErrors.sobrenome}
                       disabled={savingProfile}
                     />
-                  </div>
 
                   <AuthField
                     label="E-mail"
                     type="email"
                     autoComplete="email"
                     inputMode="email"
-                    icon={<FiMail size={16} />}
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
@@ -543,8 +576,26 @@ export default function Profile() {
                     disabled={savingProfile}
                   />
 
-                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                    {profileDirty && (
+                  {/* ID do perfil, só leitura */}
+                  <div>
+                    <span className={FIELD_LABEL}>ID do perfil</span>
+                    <div className="flex items-center gap-2 rounded-md border border-dashed border-[#434343] px-3 py-2.5">
+                      <span className="min-w-0 flex-1 truncate font-mono text-xs text-white/55">{user.id}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopyId}
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded px-1.5 py-0.5 text-xs text-white/55 transition-colors hover:bg-[#363636] hover:text-white"
+                      >
+                        {copied ? <FiCheck size={13} className="text-emerald-400" /> : <FiCopy size={13} />}
+                        {copied ? "Copiado" : "Copiar"}
+                      </button>
+                    </div>
+                  </div>
+                  </div>
+
+                  {/* Rodapé fixo no fim do cartão */}
+                  <div className="mt-auto flex flex-col-reverse items-stretch gap-3 border-t border-[#3d3d3d] pt-5 sm:flex-row sm:items-center sm:justify-end">
+                    {profileDirty ? (
                       <SubmitButton
                         type="button"
                         variant="secondary"
@@ -554,29 +605,43 @@ export default function Profile() {
                       >
                         Descartar
                       </SubmitButton>
+                    ) : (
+                      <span className="text-xs text-white/40 sm:mr-auto">Nenhuma alteração pendente.</span>
                     )}
                     <SubmitButton
                       fullWidth={false}
                       loading={savingProfile}
                       loadingText="Salvando..."
                       disabled={!profileDirty}
-                      title={!profileDirty ? "Nenhuma alteração para salvar" : undefined}
                     >
                       Salvar alterações
                     </SubmitButton>
                   </div>
                 </form>
-              </Section>
+              </div>
 
-              {/* Segurança */}
-              <Section title="Senha" description="Para trocar a senha, confirme a atual e escolha uma nova.">
-                <form onSubmit={handleChangePassword} noValidate className="flex flex-col gap-5">
+              {/* ── Segurança ── */}
+              <div
+                id="panel-seguranca"
+                role="tabpanel"
+                aria-labelledby="tab-seguranca"
+                hidden={tab !== "seguranca"}
+                className="flex-1 flex-col p-5 data-[on=true]:flex sm:p-7"
+                data-on={tab === "seguranca"}
+              >
+                <p className="mb-6 text-sm text-white/55">
+                  Para trocar a senha, confirme a atual e escolha uma nova com pelo menos 8 caracteres.
+                </p>
+
+                <form onSubmit={handleChangePassword} noValidate className="flex flex-1 flex-col gap-5">
                   {passwordServerError && <FormAlert>{passwordServerError}</FormAlert>}
 
+                  {/* Em telas largas as três senhas ficam lado a lado */}
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   <PasswordField
+                    className="sm:col-span-2 xl:col-span-1"
                     label="Senha atual"
                     autoComplete="current-password"
-                    icon={<FiLock size={16} />}
                     value={senhaAntiga}
                     onChange={(e) => {
                       setSenhaAntiga(e.target.value);
@@ -584,14 +649,11 @@ export default function Profile() {
                     }}
                     error={passwordErrors.senhaAntiga}
                     disabled={savingPassword}
-                    className="sm:max-w-[calc(50%-0.625rem)]"
                   />
 
-                  <div className="grid gap-5 sm:grid-cols-2">
                     <PasswordField
                       label="Nova senha"
                       autoComplete="new-password"
-                      icon={<FiLock size={16} />}
                       value={novaSenha}
                       onChange={(e) => {
                         setNovaSenha(e.target.value);
@@ -603,7 +665,6 @@ export default function Profile() {
                     <PasswordField
                       label="Confirmar nova senha"
                       autoComplete="new-password"
-                      icon={<FiLock size={16} />}
                       value={confirmSenha}
                       onChange={(e) => {
                         setConfirmSenha(e.target.value);
@@ -614,14 +675,15 @@ export default function Profile() {
                     />
                   </div>
 
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <PasswordChecklist password={novaSenha} confirm={confirmSenha} />
+                  <PasswordChecklist password={novaSenha} confirm={confirmSenha} />
+
+                  <div className="mt-auto flex justify-end border-t border-[#3d3d3d] pt-5">
                     <SubmitButton fullWidth={false} loading={savingPassword} loadingText="Alterando...">
                       Alterar senha
                     </SubmitButton>
                   </div>
                 </form>
-              </Section>
+              </div>
             </div>
           </div>
         </section>
