@@ -14,13 +14,19 @@ import FilterPanelPriority from "@/components/priority/FilterPanelPriority";
 import DecisionMatrix from "@/components/priority/DecisionMatrix";
 import StrategyGauge from "@/components/priority/StrategyGauge";
 import { DEFAULT_PRIORITY_FILTERS } from "@/components/priority/types";
-import type { ActionStatus, InvestigativeAction, PriorityFilters } from "@/components/priority/types";
+import type {
+  ActionStatus,
+  ActionTypeInfo,
+  InvestigativeAction,
+  PriorityFilters,
+} from "@/components/priority/types";
 import { apiFetch } from "@/lib/api";
 
 export default function Priority() {
   const { id: casoId } = useParams();
 
   const [actions, setActions] = useState<InvestigativeAction[]>([]);
+  const [typeInfo, setTypeInfo] = useState<Record<string, ActionTypeInfo>>({});
   const [loading, setLoading] = useState(true);
   const [openFilter, setOpenFilter] = useState(false);
   const [filters, setFilters] = useState<PriorityFilters>(DEFAULT_PRIORITY_FILTERS);
@@ -44,6 +50,16 @@ export default function Priority() {
   useEffect(() => {
     fetchActions();
   }, [fetchActions]);
+
+  // Explicação de cada tipo de sugestão (quando aparece, quando some, recompensa e esforço).
+  useEffect(() => {
+    apiFetch("/priority-actions/types")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list: ActionTypeInfo[]) =>
+        setTypeInfo(Object.fromEntries(list.map((t) => [t.tipo, t])))
+      )
+      .catch(() => {});
+  }, []);
 
   const filtered = actions.filter((a) => {
     if (filters.status.length > 0 && !filters.status.includes(a.status)) return false;
@@ -145,7 +161,7 @@ export default function Priority() {
                   title={actions.length === 0 ? "Nenhuma ação sugerida no momento" : "Nenhuma ação encontrada"}
                   description={
                     actions.length === 0
-                      ? "O sistema sugere ações automaticamente a partir de evidências pendentes de confirmação e de suspeitos que mais contribuem para a incerteza do caso."
+                      ? "O sistema sugere ações automaticamente a partir das evidências, dos suspeitos e da incerteza do caso (por exemplo, evidências a processar, suspeitos sem vínculos ou dois suspeitos empatados)."
                       : "Ajuste os filtros para ver outras ações."
                   }
                 />
@@ -154,6 +170,7 @@ export default function Priority() {
                   <ActionCard
                     key={action.id}
                     action={action}
+                    typeInfo={typeInfo[action.tipo]}
                     onChangeStatus={(status) => handleChangeStatus(action.id, status)}
                     onDelete={() => handleDelete(action.id)}
                   />

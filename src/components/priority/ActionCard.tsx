@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MoreVertical, Ban, RotateCcw, Trash2 } from "lucide-react";
-import type { ActionStatus, InvestigativeAction } from "./types";
+import InfoTip from "@/components/ui/InfoTip";
+import type { ActionStatus, ActionTypeInfo, InvestigativeAction } from "./types";
 
 const STATUS_CYCLE_OPTIONS: ActionStatus[] = ["Sugerida", "Em progresso", "Concluída"];
 
@@ -13,11 +14,12 @@ const STATUS_STYLES: Record<ActionStatus, string> = {
 
 type Props = {
   action: InvestigativeAction;
+  typeInfo?: ActionTypeInfo;
   onChangeStatus: (status: ActionStatus) => void;
   onDelete: () => void;
 };
 
-export default function ActionCard({ action, onChangeStatus, onDelete }: Props) {
+export default function ActionCard({ action, typeInfo, onChangeStatus, onDelete }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const discarded = action.status === "Descartada";
@@ -135,8 +137,31 @@ export default function ActionCard({ action, onChangeStatus, onDelete }: Props) 
         </div>
       </div>
 
-      <p className="mt-2 text-[11px] font-medium uppercase tracking-widest text-emerald-400/80">
+      <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-widest text-emerald-400/80">
         {action.impacto} impacto
+        {typeInfo && (
+          <InfoTip label={`Como funciona: ${typeInfo.nome}`} size={14}>
+            <p className="mb-2 font-semibold normal-case tracking-normal text-white">{typeInfo.nome}</p>
+            <dl className="space-y-2 normal-case tracking-normal">
+              <div>
+                <dt className="font-semibold text-white">Quando aparece</dt>
+                <dd>{typeInfo.quandoAparece}</dd>
+              </div>
+              <div>
+                <dt className="font-semibold text-white">Quando some</dt>
+                <dd>{typeInfo.quandoSome}</dd>
+              </div>
+              <div>
+                <dt className="font-semibold text-white">Recompensa</dt>
+                <dd>{typeInfo.recompensa}</dd>
+              </div>
+              <div>
+                <dt className="font-semibold text-white">Esforço</dt>
+                <dd>{typeInfo.esforco}</dd>
+              </div>
+            </dl>
+          </InfoTip>
+        )}
       </p>
 
       <p className="mt-1 text-sm text-white/65">

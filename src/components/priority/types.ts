@@ -1,6 +1,23 @@
 export type ActionStatus = "Sugerida" | "Em progresso" | "Concluída" | "Descartada";
 export type ImpactLevel = "Alto" | "Médio" | "Baixo";
-export type ActionType = "Evidencia" | "Suspeito";
+export type ActionType =
+  | "SemEvidencias"
+  | "Evidencia"
+  | "EvidenciaColetada"
+  | "EvidenciaFraca"
+  | "Diferenciar"
+  | "SuspeitoSemEvidencia"
+  | "Suspeito";
+
+/** Explicação de um tipo de sugestão (vem da API, gerada das mesmas regras do cálculo). */
+export type ActionTypeInfo = {
+  tipo: ActionType;
+  nome: string;
+  quandoAparece: string;
+  quandoSome: string;
+  recompensa: string;
+  esforco: string;
+};
 
 export type InvestigativeAction = {
   id: string;

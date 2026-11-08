@@ -106,7 +106,7 @@ export default function InfoTip({ label, children, size = 16, className = "" }: 
             id={id}
             ref={tipRef}
             role="tooltip"
-            style={{ top: pos.top, left: pos.left, width: WIDTH }}
+            style={{ top: pos.top, left: pos.left, width: WIDTH, maxHeight: window.innerHeight - 2 * MARGIN, overflowY: "auto" }}
             className="fixed z-[10000] rounded-md border border-[#3a3a3a] bg-[#1f1f1f] p-3 text-left text-xs font-normal leading-relaxed text-white/90 shadow-lg"
           >
             {children}
