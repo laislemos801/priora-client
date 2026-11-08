@@ -1,4 +1,8 @@
-export const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+// No aplicativo desktop (Electron), o endereço da API vem do próprio aplicativo
+// (variável PRIORA_API_URL ou config.json); no navegador, do build (VITE_API_URL).
+const desktopApiUrl = (window as unknown as { priora?: { apiUrl?: string } }).priora?.apiUrl;
+
+export const API_URL = desktopApiUrl || import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function withAuthHeaders(extra?: HeadersInit): HeadersInit {
   const token = localStorage.getItem("token");
