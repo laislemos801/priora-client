@@ -11,7 +11,11 @@ type Props = {
   onToggleSelected: (id: string) => void;
   onToggleAll: () => void;
   getRankingDirection: (id: string) => "up" | "down" | "same";
+  /** Leitor só visualiza: sem caixas de seleção (servem para editar/excluir). */
+  selectable?: boolean;
 };
+
+const GRID = "lg:grid-cols-[60px_repeat(4,minmax(0,1fr))]";
 
 export default function RankingTable({
   suspects,
@@ -19,16 +23,17 @@ export default function RankingTable({
   casoId,                            
   onToggleSelected,
   onToggleAll,
-  getRankingDirection
+  getRankingDirection,
+  selectable = true,
 }: Props) {
   const navigate = useNavigate();
   const allSelected = suspects.length > 0 && suspects.every((s) => selectedIds.includes(s.id));
 
   return (
     <div className="space-y-3">
-      <div className="hidden items-center px-6 text-center text-sm font-medium text-white lg:grid lg:grid-cols-[60px_repeat(4,minmax(0,1fr))]">
+      <div className={`hidden items-center px-6 text-center text-sm font-medium text-white lg:grid ${GRID}`}>
         <div className="flex justify-center">
-          <CustomCheckbox checked={allSelected} onChange={onToggleAll} />
+          {selectable && <CustomCheckbox checked={allSelected} onChange={onToggleAll} />}
         </div>
 
         <p>Posição</p>
@@ -60,10 +65,12 @@ export default function RankingTable({
                   </div>
                 </div>
 
-                <CustomCheckbox
-                  checked={selectedIds.includes(suspect.id)}
-                  onChange={() => onToggleSelected(suspect.id)}
-                />
+                {selectable && (
+                  <CustomCheckbox
+                    checked={selectedIds.includes(suspect.id)}
+                    onChange={() => onToggleSelected(suspect.id)}
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -86,12 +93,14 @@ export default function RankingTable({
               </div>
             </div>
 
-            <div className="hidden min-h-[96px] items-center px-6 lg:grid lg:grid-cols-[60px_repeat(4,minmax(0,1fr))]">
+            <div className={`hidden min-h-[96px] items-center px-6 lg:grid ${GRID}`}>
               <div className="flex justify-center">
-                <CustomCheckbox
-                  checked={selectedIds.includes(suspect.id)}
-                  onChange={() => onToggleSelected(suspect.id)}
-                />
+                {selectable && (
+                  <CustomCheckbox
+                    checked={selectedIds.includes(suspect.id)}
+                    onChange={() => onToggleSelected(suspect.id)}
+                  />
+                )}
               </div>
 
               <p className="text-center text-xl">

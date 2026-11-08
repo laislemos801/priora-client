@@ -275,7 +275,7 @@ export default function Ranking() {
                   )}
                 </div>
 
-                {canEdit && (
+                {canEdit && filtered.length > 0 && (
                   <>
                     <ActionButton
                       icon={<Edit size={14} />}
@@ -311,6 +311,7 @@ export default function Ranking() {
                 casoId={id!}                       // ← adicionar
                 onToggleSelected={toggleSelected}
                 onToggleAll={toggleAllVisible}
+                selectable={canEdit}
                 getRankingDirection={getRankingDirection}
               />
             )}

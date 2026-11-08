@@ -33,6 +33,7 @@ const DEFAULT_FILTERS: EvidenceFilters = {
 export default function Evidence() {
   const { id: casoId } = useParams();
   const { canEdit } = useCaseRole(casoId);
+  const [total, setTotal] = useState(0);
 
   const [openModal, setOpenModal]         = useState(false);
   const [openFilter, setOpenFilter]       = useState(false);
@@ -137,7 +138,7 @@ export default function Evidence() {
                 )}
               </div>
 
-              {canEdit && (
+              {canEdit && total > 0 && (
                 <>
                   {/* Editar */}
                   <ActionButton icon={<Edit size={14} />} onClick={handleEdit}>
@@ -179,6 +180,8 @@ export default function Evidence() {
             refreshKey={refreshKey}
             onSelectionChange={setSelectedIds}
             onAdd={canEdit ? () => setOpenModal(true) : undefined}
+            selectable={canEdit}
+            onCountChange={setTotal}
           />
         </div>
       </div>

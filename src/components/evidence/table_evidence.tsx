@@ -200,16 +200,16 @@ function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose
 // ─── Mobile Card ───────────────────────────────────────────────────────────────
 
 function EvidenciaCard({
-  row, isSelected, onToggle, onView,
+  row, isSelected, onToggle, onView, selectable,
 }: {
-  row: Evidencia; isSelected: boolean; onToggle: () => void; onView: () => void;
+  row: Evidencia; isSelected: boolean; onToggle: () => void; onView: () => void; selectable: boolean;
 }) {
   return (
-    <div onClick={onToggle} className="bg-[#2B2B2B] rounded-lg p-4 flex flex-col gap-3 cursor-pointer active:bg-[#313131] transition-colors">
+    <div onClick={selectable ? onToggle : undefined} className={`bg-[#2B2B2B] rounded-lg p-4 flex flex-col gap-3 transition-colors ${selectable ? "cursor-pointer active:bg-[#313131]" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <Checkbox checked={isSelected} onCheckedChange={() => {}} onClick={(e) => e.stopPropagation()}
-            className="border-[#575757] rounded-sm data-[state=checked]:bg-[#139C73] data-[state=checked]:border-[#139C73]" />
+          {selectable && <Checkbox checked={isSelected} onCheckedChange={() => {}} onClick={(e) => e.stopPropagation()}
+            className="border-[#575757] rounded-sm data-[state=checked]:bg-[#139C73] data-[state=checked]:border-[#139C73]" />}
           <div className="flex items-center gap-2">
             {tipoIconMap[row.tipo] ?? <File size={18} className="text-emerald-400" />}
             <span className="text-white font-medium text-sm">{row.tipo}</span>
@@ -226,8 +226,8 @@ function EvidenciaCard({
           </button>
         </div>
       </div>
-      <p className="text-[#9ca3af] text-sm line-clamp-2 pl-6">{row.nome}</p>
-      <div className="flex items-center justify-between pl-6">
+      <p className={`text-[#9ca3af] text-sm line-clamp-2 ${selectable ? "pl-6" : ""}`}>{row.nome}</p>
+      <div className={`flex items-center justify-between ${selectable ? "pl-6" : ""}`}>
         <span className="text-[#9ca3af] text-xs">{formatDate(row.dataColeta)}</span>
         <AvatarStack suspeitos={row.suspeitos} />
       </div>
@@ -241,6 +241,10 @@ interface EvidenciasTableProps {
   refreshKey: number;
   onSelectionChange?: (ids: string[]) => void;
   onAdd?: () => void; // ← prop declarada corretamente aqui
+  /** Leitor só visualiza: sem caixas de seleção (servem para editar/excluir). */
+  selectable?: boolean;
+  /** Quantidade de evidências do caso (a tela esconde Editar/Deletar quando vazio). */
+  onCountChange?: (total: number) => void;
 }
 
 // ── Main component ───────────────────────────────────────────────────────────
@@ -249,6 +253,8 @@ export default function EvidenciasTable({
   refreshKey,
   onSelectionChange,
   onAdd,
+  selectable = true,
+  onCountChange,
 }: EvidenciasTableProps) {
   const { id: casoId } = useParams<{ id: string }>();
   const [evidencias, setEvidencias]     = useState<Evidencia[]>([]);
@@ -258,6 +264,7 @@ export default function EvidenciasTable({
   const [viewEvidence, setViewEvidence] = useState<Evidencia | null>(null);
 
   useEffect(() => { onSelectionChange?.([...selected]); }, [selected]);
+  useEffect(() => { if (!loading) onCountChange?.(evidencias.length); }, [loading, evidencias.length]);
   useEffect(() => { setSelected(new Set()); }, [refreshKey]);
 
   useEffect(() => {
@@ -306,7 +313,7 @@ export default function EvidenciasTable({
 
       {/* Mobile */}
       <div className="flex flex-col gap-3 md:hidden">
-        <div className="flex items-center gap-2 px-1">
+        {selectable && <div className="flex items-center gap-2 px-1">
           <Checkbox
             checked={isIndeterminate ? "indeterminate" : allSelected}
             onCheckedChange={(v) => toggleAll(!!v)}
@@ -315,7 +322,7 @@ export default function EvidenciasTable({
           <span className="text-[#9ca3af] text-xs">
             {selected.size > 0 ? `${selected.size} selecionado${selected.size > 1 ? "s" : ""}` : "Selecionar todos"}
           </span>
-        </div>
+        </div>}
         {filtered.map((row) => (
           <EvidenciaCard
             key={row.id}
@@ -323,6 +330,7 @@ export default function EvidenciasTable({
             isSelected={selected.has(row.id)}
             onToggle={() => toggle(row.id)}
             onView={() => setViewEvidence(row)}
+            selectable={selectable}
           />
         ))}
       </div>
@@ -332,14 +340,16 @@ export default function EvidenciasTable({
         <Table className="border-separate border-spacing-y-2">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="p-3">
-                <Checkbox
-                  checked={isIndeterminate ? "indeterminate" : allSelected}
-                  onCheckedChange={(v) => toggleAll(!!v)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="rounded-sm border-[#575757] data-[state=checked]:bg-[#139C73] data-[state=checked]:border-[#139C73]"
-                />
-              </TableHead>
+              {selectable && (
+                <TableHead className="p-3">
+                  <Checkbox
+                    checked={isIndeterminate ? "indeterminate" : allSelected}
+                    onCheckedChange={(v) => toggleAll(!!v)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="rounded-sm border-[#575757] data-[state=checked]:bg-[#139C73] data-[state=checked]:border-[#139C73]"
+                  />
+                </TableHead>
+              )}
               <TableHead className="text-white">Tipo</TableHead>
               <TableHead className="text-white">Nome</TableHead>
               <TableHead className="text-white">Data</TableHead>
@@ -354,18 +364,20 @@ export default function EvidenciasTable({
               return (
                 <TableRow
                   key={row.id}
-                  onClick={() => toggle(row.id)}
-                  className="border-b border-[#2a2a2a] hover:bg-[#313131]/50 cursor-pointer"
+                  onClick={selectable ? () => toggle(row.id) : undefined}
+                  className={`border-b border-[#2a2a2a] hover:bg-[#313131]/50 ${selectable ? "cursor-pointer" : ""}`}
                 >
-                  <TableCell className="p-3 bg-[#2B2B2B] first:rounded-l-lg">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggle(row.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="border-[#575757] rounded-sm data-[state=checked]:bg-[#139C73] data-[state=checked]:border-[#139C73]"
-                    />
-                  </TableCell>
-                  <TableCell className="p-3 bg-[#2B2B2B]">
+                  {selectable && (
+                    <TableCell className="p-3 bg-[#2B2B2B] first:rounded-l-lg">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggle(row.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="border-[#575757] rounded-sm data-[state=checked]:bg-[#139C73] data-[state=checked]:border-[#139C73]"
+                      />
+                    </TableCell>
+                  )}
+                  <TableCell className={`p-3 bg-[#2B2B2B] ${selectable ? "" : "rounded-l-lg"}`}>
                     <div className="flex items-center gap-2">
                       {tipoIconMap[row.tipo] ?? <File size={18} className="text-emerald-400" />}
                       <span className="text-white whitespace-nowrap">{row.tipo}</span>

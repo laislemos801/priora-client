@@ -291,12 +291,12 @@ export default function CaseOverview() {
               </div>
 
               <div className="xl:hidden">
-                {id && <AccessCard casoId={id} canInvite={canEdit} isOwner={isOwner} />}
+                {id && <AccessCard casoId={id} canInvite={isOwner} isOwner={isOwner} />}
               </div>
             </section>
 
             <aside className="hidden flex-col gap-4 xl:flex">
-              {id && <AccessCard casoId={id} canInvite={canEdit} isOwner={isOwner} />}
+              {id && <AccessCard casoId={id} canInvite={isOwner} isOwner={isOwner} />}
               <ProfileCard perfil={profile} onEdit={goToProfiling} />
               <UncertaintyCard incerteza={caseData?.incerteza ?? null} className="flex-1" />
             </aside>
