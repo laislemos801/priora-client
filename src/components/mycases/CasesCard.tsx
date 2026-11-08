@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { MdOutlineGroup } from "react-icons/md";
 import { FaIdCardClip } from "react-icons/fa6";
 import { PiMapPinAreaBold } from "react-icons/pi";
-import { LuCalendarDays } from "react-icons/lu";
+import { LuCalendarDays, LuSearch } from "react-icons/lu";
 import { ArrowDown, Minus, ArrowUp } from "lucide-react";
 import { RiAlertFill } from "react-icons/ri";
 
@@ -70,91 +70,103 @@ export default function CaseCard({
 }: CaseCardProps) {
   const p = PRIORITY_CONFIG[priority];
   const navigate = useNavigate();
-  return (
-    <div className="bg-[#2A2A2A] rounded-xl p-4 border border-[#3a3a3a] flex flex-col gap-3 w-full max-w-md">
+  const dot =
+    status === "Ativo" ? "bg-[#139C73]" : status === "Concluído" ? "bg-[#8B8B8B]" : "bg-[#e0a030]";
 
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="md:text-lg text-2xl font-semibold">{title}</h3>
-          <p className="md:text-sm text-md text-gray-400">{description}</p>
-        </div>
-        <span className="text-md md:text-sm bg-[#139C73]/28 font-semibold text-[#FFFFFF]/76 px-4 py-2 rounded-md">
+  return (
+    <div className="w-full max-w-sm">
+      {/* Aba da pasta: situação do caso (e a prioridade, à direita) */}
+      <div className="flex items-end justify-between gap-2">
+        <span className="relative z-10 -mb-px inline-flex items-center gap-2 rounded-t-lg border border-b-0 border-[#3a3a3a] bg-[#2A2A2A] px-3.5 py-1.5 text-xs font-semibold text-white/80">
+          <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden="true" />
           {status}
         </span>
-      </div>
-
-      {/* Top suspeito */}
-      <div className="flex items-center gap-3 border border-[#444] rounded-lg p-3">
-        {suspeitoNome ? (
-          <>
-            {suspeitoFotoUrl ? (
-              <img
-                src={suspeitoFotoUrl}
-                alt={suspeitoNome}
-                className="h-8 w-8 rounded-full object-cover shrink-0"
-              />
-            ) : (
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#3A3A3A] text-xs font-semibold text-white">
-                {suspeitoNome.slice(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-xs text-white/50">Top suspeito</p>
-              <p className="text-sm truncate">
-                {suspeitoNome}{" "}
-                <span className="text-green-400">({suspeitoProbab?.toFixed(1)}%)</span>
-              </p>
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-white/40 italic">Nenhum suspeito cadastrado ainda</p>
-        )}
-      </div>
-
-      {/* Infos */}
-      <div className="text-sm sm:text-sm md:text-lg text-gray-400 flex flex-col gap-2">
-
-        {/* Prioridade */}
-        <div className="flex items-center gap-2">
-          <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ${p.color} ${p.bg}`}>
-            {p.icon}
-            Prioridade {priority}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <MdOutlineGroup className="text-green-400" />
-          <span>{suspects} Suspeitos | {evidences} Evidências</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <FaIdCardClip />
-          <span>Responsável: {responsible}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <PiMapPinAreaBold />
-          <span>{location}</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <LuCalendarDays />
-          <span>{date}</span>
-        </div>
-
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-2">
-        <span className="bg-[#3a3a3a] px-4 md:px-6 lg:px-6 py-1.5 md:py-2 rounded-md text-xs md:text-sm lg:text-base font-medium">
-          Incerteza: {uncertainty}%
+        <span
+          className={`mb-1 flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${p.color} ${p.bg}`}
+        >
+          {p.icon}
+          {priority}
         </span>
-        <button   onClick={() => navigate(`/case/${caseId}`)} className="border border-[#525252] text-white px-3 md:px-6 lg:px-6 py-1.5 md:py-2 rounded-md text-xs md:text-sm hover:bg-green-500/10 hover:text-green hover:border-green-500 transition">
-          Ver Detalhes
-        </button>
       </div>
 
+      {/* Corpo da pasta */}
+      <div className="flex flex-col gap-2.5 rounded-b-xl rounded-tr-xl border border-[#3a3a3a] bg-[#2A2A2A] p-3.5">
+        <div className="min-w-0">
+          <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug" title={title}>
+            {title}
+          </h3>
+          {description && (
+            <p className="mt-0.5 line-clamp-1 text-xs text-gray-400" title={description}>
+              {description}
+            </p>
+          )}
+        </div>
+
+        {/* Top suspeito */}
+        <div className="flex items-center gap-2.5 rounded-lg border border-[#444] px-2.5 py-2">
+          {suspeitoNome ? (
+            <>
+              {suspeitoFotoUrl ? (
+                <img
+                  src={suspeitoFotoUrl}
+                  alt={suspeitoNome}
+                  className="h-7 w-7 shrink-0 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#3A3A3A] text-[10px] font-semibold text-white">
+                  {suspeitoNome.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wide text-white/45">Top suspeito</p>
+                <p className="truncate text-sm leading-tight">
+                  {suspeitoNome}{" "}
+                  <span className="text-green-400">({suspeitoProbab?.toFixed(1)}%)</span>
+                </p>
+              </div>
+            </>
+          ) : (
+            <p className="text-xs italic text-white/40">Nenhum suspeito cadastrado ainda</p>
+          )}
+        </div>
+
+        {/* Infos */}
+        <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs text-gray-400">
+          <li className="flex items-center gap-1.5">
+            <MdOutlineGroup className="shrink-0 text-green-400" />
+            <span className="truncate">{suspects} suspeitos</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <LuSearch className="shrink-0" />
+            <span className="truncate">{evidences} evidências</span>
+          </li>
+          <li className="col-span-2 flex items-center gap-1.5" title={`Responsável: ${responsible}`}>
+            <FaIdCardClip className="shrink-0" />
+            <span className="truncate">{responsible}</span>
+          </li>
+          <li className="flex items-center gap-1.5" title={location}>
+            <PiMapPinAreaBold className="shrink-0" />
+            <span className="truncate">{location}</span>
+          </li>
+          <li className="flex items-center gap-1.5">
+            <LuCalendarDays className="shrink-0" />
+            <span className="truncate">{date}</span>
+          </li>
+        </ul>
+
+        {/* Rodapé */}
+        <div className="mt-0.5 flex flex-wrap items-center justify-between gap-2 border-t border-[#3a3a3a] pt-2.5">
+          <span className="whitespace-nowrap rounded-md bg-[#3a3a3a] px-2.5 py-1.5 text-xs font-medium">
+            Incerteza {uncertainty}%
+          </span>
+          <button
+            onClick={() => navigate(`/case/${caseId}`)}
+            className="whitespace-nowrap rounded-md border border-[#525252] px-2.5 py-1.5 text-xs text-white transition hover:border-green-500 hover:bg-green-500/10"
+          >
+            Ver Detalhes
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

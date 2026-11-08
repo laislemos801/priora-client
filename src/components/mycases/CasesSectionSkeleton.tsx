@@ -16,26 +16,28 @@ export default function CasesSectionSkeleton() {
 
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-[#2A2A2A] rounded-xl p-4 border border-[#3a3a3a] flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex flex-col gap-2 flex-1">
-                    <Sk className="h-5 w-32" />
-                    <Sk className="h-3 w-48" />
+              <div key={i} className="w-full max-w-sm">
+                <div className="flex items-end justify-between">
+                  <Sk className="h-7 w-24 rounded-b-none rounded-t-lg" />
+                  <Sk className="mb-1 h-5 w-14 rounded-md" />
+                </div>
+                <div className="flex flex-col gap-2.5 rounded-b-xl rounded-tr-xl border border-[#3a3a3a] bg-[#2A2A2A] p-3.5">
+                  <div className="flex flex-col gap-2">
+                    <Sk className="h-4 w-40" />
+                    <Sk className="h-3 w-52" />
                   </div>
-                  <Sk className="h-8 w-16 rounded-md shrink-0" />
-                </div>
-                <Sk className="h-14 w-full rounded-lg" />
-                <Sk className="h-14 w-full rounded-lg" />
-                <div className="flex flex-col gap-2">
-                  <Sk className="h-4 w-28 rounded-full" />
-                  <Sk className="h-4 w-40" />
-                  <Sk className="h-4 w-36" />
-                  <Sk className="h-4 w-44" />
-                  <Sk className="h-4 w-32" />
-                </div>
-                <div className="flex justify-between mt-2">
-                  <Sk className="h-8 w-28 rounded-md" />
-                  <Sk className="h-8 w-24 rounded-md" />
+                  <Sk className="h-11 w-full rounded-lg" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Sk className="h-3 w-24" />
+                    <Sk className="h-3 w-24" />
+                    <Sk className="col-span-2 h-3 w-36" />
+                    <Sk className="h-3 w-24" />
+                    <Sk className="h-3 w-20" />
+                  </div>
+                  <div className="mt-0.5 flex justify-between border-t border-[#3a3a3a] pt-2.5">
+                    <Sk className="h-7 w-24 rounded-md" />
+                    <Sk className="h-7 w-24 rounded-md" />
+                  </div>
                 </div>
               </div>
             ))}
