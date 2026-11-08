@@ -1,6 +1,8 @@
 import { HelpCircle } from "lucide-react";
 import CustomCheckbox from "./CustomCheckbox";
 import TrendIcon from "./TrendIcon";
+import SuspectData from "./SuspectData";
+import InfoTip from "@/components/ui/InfoTip";
 import type { Suspect } from "./types";
 import { useNavigate } from "react-router-dom";
 
@@ -15,7 +17,7 @@ type Props = {
   selectable?: boolean;
 };
 
-const GRID = "lg:grid-cols-[60px_repeat(4,minmax(0,1fr))]";
+const GRID = "lg:grid-cols-[48px_64px_minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,2fr)_minmax(0,0.8fr)]";
 
 export default function RankingTable({
   suspects,
@@ -39,6 +41,15 @@ export default function RankingTable({
         <p>Posição</p>
         <p className="text-left">Nome</p>
         <p>Probabilidade Atual</p>
+        <p className="flex items-center gap-1.5 text-left">
+          Dados do suspeito
+          <InfoTip label="Dados do suspeito" size={14}>
+            <p className="mb-1 font-semibold text-white">Dados do suspeito</p>
+            Idade, antecedentes e evidências vinculadas, como foram cadastrados. Os antecedentes (crime
+            semelhante e descumprimento de medida) são informação de apoio e <strong>não entram no
+            cálculo de probabilidade</strong>.
+          </InfoTip>
+        </p>
         <p>Qtd. Evidências</p>
       </div>
 
@@ -91,9 +102,11 @@ export default function RankingTable({
                   </p>
                 </div>
               </div>
+
+              <SuspectData suspect={suspect} />
             </div>
 
-            <div className={`hidden min-h-[60px] items-center px-6 py-1 lg:grid ${GRID}`}>
+            <div className={`hidden min-h-[72px] items-center gap-x-3 px-6 py-2 lg:grid ${GRID}`}>
               <div className="flex justify-center">
                 {selectable && (
                   <CustomCheckbox
@@ -139,6 +152,8 @@ export default function RankingTable({
                   <HelpCircle size={15} />
                 </button>
               </div>
+
+              <SuspectData suspect={suspect} />
 
               <p className="text-center text-base">{suspect.qtdEvidencias ?? 0}</p>
             </div>

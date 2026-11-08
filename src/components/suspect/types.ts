@@ -7,6 +7,8 @@ export type Suspect = {
   posicaoRanking?: number | null;
   tendencia?: "Alta" | "Baixa" | "Estável";
   qtdEvidencias?: number;
+  /** Evidências vinculadas (nome, tipo e status). */
+  evidencias?: { id: string; nome: string; tipo: string; status: string }[];
   historicoCriminal?: number;
   caracteristicasCriminais?: number;
   significanciaTempoLugar?: number;
