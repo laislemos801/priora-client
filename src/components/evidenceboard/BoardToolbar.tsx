@@ -10,6 +10,7 @@ import {
   Save,
   Trash2,
 } from 'lucide-react';
+import LoadingButton from "@/components/ui/LoadingButton";
 
 export type ShapeTool = 'rectangle' | 'circle' | 'diamond' | 'note' | 'text' | 'image' | 'arrow';
 
@@ -69,21 +70,23 @@ export default function BoardToolbar({
       </div>
 
       <div className="ml-auto flex items-center gap-1">
-        <button
+        <LoadingButton
+          iconOnly
           onClick={onSave}
           disabled={isSaving}
           title="Salvar quadro"
           className="p-1.5 md:p-2 rounded-md hover:bg-zinc-800 text-[#139C73] disabled:opacity-50"
         >
           <Save className="size-5 md:size-[22px]" />
-        </button>
-        <button
+        </LoadingButton>
+        <LoadingButton
+          iconOnly
           onClick={onDeleteSelected}
           title="Excluir selecionado"
           className="p-1.5 md:p-2 rounded-md hover:bg-red-950 text-red-500"
         >
           <Trash2 className="size-5 md:size-[22px]" />
-        </button>
+        </LoadingButton>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { Fingerprint, Dna, MessageSquare, FileText, Video, Microscope, File, Eye, X } from "lucide-react";
+import { Fingerprint, Dna, MessageSquare, FileText, Video, Microscope, File, Eye, X, Lightbulb, History, ClipboardCheck, Phone, Activity } from "lucide-react";
+import { TIPO_OUTRA, isTipoPersonalizado } from "./tipos";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../../../@/components/ui/table";
@@ -10,14 +11,14 @@ import EvidenceTableSkeleton from "./EvidenceTableSkeleton";
 import EmptyEvidenceState from "./EmptyEvidenceState";
 import { apiFetch } from "@/lib/api";
 
-type Status = "Coletada" | "Em análise" | "Custodiada" | "Descartada" | "Enviada a perícia";
+export type Status = "Coletada" | "Em análise" | "Custodiada" | "Descartada" | "Enviada a perícia";
 
-interface SuspeitoVinculo { id: string; nome: string; pesoVinculo?: number | null; }
+interface SuspeitoVinculo { id: string; nome: string; pesoVinculo?: number | null; efeito?: "Incrimina" | "Inocenta"; }
 
-interface Evidencia {
+export interface Evidencia {
   id: string; nome: string; tipo: string; status: Status;
   dataColeta: string | null; pesoCondicional: number;
-  descricao?: string | null; suspeitos: SuspeitoVinculo[];
+  descricao?: string | null; fonte?: string | null; suspeitos: SuspeitoVinculo[];
 }
 
 function formatDate(raw: string | null | undefined): string {
@@ -48,6 +49,11 @@ const tipoIconMap: Record<string, React.ReactNode> = {
   Audiovisual:<Video       size={18} className="text-emerald-400" />,
   Biológica:  <Microscope  size={18} className="text-emerald-400" />,
   Física:     <File        size={18} className="text-emerald-400" />,
+  Motivação:  <Lightbulb   size={18} className="text-emerald-400" />,
+  Antecedente:<History     size={18} className="text-emerald-400" />,
+  Pericial:   <ClipboardCheck size={18} className="text-emerald-400" />,
+  Telefônica: <Phone       size={18} className="text-emerald-400" />,
+  Comportamento:<Activity  size={18} className="text-emerald-400" />,
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -88,7 +94,7 @@ function AvatarStack({ suspeitos }: { suspeitos: SuspeitoVinculo[] }) {
 
 // ─── View Modal ────────────────────────────────────────────────────────────────
 
-function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose: () => void }) {
+export function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose: () => void }) {
   const [detail, setDetail] = useState<Evidencia>(evidence);
   const [loadingDetail, setLoadingDetail] = useState(true);
 
@@ -162,13 +168,23 @@ function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose
                   {detail.suspeitos.map((s) => (
                     <span
                       key={s.id}
-                      className="bg-[#139C73]/15 text-[#139C73] text-xs px-3 py-1 rounded-full"
+                      className={`text-xs px-3 py-1 rounded-full ${
+                        s.efeito === "Inocenta" ? "bg-[#139C73]/15 text-[#139C73]" : "bg-red-500/15 text-red-300"
+                      }`}
                     >
                       {s.nome}
                       {s.pesoVinculo != null && ` · ${s.pesoVinculo}`}
+                      {s.efeito === "Inocenta" && " · inocenta"}
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {detail.fonte != null && detail.fonte.trim() !== "" && (
+              <div className="sm:col-span-2">
+                <span className={LABEL}>Fonte</span>
+                <p className="text-[14px] text-[#e8e8e8] leading-relaxed break-words">{detail.fonte}</p>
               </div>
             )}
 
@@ -282,7 +298,8 @@ export default function EvidenciasTable({
       if (filters.search && !e.nome.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.date && e.dataColeta && e.dataColeta !== filters.date) return false;
       if (filters.status.length && !filters.status.includes(e.status)) return false;
-      if (filters.tipo.length && !filters.tipo.includes(e.tipo)) return false;
+      // "Outra" no filtro cobre todos os tipos personalizados
+      if (filters.tipo.length && !filters.tipo.includes(isTipoPersonalizado(e.tipo) ? TIPO_OUTRA : e.tipo)) return false;
       if (filters.suspeitos.length) {
         const ids = e.suspeitos.map((s) => s.id);
         if (!filters.suspeitos.some((id) => ids.includes(id))) return false;

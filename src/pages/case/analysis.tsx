@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import NavIcon from "@/components/ui/NavIcon";
 import EmptyState, { PAGE_BODY_FILL, PAGE_CARD_FILL } from "@/components/ui/EmptyState";
-import ReactFlow, { Background, Controls, type Node, type Edge } from "reactflow";
+import ReactFlow, { Background, Controls, useNodesInitialized, useReactFlow, type Node, type Edge } from "reactflow";
 import "reactflow/dist/style.css";
 
 import SuspectNode from "@/components/analysis/SuspectNode";
@@ -17,9 +17,20 @@ import FinalProbabilitySection from "@/components/analysis/FinalProbabilitySecti
 import type { SuspectAnalysis } from "@/components/analysis/types";
 import AnalysisSkeleton from "@/components/analysis/AnalysisSkeleton";
 import { apiFetch } from "@/lib/api";
+import { ViewEvidenceModal, type Evidencia } from "@/components/evidence/table_evidence";
 
 const nodeTypes = { suspect: SuspectNode, evidence: EvidenceNode };
 const edgeTypes = { vinculo: VinculoEdge };
+
+/** Enquadra o grafo depois que os cartões são medidos e sempre que troca o suspeito ou a quantidade. */
+function AutoFit({ trigger }: { trigger: string }) {
+  const { fitView } = useReactFlow();
+  const ready = useNodesInitialized();
+  useEffect(() => {
+    if (ready) fitView({ padding: 0.12, duration: 0 });
+  }, [ready, trigger, fitView]);
+  return null;
+}
 
 export default function Analysis() {
   const { id: casoId } = useParams();
@@ -28,6 +39,8 @@ export default function Analysis() {
 
   const [suspects, setSuspects] = useState<SuspectAnalysis[]>([]);
   const [selected, setSelected] = useState<SuspectAnalysis | null>(null);
+  // evidência aberta no modal de detalhes (o mesmo da página de Evidências)
+  const [openEvidence, setOpenEvidence] = useState<SuspectAnalysis["evidencias"][number] | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -62,33 +75,51 @@ export default function Analysis() {
   useEffect(() => {
     if (!selected) return;
 
-    const centerX = 700, centerY = 250, radius = 250;
+    // Evidências distribuídas em raio (elipse) ao redor do suspeito. O raio cresce com a
+    // quantidade para que os cartões (~160x129 px) nunca se sobreponham.
+    const SUSPECT = { x: 800, y: 250 };               // canto do nó do suspeito
+    const CENTER = { x: SUSPECT.x + 129, y: SUSPECT.y + 70 };   // o nó do suspeito mede ~258x141
+    const NODE = { w: 160, h: 129 };                            // cartão de evidência
+    const n = selected.evidencias.length;
+    const rx = Math.max(300, (n * (NODE.w + 40)) / (2 * Math.PI) * 1.35);
+    const ry = Math.max(230, rx * 0.65);
 
-    const evidenceNodes: Node[] = selected.evidencias.map((ev, index) => {
-      const angle = selected.evidencias.length === 1
-        ? Math.PI
-        : Math.PI / 2 + (index / (selected.evidencias.length - 1)) * Math.PI;
-      return {
-        id: ev.id, type: "evidence",
-        position: { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius },
-        data: { nome: ev.nome, tipo: ev.tipo, peso: Math.round((ev.pesoCondicional ?? 0) * 100) },
-      };
+    // A conexão liga o par de lados mais próximo entre o cartão e o suspeito (o lado de dentro de cada um).
+    type Side = "top" | "right" | "bottom" | "left";
+    const SUSPECT_SIZE = { w: 258, h: 141 };
+    const nearestSides = (dx: number, dy: number): { ev: Side; su: Side } => {
+      // eixo dominante, considerando o tamanho dos dois cartões (o suspeito é mais largo)
+      const vertical =
+        Math.abs(dy) / (SUSPECT_SIZE.h / 2 + NODE.h / 2) > Math.abs(dx) / (SUSPECT_SIZE.w / 2 + NODE.w / 2);
+      if (vertical) return dy < 0 ? { ev: "bottom", su: "top" } : { ev: "top", su: "bottom" };
+      return dx < 0 ? { ev: "right", su: "left" } : { ev: "left", su: "right" };
+    };
+
+    const placed = selected.evidencias.map((ev, index) => {
+      // começa à esquerda e distribui uniformemente em volta do suspeito
+      const angle = Math.PI + (index / Math.max(n, 1)) * 2 * Math.PI;
+      const dx = Math.cos(angle) * rx;
+      const dy = Math.sin(angle) * ry;
+      return { ev, dx, dy };
     });
 
-    const evidenceEdges: Edge[] = selected.evidencias.map((ev, index) => {
-      const evNode = evidenceNodes[index];
-      let targetHandle = "left";
-      if (evNode.position.y < centerY - 100) targetHandle = "top";
-      else if (evNode.position.y > centerY + 100) targetHandle = "bottom";
-      else if (evNode.position.x > centerX) targetHandle = "right";
-      return {
-        id: `edge-${ev.id}`, type: "vinculo",
-        source: ev.id, target: selected.id, targetHandle,
-        label: `${Math.round(ev.pesoVinculo * 100)}%`,
-      };
-    });
+    const evidenceNodes: Node[] = placed.map(({ ev, dx, dy }) => ({
+      id: ev.id, type: "evidence",
+      position: { x: CENTER.x + dx - NODE.w / 2, y: CENTER.y + dy - NODE.h / 2 },
+      data: {
+        nome: ev.nome, tipo: ev.tipo, peso: Math.round((ev.pesoCondicional ?? 0) * 100),
+        side: nearestSides(dx, dy).ev, // lado do cartão voltado para o suspeito
+      },
+    }));
 
-    setNodes([{ id: selected.id, type: "suspect", position: { x: 800, y: 250 }, data: { nome: selected.nome, fotoUrl: selected.fotoUrl } }, ...evidenceNodes]);
+    const evidenceEdges: Edge[] = placed.map(({ ev, dx, dy }) => ({
+      id: `edge-${ev.id}`, type: "vinculo",
+      source: ev.id, sourceHandle: nearestSides(dx, dy).ev, target: selected.id, targetHandle: nearestSides(dx, dy).su,
+      label: `${ev.efeito === "Inocenta" ? "−" : ""}${Math.round(ev.pesoVinculo * 100)}%`,
+      data: { inocenta: ev.efeito === "Inocenta" },
+    }));
+
+    setNodes([{ id: selected.id, type: "suspect", position: SUSPECT, data: { nome: selected.nome, fotoUrl: selected.fotoUrl } }, ...evidenceNodes]);
     setEdges(evidenceEdges);
   }, [selected]);
 
@@ -139,9 +170,21 @@ export default function Analysis() {
 
           <main className="p-4 md:p-6 space-y-6">
             <div className="h-[520px] w-full overflow-hidden rounded-xl border border-[#2a2a2a]">
-              <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView>
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                fitView
+                onNodeClick={(_, node) => {
+                  if (node.type !== "evidence") return;
+                  const ev = selected?.evidencias.find((e) => e.id === node.id);
+                  if (ev) setOpenEvidence(ev);
+                }}
+              >
+                <AutoFit trigger={`${selected?.id}-${nodes.length}`} />
                 <Background />
-                <Controls />
+                <Controls className="bg-zinc-900! border-zinc-700 [&>button]:bg-zinc-900! [&>button]:border-zinc-700! [&>button]:text-zinc-300! [&>button:hover]:bg-zinc-800!" />
               </ReactFlow>
             </div>
 
@@ -160,6 +203,22 @@ export default function Analysis() {
           </main>
         </div>
       </div>
+
+      {openEvidence && (
+        <ViewEvidenceModal
+          evidence={{
+            id: openEvidence.id,
+            nome: openEvidence.nome,
+            tipo: openEvidence.tipo,
+            status: (openEvidence.status as Evidencia["status"]) ?? "Coletada",
+            dataColeta: openEvidence.dataColeta ?? null,
+            pesoCondicional: openEvidence.pesoCondicional,
+            descricao: openEvidence.descricao ?? null,
+            suspeitos: [],
+          }}
+          onClose={() => setOpenEvidence(null)}
+        />
+      )}
     </div>
   );
 }

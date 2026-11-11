@@ -20,6 +20,10 @@ interface LoginData {
 export function apiErrorMessage(data: unknown, fallback: string): string {
   const detail = (data as { detail?: unknown } | null)?.detail;
   if (typeof detail === "string" && detail.trim()) return detail;
+  if (detail && typeof detail === "object" && !Array.isArray(detail)) {
+    const message = (detail as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
   if (Array.isArray(detail) && detail.length > 0) {
     const first = detail[0] as { msg?: string; loc?: unknown[] };
     const field = Array.isArray(first?.loc) ? String(first.loc[first.loc.length - 1]) : "";
@@ -52,26 +56,60 @@ async function request(path: string, init: RequestInit, fallback: string) {
 
   const data = await readJson(response);
   if (!response.ok) {
-    throw new ApiError(apiErrorMessage(data, fallback), response.status);
+    throw new ApiError(apiErrorMessage(data, fallback), response.status, errorCode(data));
   }
   return data;
 }
 
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  /** Código estável enviado pela API em alguns erros (ex.: "email_nao_confirmado"). */
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
+}
+
+function errorCode(data: unknown): string | undefined {
+  const detail = (data as { detail?: unknown } | null)?.detail;
+  const code = detail && typeof detail === "object" ? (detail as { code?: unknown }).code : undefined;
+  return typeof code === "string" ? code : undefined;
 }
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
+export interface RegisterResult {
+  /** A conta só entra depois de confirmar o e-mail. */
+  verificacaoNecessaria?: boolean;
+  /** O e-mail com o link saiu; se false, a pessoa pode pedir o reenvio. */
+  emailEnviado?: boolean;
+}
+
 export async function registerUser(userData: RegisterUserData) {
-  return request(
+  return (await request(
     "/users/",
     { method: "POST", headers: JSON_HEADERS, body: JSON.stringify(userData) },
     "Não foi possível concluir o cadastro.",
+  )) as RegisterResult;
+}
+
+/** Confirma o e-mail com o token recebido no link. */
+export async function verifyEmail(token: string) {
+  return request(
+    "/users/verify-email",
+    { method: "POST", headers: JSON_HEADERS, body: JSON.stringify({ token }) },
+    "Não foi possível confirmar o e-mail.",
+  );
+}
+
+/** Pede um novo link de confirmação (a resposta é a mesma exista a conta ou não). */
+export async function resendVerification(email: string) {
+  return request(
+    "/users/resend-verification",
+    { method: "POST", headers: JSON_HEADERS, body: JSON.stringify({ email }) },
+    "Não foi possível reenviar o e-mail.",
   );
 }
 

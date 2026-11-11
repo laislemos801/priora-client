@@ -1,14 +1,20 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiMail, FiLock } from "react-icons/fi";
-import { loginUser } from "@/routes/user";
+import { ApiError, loginUser, resendVerification } from "@/routes/user";
 import AuthLayout, { AUTH_LINK } from "@/components/auth/AuthLayout";
 import { AuthField, PasswordField } from "@/components/auth/AuthField";
 import SubmitButton from "@/components/auth/SubmitButton";
 import FormAlert from "@/components/auth/FormAlert";
 import { isValid, validateEmail, validateRequired } from "@/components/auth/validation";
 
-type LoginState = { registered?: boolean; passwordReset?: boolean; email?: string } | null;
+type LoginState = {
+  registered?: boolean;
+  passwordReset?: boolean;
+  email?: string;
+  verifyEmail?: boolean;
+  emailEnviado?: boolean;
+} | null;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,6 +26,9 @@ export default function Login() {
   const [errors, setErrors] = useState<{ email?: string; senha?: string }>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // conta criada (ou tentativa de login) com e-mail ainda não confirmado
+  const [pendingVerification, setPendingVerification] = useState(!!state?.verifyEmail);
+  const [resend, setResend] = useState<{ sending: boolean; message?: string; failed?: boolean }>({ sending: false });
 
   function validate() {
     const next = {
@@ -42,12 +51,39 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/mycases");
     } catch (error) {
+      if (error instanceof ApiError && error.code === "email_nao_confirmado") {
+        setPendingVerification(true);
+        setResend({ sending: false });
+      }
       setServerError(error instanceof Error ? error.message : "Não foi possível entrar.");
       setSubmitting(false);
     }
   }
 
-  const notice = state?.registered
+  async function handleResend() {
+    const target = email.trim();
+    if (validateEmail(target)) {
+      setErrors((p) => ({ ...p, email: validateEmail(target) }));
+      return;
+    }
+    setResend({ sending: true });
+    try {
+      await resendVerification(target);
+      setResend({ sending: false, message: "Se a conta existir e estiver pendente, enviamos um novo link." });
+    } catch (error) {
+      setResend({
+        sending: false,
+        failed: true,
+        message: error instanceof Error ? error.message : "Não foi possível reenviar o e-mail.",
+      });
+    }
+  }
+
+  const notice = state?.verifyEmail
+    ? state.emailEnviado === false
+      ? "Conta criada, mas não conseguimos enviar o e-mail de confirmação. Peça um novo link abaixo."
+      : "Conta criada! Enviamos um link de confirmação para o seu e-mail. Confirme para poder entrar."
+    : state?.registered
     ? "Conta criada! Entre com seu e-mail e senha."
     : state?.passwordReset
       ? "Senha redefinida. Entre com a nova senha."
@@ -69,6 +105,22 @@ export default function Login() {
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
         {notice && !serverError && <FormAlert variant="success">{notice}</FormAlert>}
         {serverError && <FormAlert>{serverError}</FormAlert>}
+
+        {pendingVerification && (
+          <div className="flex flex-col gap-2 text-sm text-white/70">
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resend.sending}
+              className={`${AUTH_LINK} self-start text-left disabled:opacity-60`}
+            >
+              {resend.sending ? "Enviando..." : "Reenviar e-mail de confirmação"}
+            </button>
+            {resend.message && (
+              <FormAlert variant={resend.failed ? "error" : "success"}>{resend.message}</FormAlert>
+            )}
+          </div>
+        )}
 
         <AuthField
           label="E-mail"

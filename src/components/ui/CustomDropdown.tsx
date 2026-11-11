@@ -17,6 +17,9 @@ type CustomDropdownProps = {
   value: string;
   onChange: (name: string, value: string) => void;
   menuClassName?: string;
+  /** Mostra um campo de busca no topo da lista (útil com muitas opções, ex.: cidades). */
+  searchable?: boolean;
+  disabled?: boolean;
 };
 
 export default function CustomDropdown({
@@ -26,12 +29,21 @@ export default function CustomDropdown({
   value,
   onChange,
   menuClassName,
+  searchable = false,
+  disabled = false,
 }: CustomDropdownProps) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
   const ref = useRef<HTMLDivElement>(null);
 
   const selected = options.find((o) => o.value === value);
+
+  const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const visible =
+    searchable && query.trim()
+      ? options.filter((o) => normalize(`${o.label} ${o.meta ?? ""}`).includes(normalize(query.trim())))
+      : options;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -52,6 +64,8 @@ export default function CustomDropdown({
   }, []);
 
   const handleToggle = () => {
+    if (disabled) return;
+    setQuery("");
     if (!open && ref.current) {
       const rect = ref.current.getBoundingClientRect();
       setMenuStyle({
@@ -72,10 +86,12 @@ export default function CustomDropdown({
       <button
         type="button"
         onClick={handleToggle}
+        disabled={disabled}
         className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-md border transition-colors text-left
           bg-[#282828] border-[#434343]
           ${open ? "rounded-b-none border-[#606060]" : "hover:border-[#606060]"}
           text-[#A6A6A6]
+          ${disabled ? "cursor-not-allowed opacity-50" : ""}
         `}
       >
         <span className="flex items-center gap-2 truncate">
@@ -114,7 +130,21 @@ export default function CustomDropdown({
           style={menuStyle}
           className={`bg-[#282828] border border-t-0 border-[#606060] rounded-b-md max-h-40 overflow-y-auto ${menuClassName ?? ""}`}
         >
-          {options.map((opt) => (
+          {searchable && (
+            <div className="sticky top-0 border-b border-[#3a3a3a] bg-[#282828] p-2">
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full rounded border border-[#434343] bg-[#1f1f1f] px-2 py-1.5 text-sm text-[#d0d0d0] outline-none placeholder:text-[#777] focus:border-[#606060]"
+              />
+            </div>
+          )}
+          {visible.length === 0 && (
+            <p className="px-3 py-2 text-sm text-[#777]">Nenhum resultado</p>
+          )}
+          {visible.map((opt) => (
             <button
               key={opt.value}
               type="button"

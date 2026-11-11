@@ -1,4 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import Spinner from "@/components/ui/Spinner";
+import { usePendingClick } from "@/hooks/usePendingClick";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
@@ -17,19 +19,7 @@ const VARIANTS = {
     "text-white/85 border border-[#434343] bg-transparent hover:border-[#606060] hover:bg-[#2B2B2B] disabled:hover:bg-transparent disabled:hover:border-[#434343]",
 };
 
-export function Spinner({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      className={`size-4 animate-spin ${className}`}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.3" strokeWidth="3" />
-      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-    </svg>
-  );
-}
+export { Spinner };
 
 /** Botão principal (gradiente verde do app) com estado de carregamento. */
 export default function SubmitButton({
@@ -41,11 +31,17 @@ export default function SubmitButton({
   type = "submit",
   variant = "primary",
   className = "",
+  onClick,
   ...rest
 }: Props) {
+  // botão type="button" com onClick assíncrono também mostra o carregamento sozinho
+  const { pending, handleClick } = usePendingClick(onClick);
+  loading = loading || pending;
+
   return (
     <button
       type={type}
+      onClick={onClick ? handleClick : undefined}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={[

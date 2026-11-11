@@ -30,6 +30,7 @@ import type { HistoryApiItem } from "@/lib/history";
 import { getEstimatedProfile } from "@/services/profilingService";
 import type { ProfileValues } from "@/components/profiling/types";
 import type { InvestigativeAction } from "@/components/priority/types";
+import { confirmDialog } from "@/lib/confirmDialog";
 
 export default function CaseOverview() {
   const { id } = useParams();
@@ -106,9 +107,9 @@ export default function CaseOverview() {
   async function handleDeleteCase() {
     if (!id) return;
 
-    const confirmed = confirm(
-      "Deseja excluir este caso permanentemente?"
-    );
+    const confirmed = await confirmDialog("Deseja excluir este caso permanentemente?", {
+      confirmLabel: "Excluir caso",
+    });
 
     if (!confirmed) return;
 
@@ -278,15 +279,13 @@ export default function CaseOverview() {
                 canEdit={canEdit}
                 />
                 <MapCard
-                  endereco={[
-                    caseData?.enderecoLogradouro,
-                    caseData?.enderecoNumero,
-                    caseData?.enderecoBairro,
-                    caseData?.enderecoCidade,
-                    caseData?.enderecoEstado,
-                  ]
-                    .filter(Boolean)
-                    .join(", ")}
+                  local={{
+                    logradouro: caseData?.enderecoLogradouro,
+                    numero: caseData?.enderecoNumero,
+                    bairro: caseData?.enderecoBairro,
+                    cidade: caseData?.enderecoCidade,
+                    estado: caseData?.enderecoEstado,
+                  }}
                 />
               </div>
 

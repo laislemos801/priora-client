@@ -21,6 +21,7 @@ import type { AccessRow, CaseData, ContactRow, EvidenceRow, ReportData, SuspectR
 import { getEstimatedProfile } from "@/services/profilingService";
 import { PROFILE_AXES } from "@/components/profiling/types";
 import type { InvestigativeAction } from "@/components/priority/types";
+import LoadingButton from "@/components/ui/LoadingButton";
 
 // ============================================================
 // BLOCOS DO RELATÓRIO
@@ -183,20 +184,20 @@ export default function ExportReport() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button
+          <LoadingButton
             type="button"
             onClick={handleCsv}
             className="inline-flex items-center gap-2 rounded-md border border-[#434343] bg-[#2B2B2B] px-3 py-2 text-xs text-white hover:border-[#606060]"
           >
             <FiDownload size={14} /> Baixar CSV
-          </button>
-          <button
+          </LoadingButton>
+          <LoadingButton
             type="button"
             onClick={handlePrint}
             className="inline-flex items-center gap-2 rounded-md bg-[#139C73] px-3 py-2 text-xs font-medium text-white hover:bg-[#0f8663]"
           >
             <FiPrinter size={14} /> Imprimir / Salvar PDF
-          </button>
+          </LoadingButton>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import Recover from "./pages/recover";
 import EmailSend from "./pages/recover/email-send";
 import NewPassword from "./pages/recover/new-password";
 import UpdatedPassword from "./pages/recover/updated-password";
+import VerifyEmail from "./pages/verify-email";
 import PrivateRoute from "./routes/PrivateRoute";
 
 import Home from "./pages/mycases";
@@ -59,6 +60,7 @@ function App() {
         {/* públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/recover" element={<Recover />} />
         <Route path="/recover/email-send" element={<EmailSend />} />
         <Route path="/recover/new-password" element={<NewPassword />} />
@@ -87,7 +89,8 @@ function App() {
             <Route path="evidenceBoard" element={<EvidenceBoard />} />
             <Route path="priority" element={<Priority />} />
             {/* O contato é geral (sidebar → Contato); o endereço antigo continua funcionando */}
-            <Route path="help" element={<Navigate to="/contact" replace />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="help" element={<Navigate to="../contact" replace />} />
             {/* Uso responsável: dentro do caso mantém o menu do caso; fora dele, é geral */}
             <Route path="responsible-use" element={<ResponsibleUse />} />
             <Route path="history" element={<History />} />
