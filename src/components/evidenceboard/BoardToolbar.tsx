@@ -71,6 +71,7 @@ export default function BoardToolbar({
 
       <div className="ml-auto flex items-center gap-1">
         <LoadingButton
+          iconOnly
           onClick={onSave}
           disabled={isSaving}
           title="Salvar quadro"
@@ -79,6 +80,7 @@ export default function BoardToolbar({
           <Save className="size-5 md:size-[22px]" />
         </LoadingButton>
         <LoadingButton
+          iconOnly
           onClick={onDeleteSelected}
           title="Excluir selecionado"
           className="p-1.5 md:p-2 rounded-md hover:bg-red-950 text-red-500"

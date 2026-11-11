@@ -63,14 +63,34 @@ export default function Analysis() {
     if (!selected) return;
 
     const centerX = 700, centerY = 250, radius = 250;
+    const n = selected.evidencias.length;
+
+    // Até 5 evidências: semicírculo à esquerda do suspeito. Com mais que isso os cartões
+    // (~190x120 px) se sobrepõem no arco, então vão para colunas lado a lado, uma abaixo da outra.
+    const PER_COLUMN = 5, ROW_GAP = 150, COL_GAP = 250;
+    const columns = Math.ceil(n / PER_COLUMN);
+    const perColumn = Math.ceil(n / columns);
 
     const evidenceNodes: Node[] = selected.evidencias.map((ev, index) => {
-      const angle = selected.evidencias.length === 1
-        ? Math.PI
-        : Math.PI / 2 + (index / (selected.evidencias.length - 1)) * Math.PI;
+      let position: { x: number; y: number };
+      if (n <= PER_COLUMN) {
+        const angle = n === 1
+          ? Math.PI
+          : Math.PI / 2 + (index / (n - 1)) * Math.PI;
+        position = { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius };
+      } else {
+        const col = Math.floor(index / perColumn);
+        const row = index % perColumn;
+        const inColumn = Math.min(perColumn, n - col * perColumn);
+        position = {
+          x: 800 - 320 - col * COL_GAP,
+          // centraliza cada coluna na altura do suspeito; colunas alternadas ficam meio passo deslocadas
+          y: centerY - ((inColumn - 1) * ROW_GAP) / 2 + row * ROW_GAP + (col % 2) * (ROW_GAP / 2),
+        };
+      }
       return {
         id: ev.id, type: "evidence",
-        position: { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius },
+        position,
         data: { nome: ev.nome, tipo: ev.tipo, peso: Math.round((ev.pesoCondicional ?? 0) * 100) },
       };
     });
@@ -78,7 +98,8 @@ export default function Analysis() {
     const evidenceEdges: Edge[] = selected.evidencias.map((ev, index) => {
       const evNode = evidenceNodes[index];
       let targetHandle = "left";
-      if (evNode.position.y < centerY - 100) targetHandle = "top";
+      if (n > PER_COLUMN) targetHandle = "left";
+      else if (evNode.position.y < centerY - 100) targetHandle = "top";
       else if (evNode.position.y > centerY + 100) targetHandle = "bottom";
       else if (evNode.position.x > centerX) targetHandle = "right";
       return {
@@ -141,7 +162,7 @@ export default function Analysis() {
             <div className="h-[520px] w-full overflow-hidden rounded-xl border border-[#2a2a2a]">
               <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView>
                 <Background />
-                <Controls />
+                <Controls className="bg-zinc-900! border-zinc-700 [&>button]:bg-zinc-900! [&>button]:border-zinc-700! [&>button]:text-zinc-300! [&>button:hover]:bg-zinc-800!" />
               </ReactFlow>
             </div>
 
