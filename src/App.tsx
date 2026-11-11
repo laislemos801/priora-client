@@ -89,7 +89,8 @@ function App() {
             <Route path="evidenceBoard" element={<EvidenceBoard />} />
             <Route path="priority" element={<Priority />} />
             {/* O contato é geral (sidebar → Contato); o endereço antigo continua funcionando */}
-            <Route path="help" element={<Navigate to="/contact" replace />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="help" element={<Navigate to="../contact" replace />} />
             {/* Uso responsável: dentro do caso mantém o menu do caso; fora dele, é geral */}
             <Route path="responsible-use" element={<ResponsibleUse />} />
             <Route path="history" element={<History />} />

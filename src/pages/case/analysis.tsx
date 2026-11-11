@@ -86,21 +86,13 @@ export default function Analysis() {
 
     // A conexão liga o par de lados mais próximo entre o cartão e o suspeito (o lado de dentro de cada um).
     type Side = "top" | "right" | "bottom" | "left";
-    const SIDE_OFFSETS = (w: number, h: number): Record<Side, [number, number]> => ({
-      top: [0, -h / 2], right: [w / 2, 0], bottom: [0, h / 2], left: [-w / 2, 0],
-    });
     const SUSPECT_SIZE = { w: 258, h: 141 };
     const nearestSides = (dx: number, dy: number): { ev: Side; su: Side } => {
-      const evOff = SIDE_OFFSETS(NODE.w, NODE.h);
-      const suOff = SIDE_OFFSETS(SUSPECT_SIZE.w, SUSPECT_SIZE.h);
-      let best = { ev: "left" as Side, su: "right" as Side, d: Infinity };
-      for (const ev of Object.keys(evOff) as Side[]) {
-        for (const su of Object.keys(suOff) as Side[]) {
-          const d = Math.hypot(dx + evOff[ev][0] - suOff[su][0], dy + evOff[ev][1] - suOff[su][1]);
-          if (d < best.d) best = { ev, su, d };
-        }
-      }
-      return best;
+      // eixo dominante, considerando o tamanho dos dois cartões (o suspeito é mais largo)
+      const vertical =
+        Math.abs(dy) / (SUSPECT_SIZE.h / 2 + NODE.h / 2) > Math.abs(dx) / (SUSPECT_SIZE.w / 2 + NODE.w / 2);
+      if (vertical) return dy < 0 ? { ev: "bottom", su: "top" } : { ev: "top", su: "bottom" };
+      return dx < 0 ? { ev: "right", su: "left" } : { ev: "left", su: "right" };
     };
 
     const placed = selected.evidencias.map((ev, index) => {

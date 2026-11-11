@@ -1,7 +1,7 @@
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  getSmoothStepPath,
+  getStraightPath,
 } from "reactflow";
 
 export default function VinculoEdge({
@@ -10,21 +10,13 @@ export default function VinculoEdge({
   sourceY,
   targetX,
   targetY,
-  sourcePosition,
-  targetPosition,
   label,
 }: any) {
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-
-    targetX,
-    targetY,
-    targetPosition,
-
-    borderRadius: 0,
-  });
+  const [edgePath] = getStraightPath({ sourceX, sourceY, targetX, targetY });
+  // o percentual fica perto do cartão da evidência (as ligações convergem no suspeito e se
+  // cruzariam no meio do caminho)
+  const labelX = sourceX + (targetX - sourceX) * 0.28;
+  const labelY = sourceY + (targetY - sourceY) * 0.28;
 
   return (
     <>
@@ -42,10 +34,10 @@ export default function VinculoEdge({
         <div
           style={{
             position: "absolute",
-            transform: `translate(-50%, -50%) translate(${labelX + 20}px, ${labelY - 12}px)`,
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             pointerEvents: "none",
           }}
-          className="text-sm font-bold text-[#139C73]"
+          className="rounded bg-[#1e1e1e] px-1 text-xs font-bold text-[#139C73]"
         >
           {label}
         </div>

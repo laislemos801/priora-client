@@ -29,6 +29,13 @@ function useNavContext(
       };
     }
 
+    if (pathname.split("/")[3] === "contact") {
+      return {
+        crumbs: [cases, caseCrumb, { label: GENERAL_PAGES.contact.label }],
+        back: { to: `/case/${caseId}`, label: "Voltar para o painel do caso" },
+      };
+    }
+
     const atDashboard = !section || section.path === "";
 
     if (atDashboard) {
