@@ -90,10 +90,6 @@ export default function SuspectModal({
       toast.error("Informe o nome do suspeito.");
       return;
     }
-    if (!idade.trim()) {
-      toast.error("Informe a idade do suspeito.");
-      return;
-    }
 
     let uploadedPhotoUrl: string | null = null;
 
@@ -179,7 +175,7 @@ export default function SuspectModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-xs text-white/65">Idade<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
+            <label className="mb-1 block text-xs text-white/65">Idade</label>
 
             <input
               value={idade}
@@ -223,7 +219,7 @@ export default function SuspectModal({
 
         <div className="mt-4">
           <label className="mb-1 flex items-center justify-between text-xs text-white/65">
-            <span>Descrição (opcional)</span>
+            <span>Descrição</span>
             <span className="text-white/40">{descricao.length}/1000</span>
           </label>
           <textarea

@@ -341,7 +341,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
             {/* COLUNA DIREITA */}
             <div>
-              <label className={LABEL}>Fonte (opcional)</label>
+              <label className={LABEL}>Fonte</label>
               <input
                 name="fonte"
                 value={form.fonte}

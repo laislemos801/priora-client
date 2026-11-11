@@ -6,6 +6,7 @@ import SecondaryButton from "../ui/SecondaryButton";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
 import { confirmDialog } from "@/lib/confirmDialog";
+import LoadingButton from "@/components/ui/LoadingButton";
 
 type AccessUser = {
   usuario: {
@@ -228,12 +229,12 @@ export default function AccessCard({ casoId, canInvite = false, isOwner = false 
                       <Edit size={14} />
                     </button>
 
-                    <button
+                    <LoadingButton iconOnly
                       onClick={() => handleDeleteAccess(user.usuario.id)}
                       className="rounded-full bg-[#3A3A3A] p-2 text-red-400/70 hover:text-red-400"
                     >
                       <Trash2 size={14} />
-                    </button>
+                    </LoadingButton>
                   </div>
                 )
               ) : (
@@ -362,12 +363,12 @@ export default function AccessCard({ casoId, canInvite = false, isOwner = false 
                 Cancelar
               </button>
 
-              <button
+              <LoadingButton
                 onClick={handleInvite}
                 className="bg-[#139C73] w-full text-white hover:bg-[#139C73]/80 transition text-sm px-4 py-2 rounded-md"
               >
                 Enviar
-              </button>
+              </LoadingButton>
             </div>
           </div>
         </div>
@@ -453,12 +454,12 @@ export default function AccessCard({ casoId, canInvite = false, isOwner = false 
                 Cancelar
               </button>
 
-              <button
+              <LoadingButton
                 onClick={handleUpdateAccess}
                 className="w-full rounded-md bg-[#139C73] px-4 py-2 text-sm text-white transition hover:bg-[#139C73]/80"
               >
                 Salvar
-              </button>
+              </LoadingButton>
             </div>
           </div>
         </div>

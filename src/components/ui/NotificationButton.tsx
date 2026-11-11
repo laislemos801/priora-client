@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 import { apiFetch } from "@/lib/api";
 import { timeAgo } from "@/lib/history";
+import LoadingButton from "@/components/ui/LoadingButton";
 
 type NotificationType =
   | "CONVITE"
@@ -167,12 +168,12 @@ export default function NotificationButton() {
           <div className="flex items-center justify-between border-b border-[#3a3a3a] p-3 text-sm font-semibold text-white">
             <span>Notificações</span>
             {unread > 0 && (
-              <button
+              <LoadingButton
                 onClick={markAllRead}
                 className="text-xs font-normal text-[#139C73] hover:underline"
               >
                 Marcar todas como lidas
-              </button>
+              </LoadingButton>
             )}
           </div>
 
@@ -211,20 +212,20 @@ export default function NotificationButton() {
 
                     {pendingInvite && (
                       <div className="mt-2 flex gap-2 pl-4">
-                        <button
+                        <LoadingButton
                           disabled={busyId === n.id}
                           onClick={() => answerInvite(n, true)}
                           className="rounded-md bg-[#139C73] px-3 py-1 text-xs font-medium text-white hover:bg-[#0f8663] disabled:opacity-50"
                         >
                           Aceitar
-                        </button>
-                        <button
+                        </LoadingButton>
+                        <LoadingButton
                           disabled={busyId === n.id}
                           onClick={() => answerInvite(n, false)}
                           className="rounded-md border border-[#575757] px-3 py-1 text-xs text-gray-200 hover:bg-[#3f3f3f] disabled:opacity-50"
                         >
                           Recusar
-                        </button>
+                        </LoadingButton>
                       </div>
                     )}
                   </div>
