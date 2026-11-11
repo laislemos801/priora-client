@@ -341,10 +341,10 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
                               title={ef === "Incrimina" ? "A evidência aponta para este suspeito" : "A evidência afasta este suspeito (álibi, contradição)"}
                               onClick={() => updateSuspectEfeito(s.id, ef)}
                               className={`px-2 py-1 transition-colors ${
-                                // Incrimina é sempre vermelho e Inocenta sempre verde; o selecionado fica preenchido
-                                ef === "Incrimina"
-                                  ? s.efeito === ef ? "bg-red-500/80 text-white" : "bg-red-500/[0.04] text-red-300 hover:bg-red-500/15"
-                                  : s.efeito === ef ? "bg-[#139C73] text-white" : "bg-[#139C73]/10 text-[#18C18A] hover:bg-[#139C73]/25"
+                                // só o selecionado ganha cor: Incrimina em vermelho, Inocenta em verde
+                                s.efeito === ef
+                                  ? ef === "Incrimina" ? "bg-red-500/80 text-white" : "bg-[#139C73] text-white"
+                                  : "bg-[#1e1e1e] text-[#999] hover:text-white"
                               }`}
                             >
                               {ef}
