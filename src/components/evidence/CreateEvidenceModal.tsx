@@ -216,7 +216,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
         <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
 
           <div>
-            <label className={LABEL}>Nome evidência</label>
+            <label className={LABEL}>Nome evidência<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
             <input
               name="nome"
               value={form.nome}
@@ -227,12 +227,12 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
           </div>
 
           <div>
-            <label className={LABEL}>Tipo de evidência</label>
+            <label className={LABEL}>Tipo de evidência<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
             <CustomDropdown name="tipo" placeholder="Tipo" options={TIPO_OPTIONS} value={form.tipo} onChange={handleDropdown} />
           </div>
 
           <div>
-            <label className={LABEL}>Status</label>
+            <label className={LABEL}>Status<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
             <CustomDropdown name="status" placeholder="Status" options={STATUS_OPTIONS} value={form.status} onChange={handleDropdown} />
           </div>
 
@@ -240,13 +240,13 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
             <div className="flex flex-col gap-4">
 
               <div>
-                <label className={LABEL}>Data de coleta</label>
+                <label className={LABEL}>Data de coleta<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
                 <DatePicker name="data" value={form.data} onChange={handleDropdown} />
               </div>
 
               <div>
                 <div className="mb-1.5 flex items-center gap-1.5">
-                  <label className={LABEL.replace("block mb-1.5", "")}>Peso (entre 0 e 1, exclusivo)</label>
+                  <label className={LABEL.replace("block mb-1.5", "")}>Peso (entre 0 e 1, exclusivo)<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
                   <EvidenceWeightHint />
                 </div>
                 <input
@@ -262,7 +262,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
               {/* Suspeitos */}
               <div>
-                <label className={LABEL}>Suspeito(s)</label>
+                <label className={LABEL}>Suspeito(s)<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
                 <div className="bg-[#282828] border border-[#434343] rounded-md">
                   <button
                     type="button"
@@ -365,6 +365,9 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
         {/* FOOTER */}
         <div className="flex flex-col items-end gap-2 px-5 py-4 border-t border-[#2e2e2e]">
+          <p className="mr-auto text-[11px] text-[#888]">
+            <span className="text-red-400">*</span> Campos obrigatórios
+          </p>
           {error && <p className={ERROR_CLASS}>{error}</p>}
           <PrimaryButton onClick={handleSubmit}>
             {loading ? "Salvando..." : isEdit ? "Salvar alterações" : "Salvar"}
