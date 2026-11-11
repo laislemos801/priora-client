@@ -83,9 +83,21 @@ const LAST_CASE_KEY = "priora:lastCase";
 
 export type LastCase = { id: string; name: string };
 
+/** Cada usuário tem o seu atalho: trocar de conta no mesmo navegador não mostra o caso do outro. */
+function lastCaseKey(): string | null {
+  try {
+    const id = (JSON.parse(localStorage.getItem("user") || "{}") as { id?: string }).id;
+    return id ? `${LAST_CASE_KEY}:${id}` : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getLastCase(): LastCase | null {
   try {
-    const raw = localStorage.getItem(LAST_CASE_KEY);
+    const key = lastCaseKey();
+    if (!key) return null;
+    const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as LastCase) : null;
   } catch {
     return null;
@@ -94,9 +106,13 @@ export function getLastCase(): LastCase | null {
 
 export function setLastCase(value: LastCase | null) {
   try {
-    if (value) localStorage.setItem(LAST_CASE_KEY, JSON.stringify(value));
-    else localStorage.removeItem(LAST_CASE_KEY);
+    const key = lastCaseKey();
+    if (!key) return;
+    localStorage.removeItem(LAST_CASE_KEY); // chave global antiga, de antes de ser por usuário
+    if (value) localStorage.setItem(key, JSON.stringify(value));
+    else localStorage.removeItem(key);
   } catch {
     /* armazenamento indisponível: o atalho só não aparece */
   }
 }
+
