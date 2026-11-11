@@ -169,7 +169,7 @@ export function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; 
                     <span
                       key={s.id}
                       className={`text-xs px-3 py-1 rounded-full ${
-                        s.efeito === "Inocenta" ? "bg-red-500/15 text-red-300" : "bg-[#139C73]/15 text-[#139C73]"
+                        s.efeito === "Inocenta" ? "bg-[#139C73]/15 text-[#139C73]" : "bg-red-500/15 text-red-300"
                       }`}
                     >
                       {s.nome}

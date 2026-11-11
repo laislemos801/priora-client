@@ -25,7 +25,7 @@ export default function VinculoEdge({
         id={id}
         path={edgePath}
         style={{
-            stroke: data?.inocenta ? "#f87171" : "#d3d3d3",
+            stroke: data?.inocenta ? "#139C73" : "#f87171",
             strokeWidth: 2,
             strokeDasharray: "6 6",
         }}
@@ -38,7 +38,7 @@ export default function VinculoEdge({
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             pointerEvents: "none",
           }}
-          className={`rounded bg-[#1e1e1e] px-1 text-xs font-bold ${data?.inocenta ? "text-red-300" : "text-[#139C73]"}`}
+          className={`rounded bg-[#1e1e1e] px-1 text-xs font-bold ${data?.inocenta ? "text-[#18C18A]" : "text-red-300"}`}
         >
           {label}
         </div>

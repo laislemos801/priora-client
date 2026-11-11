@@ -10,10 +10,10 @@ export default function EvidenceSection({ evidencias }: Props) {
 
       <div className="mb-4 rounded-lg border border-[#333] bg-[#2A2A2A] p-4">
         <div className="text-sm font-medium text-white mb-2">Fórmula de Contribuição</div>
-        <div className="text-sm text-[#139C73]">
+        <div className="text-sm text-red-300">
           Incrimina: 1 + (Peso Evidência × Peso Vínculo × Fator de Exclusividade)
         </div>
-        <div className="mt-1 text-sm text-red-300">
+        <div className="mt-1 text-sm text-[#139C73]">
           Inocenta: 1 ÷ (1 + Peso Evidência × Peso Vínculo)
         </div>
         <div className="mt-3 text-xs text-gray-400 space-y-1">
@@ -38,13 +38,13 @@ export default function EvidenceSection({ evidencias }: Props) {
                   <div className="text-xs text-gray-400">
                     {ev.tipo}
                     {exculpatory && (
-                      <span className="ml-2 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-medium text-red-300">
+                      <span className="ml-2 rounded-full bg-[#139C73]/15 px-2 py-0.5 text-[10px] font-medium text-[#18C18A]">
                         Inocenta
                       </span>
                     )}
                   </div>
                 </div>
-                <div className={`font-semibold ${exculpatory ? "text-red-300" : "text-[#139C73]"}`}>{contribution.toFixed(2)}</div>
+                <div className={`font-semibold ${exculpatory ? "text-[#139C73]" : "text-red-300"}`}>{contribution.toFixed(2)}</div>
               </div>
 
               <div className="mt-3 text-xs text-gray-400">
@@ -60,7 +60,7 @@ export default function EvidenceSection({ evidencias }: Props) {
                   ? `1 ÷ (1 + ${ev.pesoCondicional.toFixed(2)} × ${ev.pesoVinculo.toFixed(2)})`
                   : `1 + (${ev.pesoCondicional.toFixed(2)} × ${ev.pesoVinculo.toFixed(2)} × 1/${competitors})`}
               </div>
-              <div className={`mt-1 text-sm font-medium ${exculpatory ? "text-red-300" : "text-[#139C73]"}`}>
+              <div className={`mt-1 text-sm font-medium ${exculpatory ? "text-[#139C73]" : "text-red-300"}`}>
                 = {contribution.toFixed(2)}
               </div>
             </div>
