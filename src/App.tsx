@@ -7,6 +7,7 @@ import Recover from "./pages/recover";
 import EmailSend from "./pages/recover/email-send";
 import NewPassword from "./pages/recover/new-password";
 import UpdatedPassword from "./pages/recover/updated-password";
+import VerifyEmail from "./pages/verify-email";
 import PrivateRoute from "./routes/PrivateRoute";
 
 import Home from "./pages/mycases";
@@ -59,6 +60,7 @@ function App() {
         {/* públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/recover" element={<Recover />} />
         <Route path="/recover/email-send" element={<EmailSend />} />
         <Route path="/recover/new-password" element={<NewPassword />} />

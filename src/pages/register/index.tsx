@@ -74,7 +74,7 @@ export default function Register() {
         return;
       }
 
-      await registerUser({
+      const result = await registerUser({
         email: form.email.trim(),
         primeiroNome: form.primeiroNome.trim(),
         sobrenome: form.sobrenome.trim(),
@@ -82,7 +82,15 @@ export default function Register() {
       });
 
       toast.success("Conta criada com sucesso!");
-      navigate("/login", { state: { registered: true, email: form.email.trim() } });
+      navigate("/login", {
+        state: {
+          registered: true,
+          email: form.email.trim(),
+          // com confirmação exigida, o login avisa para olhar o e-mail e oferece o reenvio
+          verifyEmail: !!result?.verificacaoNecessaria,
+          emailEnviado: result?.emailEnviado !== false,
+        },
+      });
     } catch (error) {
       setServerError(error instanceof Error ? error.message : "Não foi possível concluir o cadastro.");
       setSubmitting(false);
