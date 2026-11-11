@@ -5,7 +5,7 @@ import {
   FileText,
   Video,
   Microscope,
-  File,
+  File, Lightbulb, History, ClipboardCheck, Phone, Activity
 } from "lucide-react";
 
 import { Handle, Position } from "reactflow";
@@ -26,6 +26,11 @@ const tipoIconMap: Record<string, React.ReactNode> = {
   Audiovisual: <Video size={16} className="text-[#139C73]" />,
   Biológica: <Microscope size={16} className="text-[#139C73]" />,
   Física: <File size={16} className="text-[#139C73]" />,
+  Motivação: <Lightbulb size={16} className="text-[#139C73]" />,
+  Antecedente: <History size={16} className="text-[#139C73]" />,
+  Pericial: <ClipboardCheck size={16} className="text-[#139C73]" />,
+  Telefônica: <Phone size={16} className="text-[#139C73]" />,
+  Comportamento: <Activity size={16} className="text-[#139C73]" />,
 };
 
 export default function EvidenceNode({ data }: Props) {

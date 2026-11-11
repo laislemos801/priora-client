@@ -5,9 +5,10 @@ import DatePicker from "../ui/DatePicker";
 import { Checkbox } from "../../../@/components/ui/checkbox";
 import type { EvidenceFilters } from "../../pages/case/evidence";
 import { apiFetch } from "@/lib/api";
+import { TIPOS_PADRAO, TIPO_OUTRA } from "./tipos";
 
 const STATUS_VALUES = ["Coletada", "Enviada a perícia", "Em análise", "Custodiada", "Descartada"];
-const TIPO_VALUES   = ["Digital", "DNA", "Depoimento", "Documental", "Física", "Audiovisual", "Biológica"];
+const TIPO_VALUES   = [...TIPOS_PADRAO, TIPO_OUTRA];
 
 type Suspect = { id: string; nome: string };
 

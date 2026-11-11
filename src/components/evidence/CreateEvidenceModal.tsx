@@ -9,6 +9,7 @@ import { IoMdArrowDropdown } from "react-icons/io";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
 import { EvidenceWeightHint, LinkWeightHint } from "./WeightHints";
+import { TIPOS_PADRAO, TIPO_OUTRA, TIPO_MAX, isTipoPersonalizado } from "./tipos";
 
 const STATUS_OPTIONS = [
   { value: "Coletada",          label: "Coletada"          },
@@ -19,13 +20,8 @@ const STATUS_OPTIONS = [
 ];
 
 const TIPO_OPTIONS = [
-  { value: "Digital",     label: "Digital"     },
-  { value: "DNA",         label: "DNA"         },
-  { value: "Depoimento",  label: "Depoimento"  },
-  { value: "Documental",  label: "Documental"  },
-  { value: "Física",      label: "Física"      },
-  { value: "Audiovisual", label: "Audiovisual" },
-  { value: "Biológica",   label: "Biológica"   },
+  ...TIPOS_PADRAO.map((v) => ({ value: v, label: v })),
+  { value: TIPO_OUTRA, label: "Outra (personalizada)" },
 ];
 
 const LABEL     = "text-[11px] font-medium text-[#888] uppercase tracking-widest block mb-1.5";
@@ -61,7 +57,8 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
   const [form, setForm] = useState({
     nome:        evidence?.nome               ?? "",
-    tipo:        evidence?.tipo               ?? "",
+    tipo:        isTipoPersonalizado(evidence?.tipo) ? TIPO_OUTRA : evidence?.tipo ?? "",
+    tipoOutro:   isTipoPersonalizado(evidence?.tipo) ? evidence?.tipo ?? "" : "",
     status:      evidence?.status             ?? "",
     descricao:   evidence?.descricao          ?? "",
     fonte:       evidence?.fonte              ?? "",
@@ -120,9 +117,11 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
   const handleSubmit = async () => {
     setError(null);
+    const tipoFinal = form.tipo === TIPO_OUTRA ? form.tipoOutro.trim() : form.tipo;
 
     if (!form.nome.trim())             return setError("Nome é obrigatório.");
     if (!form.tipo)                    return setError("Tipo é obrigatório.");
+    if (form.tipo === TIPO_OUTRA && !form.tipoOutro.trim()) return setError("Informe o nome do tipo da evidência.");
     if (!form.status)                  return setError("Status é obrigatório.");
     if (!form.data)                    return setError("Data é obrigatória.");
     if (!form.peso)                    return setError("Peso é obrigatório.");
@@ -153,7 +152,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             nome:        form.nome.trim(),
-            tipo:        form.tipo,
+            tipo:        tipoFinal,
             status:      form.status,
             descricao:   form.descricao.trim() || null,
             fonte:       form.fonte.trim(),
@@ -172,7 +171,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
             casoId,
             vinculos,
             nome:        form.nome.trim(),
-            tipo:        form.tipo,
+            tipo:        tipoFinal,
             status:      form.status,
             descricao:   form.descricao.trim() || null,
             fonte:       form.fonte.trim() || null,
@@ -228,7 +227,17 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
           <div>
             <label className={LABEL}>Tipo de evidência<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
-            <CustomDropdown name="tipo" placeholder="Tipo" options={TIPO_OPTIONS} value={form.tipo} onChange={handleDropdown} />
+            <CustomDropdown name="tipo" placeholder="Tipo" options={TIPO_OPTIONS} value={form.tipo} onChange={handleDropdown} menuClassName="max-h-56" />
+            {form.tipo === TIPO_OUTRA && (
+              <input
+                name="tipoOutro"
+                value={form.tipoOutro}
+                onChange={handleInput}
+                maxLength={TIPO_MAX}
+                placeholder="Nome do tipo (ex.: Registro bancário)"
+                className={`${INPUT} mt-2`}
+              />
+            )}
           </div>
 
           <div>

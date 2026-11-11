@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { Fingerprint, Dna, MessageSquare, FileText, Video, Microscope, File, Eye, X } from "lucide-react";
+import { Fingerprint, Dna, MessageSquare, FileText, Video, Microscope, File, Eye, X, Lightbulb, History, ClipboardCheck, Phone, Activity } from "lucide-react";
+import { TIPO_OUTRA, isTipoPersonalizado } from "./tipos";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../../../@/components/ui/table";
@@ -48,6 +49,11 @@ const tipoIconMap: Record<string, React.ReactNode> = {
   Audiovisual:<Video       size={18} className="text-emerald-400" />,
   Biológica:  <Microscope  size={18} className="text-emerald-400" />,
   Física:     <File        size={18} className="text-emerald-400" />,
+  Motivação:  <Lightbulb   size={18} className="text-emerald-400" />,
+  Antecedente:<History     size={18} className="text-emerald-400" />,
+  Pericial:   <ClipboardCheck size={18} className="text-emerald-400" />,
+  Telefônica: <Phone       size={18} className="text-emerald-400" />,
+  Comportamento:<Activity  size={18} className="text-emerald-400" />,
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -289,7 +295,8 @@ export default function EvidenciasTable({
       if (filters.search && !e.nome.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.date && e.dataColeta && e.dataColeta !== filters.date) return false;
       if (filters.status.length && !filters.status.includes(e.status)) return false;
-      if (filters.tipo.length && !filters.tipo.includes(e.tipo)) return false;
+      // "Outra" no filtro cobre todos os tipos personalizados
+      if (filters.tipo.length && !filters.tipo.includes(isTipoPersonalizado(e.tipo) ? TIPO_OUTRA : e.tipo)) return false;
       if (filters.suspeitos.length) {
         const ids = e.suspeitos.map((s) => s.id);
         if (!filters.suspeitos.some((id) => ids.includes(id))) return false;
