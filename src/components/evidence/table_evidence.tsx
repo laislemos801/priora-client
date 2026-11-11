@@ -11,11 +11,11 @@ import EvidenceTableSkeleton from "./EvidenceTableSkeleton";
 import EmptyEvidenceState from "./EmptyEvidenceState";
 import { apiFetch } from "@/lib/api";
 
-type Status = "Coletada" | "Em análise" | "Custodiada" | "Descartada" | "Enviada a perícia";
+export type Status = "Coletada" | "Em análise" | "Custodiada" | "Descartada" | "Enviada a perícia";
 
 interface SuspeitoVinculo { id: string; nome: string; pesoVinculo?: number | null; }
 
-interface Evidencia {
+export interface Evidencia {
   id: string; nome: string; tipo: string; status: Status;
   dataColeta: string | null; pesoCondicional: number;
   descricao?: string | null; fonte?: string | null; suspeitos: SuspeitoVinculo[];
@@ -94,7 +94,7 @@ function AvatarStack({ suspeitos }: { suspeitos: SuspeitoVinculo[] }) {
 
 // ─── View Modal ────────────────────────────────────────────────────────────────
 
-function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose: () => void }) {
+export function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose: () => void }) {
   const [detail, setDetail] = useState<Evidencia>(evidence);
   const [loadingDetail, setLoadingDetail] = useState(true);
 
