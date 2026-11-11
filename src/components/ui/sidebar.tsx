@@ -11,6 +11,7 @@ import {
   caseIdFromPath,
   casePath,
   responsibleUsePath,
+  contactPath,
   getLastCase,
 } from "@/lib/navigation";
 import { useCaseName } from "@/hooks/useCaseName";
@@ -291,10 +292,10 @@ export default function Sidebar({ onLogout, mobileOpen = false, onMobileClose }:
           />
 
           <NavItem
-            to={GENERAL_PAGES.contact.path}
+            to={contactPath(caseId)}
             label="Contato"
             icon={<MdOutlineSupportAgent size={18} />}
-            active={isRouteActive(pathname, GENERAL_PAGES.contact.path)}
+            active={isRouteActive(pathname, contactPath(caseId))}
             collapsed={isCollapsed}
           />
 

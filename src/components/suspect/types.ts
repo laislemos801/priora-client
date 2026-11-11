@@ -3,6 +3,8 @@ export type Suspect = {
   nome: string;
   idade?: number;
   fotoUrl?: string | null;
+  /** Observações sobre o suspeito (até 1000 caracteres). */
+  descricao?: string | null;
   probabilidadeAtual?: number;
   posicaoRanking?: number | null;
   tendencia?: "Alta" | "Baixa" | "Estável";

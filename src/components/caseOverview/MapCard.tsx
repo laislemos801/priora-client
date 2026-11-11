@@ -4,14 +4,107 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import Panel from "./Panel";
 import L from "leaflet";
 
+/** Campos de endereço do caso; só cidade e estado são obrigatórios. */
+export type CaseLocation = {
+  logradouro?: string | null;
+  numero?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+};
+
 type MapCardProps = {
-  endereco: string;
+  local: CaseLocation;
 };
 
 type Coordinates = {
   lat: number;
   lon: number;
 };
+
+type Precision = "endereco" | "bairro" | "cidade";
+
+type Found = Coordinates & { precision: Precision; label: string };
+
+const UF_NAMES: Record<string, string> = {
+  AC: "Acre", AL: "Alagoas", AP: "Amapá", AM: "Amazonas", BA: "Bahia", CE: "Ceará",
+  DF: "Distrito Federal", ES: "Espírito Santo", GO: "Goiás", MA: "Maranhão",
+  MT: "Mato Grosso", MS: "Mato Grosso do Sul", MG: "Minas Gerais", PA: "Pará",
+  PB: "Paraíba", PR: "Paraná", PE: "Pernambuco", PI: "Piauí", RJ: "Rio de Janeiro",
+  RN: "Rio Grande do Norte", RS: "Rio Grande do Sul", RO: "Rondônia", RR: "Roraima",
+  SC: "Santa Catarina", SP: "São Paulo", SE: "Sergipe", TO: "Tocantins",
+};
+
+const ZOOM: Record<Precision, number> = { endereco: 16, bairro: 14, cidade: 12 };
+const PRECISION_NOTE: Record<Precision, string | null> = {
+  endereco: null,
+  bairro: "Localização aproximada: mostrando o bairro.",
+  cidade: "Localização aproximada: mostrando a cidade.",
+};
+
+const join = (...parts: (string | null | undefined)[]) =>
+  parts.map((p) => (p ?? "").trim()).filter(Boolean).join(", ");
+
+type Query = { q: string; precision: Precision; label: string };
+
+/**
+ * Consultas do mais específico ao mais genérico. Endereço digitado à mão nem sempre
+ * existe no mapa (ex.: "Represa de Nazaré Paulista"); se a busca completa falhar,
+ * tenta o bairro e por fim só a cidade, que sempre aparece.
+ */
+function buildQueries(l: CaseLocation): Query[] {
+  const estado = UF_NAMES[(l.estado ?? "").trim().toUpperCase()] ?? (l.estado ?? "").trim();
+  const cidadeUF = join(l.cidade, estado, "Brasil");
+  const out: Query[] = [];
+
+  if ((l.logradouro ?? "").trim()) {
+    const rua = [l.logradouro, l.numero].map((p) => (p ?? "").trim()).filter(Boolean).join(" ");
+    out.push({
+      q: join(rua, l.bairro, cidadeUF),
+      precision: "endereco",
+      label: join(l.logradouro, l.numero, l.bairro, l.cidade, l.estado),
+    });
+    // sem o número (muitas vezes não existe no mapa)
+    if ((l.numero ?? "").trim()) {
+      out.push({
+        q: join(l.logradouro, l.bairro, cidadeUF),
+        precision: "endereco",
+        label: join(l.logradouro, l.bairro, l.cidade, l.estado),
+      });
+    }
+  }
+  if ((l.bairro ?? "").trim()) {
+    out.push({ q: join(l.bairro, cidadeUF), precision: "bairro", label: join(l.bairro, l.cidade, l.estado) });
+  }
+  if ((l.cidade ?? "").trim()) {
+    out.push({ q: cidadeUF, precision: "cidade", label: join(l.cidade, l.estado) });
+  }
+  return out;
+}
+
+async function geocode(q: string): Promise<Coordinates | null> {
+  const key = `geo:${q}`;
+  try {
+    const cached = sessionStorage.getItem(key);
+    if (cached) return JSON.parse(cached) as Coordinates | null;
+  } catch {
+    /* sem cache */
+  }
+
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(q)}`,
+  );
+  if (!res.ok) throw new Error("geocoding failed");
+  const data = await res.json();
+  const found = data?.[0] ? { lat: Number(data[0].lat), lon: Number(data[0].lon) } : null;
+
+  try {
+    sessionStorage.setItem(key, JSON.stringify(found));
+  } catch {
+    /* sem cache */
+  }
+  return found;
+}
 
 const customIcon = new L.Icon({
   iconUrl:
@@ -26,32 +119,50 @@ const customIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-export default function MapCard({ endereco }: MapCardProps) {
-  const [coords, setCoords] = useState<Coordinates | null>(null);
+export default function MapCard({ local }: MapCardProps) {
+  const [found, setFound] = useState<Found | null>(null);
+  const [status, setStatus] = useState<"loading" | "ok" | "notfound" | "error">("loading");
   const [expanded, setExpanded] = useState(false);
 
+  const key = JSON.stringify([local.logradouro, local.numero, local.bairro, local.cidade, local.estado]);
+
   useEffect(() => {
-    async function fetchCoordinates() {
-      if (!endereco) return;
+    let cancelled = false;
+    const [logradouro, numero, bairro, cidade, estado] = JSON.parse(key) as (string | null)[];
+    const queries = buildQueries({ logradouro, numero, bairro, cidade, estado });
 
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          endereco
-        )}`
-      );
-
-      const data = await response.json();
-
-      if (data?.[0]) {
-        setCoords({
-          lat: Number(data[0].lat),
-          lon: Number(data[0].lon),
-        });
+    async function run() {
+      setStatus("loading");
+      try {
+        for (const query of queries) {
+          const c = await geocode(query.q);
+          if (cancelled) return;
+          if (c) {
+            setFound({ ...c, precision: query.precision, label: query.label });
+            setStatus("ok");
+            return;
+          }
+        }
+        setFound(null);
+        setStatus("notfound");
+      } catch {
+        if (!cancelled) {
+          setFound(null);
+          setStatus("error");
+        }
       }
     }
 
-    fetchCoordinates();
-  }, [endereco]);
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [key]);
+
+  const coords = found;
+  const endereco = found?.label ?? "";
+  const zoom = found ? ZOOM[found.precision] : 15;
+  const note = found ? PRECISION_NOTE[found.precision] : null;
 
   return (
     <>
@@ -69,13 +180,22 @@ export default function MapCard({ endereco }: MapCardProps) {
         <div className="relative min-h-[195px] flex-1 overflow-hidden rounded-md bg-[#303030]">
           <div className="absolute inset-0">
             {coords ? (
-              <MapView coords={coords} endereco={endereco} />
+              <MapView coords={coords} endereco={endereco} zoom={zoom} />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-white/65">
-                Localização não encontrada
+              <div className="flex h-full items-center justify-center px-4 text-center text-sm text-white/65">
+                {status === "loading"
+                  ? "Buscando localização..."
+                  : status === "error"
+                  ? "Não foi possível carregar o mapa. Verifique a conexão com a internet."
+                  : "Localização não encontrada. Confira a cidade e o estado do caso."}
               </div>
             )}
           </div>
+          {note && (
+            <p className="absolute bottom-2 left-2 z-[400] rounded bg-black/70 px-2 py-1 text-[11px] text-white/80">
+              {note}
+            </p>
+          )}
         </div>
       </Panel>
 
@@ -90,7 +210,7 @@ export default function MapCard({ endereco }: MapCardProps) {
             </button>
 
             <div className="h-full overflow-hidden rounded-lg">
-              <MapView coords={coords} endereco={endereco} zoom={16} />
+              <MapView coords={coords} endereco={endereco} zoom={Math.min(zoom + 1, 17)} />
             </div>
           </div>
         </div>
@@ -110,6 +230,7 @@ function MapView({
 }) {
   return (
     <MapContainer
+      key={`${coords.lat},${coords.lon},${zoom}`}
       center={[coords.lat, coords.lon]}
       zoom={zoom}
       scrollWheelZoom

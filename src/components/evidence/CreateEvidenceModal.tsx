@@ -8,6 +8,8 @@ import { Trash2 } from "lucide-react";
 import { IoMdArrowDropdown } from "react-icons/io";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
+import { EvidenceWeightHint, LinkWeightHint } from "./WeightHints";
+import { TIPOS_PADRAO, TIPO_OUTRA, TIPO_MAX, isTipoPersonalizado } from "./tipos";
 
 const STATUS_OPTIONS = [
   { value: "Coletada",          label: "Coletada"          },
@@ -18,13 +20,8 @@ const STATUS_OPTIONS = [
 ];
 
 const TIPO_OPTIONS = [
-  { value: "Digital",     label: "Digital"     },
-  { value: "DNA",         label: "DNA"         },
-  { value: "Depoimento",  label: "Depoimento"  },
-  { value: "Documental",  label: "Documental"  },
-  { value: "Física",      label: "Física"      },
-  { value: "Audiovisual", label: "Audiovisual" },
-  { value: "Biológica",   label: "Biológica"   },
+  ...TIPOS_PADRAO.map((v) => ({ value: v, label: v })),
+  { value: TIPO_OUTRA, label: "Outra (personalizada)" },
 ];
 
 const LABEL     = "text-[11px] font-medium text-[#888] uppercase tracking-widest block mb-1.5";
@@ -32,7 +29,8 @@ const INPUT     = "w-full bg-[#282828] border border-[#434343] rounded-md px-3 p
 const ERROR_CLASS = "text-[11px] text-red-400 mt-1";
 
 type Suspect = { id: string; nome: string };
-type SelectedSuspect = { id: string; nome: string; pesoVinculo: number };
+type Efeito = "Incrimina" | "Inocenta";
+type SelectedSuspect = { id: string; nome: string; pesoVinculo: number; efeito: Efeito };
 
 export type EvidenceForEdit = {
   id: string;
@@ -40,9 +38,10 @@ export type EvidenceForEdit = {
   tipo: string;
   status: string;
   descricao?: string | null;
+  fonte?: string | null;
   dataColeta?: string | null;
   pesoCondicional?: number | null;
-  suspeitos?: (Suspect & { pesoVinculo?: number | null })[];
+  suspeitos?: (Suspect & { pesoVinculo?: number | null; efeito?: Efeito })[];
 };
 
 const DEFAULT_PESO_VINCULO = 0.5;
@@ -59,9 +58,11 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
   const [form, setForm] = useState({
     nome:        evidence?.nome               ?? "",
-    tipo:        evidence?.tipo               ?? "",
+    tipo:        isTipoPersonalizado(evidence?.tipo) ? TIPO_OUTRA : evidence?.tipo ?? "",
+    tipoOutro:   isTipoPersonalizado(evidence?.tipo) ? evidence?.tipo ?? "" : "",
     status:      evidence?.status             ?? "",
     descricao:   evidence?.descricao          ?? "",
+    fonte:       evidence?.fonte              ?? "",
     data:        evidence?.dataColeta         ?? "",
     peso:        evidence?.pesoCondicional != null ? String(evidence.pesoCondicional) : "",
   });
@@ -72,6 +73,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
       id: s.id,
       nome: s.nome,
       pesoVinculo: s.pesoVinculo ?? DEFAULT_PESO_VINCULO,
+      efeito: s.efeito ?? "Incrimina",
     }))
   );
   const [openSuspeitos, setOpenSuspeitos]     = useState(false);
@@ -104,11 +106,14 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
     setSelected((prev) =>
       prev.find((x) => x.id === s.id)
         ? prev.filter((x) => x.id !== s.id)
-        : [...prev, { id: s.id, nome: s.nome, pesoVinculo: DEFAULT_PESO_VINCULO }]
+        : [...prev, { id: s.id, nome: s.nome, pesoVinculo: DEFAULT_PESO_VINCULO, efeito: "Incrimina" }]
     );
 
   const removeSuspect = (id: string) =>
     setSelected((prev) => prev.filter((s) => s.id !== id));
+
+  const updateSuspectEfeito = (id: string, efeito: Efeito) =>
+    setSelected((prev) => prev.map((s) => (s.id === id ? { ...s, efeito } : s)));
 
   const updateSuspectPeso = (id: string, value: string) =>
     setSelected((prev) =>
@@ -117,9 +122,11 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
   const handleSubmit = async () => {
     setError(null);
+    const tipoFinal = form.tipo === TIPO_OUTRA ? form.tipoOutro.trim() : form.tipo;
 
     if (!form.nome.trim())             return setError("Nome é obrigatório.");
     if (!form.tipo)                    return setError("Tipo é obrigatório.");
+    if (form.tipo === TIPO_OUTRA && !form.tipoOutro.trim()) return setError("Informe o nome do tipo da evidência.");
     if (!form.status)                  return setError("Status é obrigatório.");
     if (!form.data)                    return setError("Data é obrigatória.");
     if (!form.peso)                    return setError("Peso é obrigatório.");
@@ -139,6 +146,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
     const vinculos = selectedSuspects.map((s) => ({
       suspeitoId: s.id,
       pesoVinculo: s.pesoVinculo,
+      efeito: s.efeito,
     }));
 
     try {
@@ -150,9 +158,10 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             nome:        form.nome.trim(),
-            tipo:        form.tipo,
+            tipo:        tipoFinal,
             status:      form.status,
             descricao:   form.descricao.trim() || null,
+            fonte:       form.fonte.trim(),
             dataColeta:  form.data,
             peso:        pesoNum,
             vinculos,
@@ -168,9 +177,10 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
             casoId,
             vinculos,
             nome:        form.nome.trim(),
-            tipo:        form.tipo,
+            tipo:        tipoFinal,
             status:      form.status,
             descricao:   form.descricao.trim() || null,
+            fonte:       form.fonte.trim() || null,
             dataColeta:  form.data,
             peso:        pesoNum,
           }),
@@ -211,7 +221,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
         <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
 
           <div>
-            <label className={LABEL}>Nome evidência</label>
+            <label className={LABEL}>Nome evidência<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
             <input
               name="nome"
               value={form.nome}
@@ -222,25 +232,38 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
           </div>
 
           <div>
-            <label className={LABEL}>Tipo de evidência</label>
-            <CustomDropdown name="tipo" placeholder="Tipo" options={TIPO_OPTIONS} value={form.tipo} onChange={handleDropdown} />
+            <label className={LABEL}>Tipo de evidência<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
+            <CustomDropdown name="tipo" placeholder="Tipo" options={TIPO_OPTIONS} value={form.tipo} onChange={handleDropdown} menuClassName="max-h-56" />
+            {form.tipo === TIPO_OUTRA && (
+              <input
+                name="tipoOutro"
+                value={form.tipoOutro}
+                onChange={handleInput}
+                maxLength={TIPO_MAX}
+                placeholder="Nome do tipo (ex.: Registro bancário)"
+                className={`${INPUT} mt-2`}
+              />
+            )}
           </div>
 
           <div>
-            <label className={LABEL}>Status</label>
+            <label className={LABEL}>Status<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
             <CustomDropdown name="status" placeholder="Status" options={STATUS_OPTIONS} value={form.status} onChange={handleDropdown} />
           </div>
 
-          <div className="md:col-span-3 grid md:grid-cols-[2fr_3fr] gap-4">
+          <div className="md:col-span-3 grid md:grid-cols-[7fr_4fr] gap-4">
             <div className="flex flex-col gap-4">
 
               <div>
-                <label className={LABEL}>Data de coleta</label>
+                <label className={LABEL}>Data de coleta<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
                 <DatePicker name="data" value={form.data} onChange={handleDropdown} />
               </div>
 
               <div>
-                <label className={LABEL}>Peso (entre 0 e 1, exclusivo)</label>
+                <div className="mb-1.5 flex items-center gap-1.5">
+                  <label className={LABEL.replace("block mb-1.5", "")}>Peso (entre 0 e 1, exclusivo)<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
+                  <EvidenceWeightHint />
+                </div>
                 <input
                   name="peso"
                   type="number"
@@ -254,7 +277,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
               {/* Suspeitos */}
               <div>
-                <label className={LABEL}>Suspeito(s)</label>
+                <label className={LABEL}>Suspeito(s)<span className="ml-0.5 text-red-400" aria-hidden>*</span></label>
                 <div className="bg-[#282828] border border-[#434343] rounded-md">
                   <button
                     type="button"
@@ -309,9 +332,30 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
                       >
                         <span className="flex-1 text-xs text-[#ccc] truncate">{s.nome}</span>
 
+                        {/* a evidência aponta para o suspeito ou o afasta (álibi, contradição)? */}
+                        <div className="flex shrink-0 overflow-hidden rounded border border-[#434343] text-[10px]" role="group" aria-label={`Efeito sobre ${s.nome}`}>
+                          {(["Incrimina", "Inocenta"] as const).map((ef) => (
+                            <button
+                              key={ef}
+                              type="button"
+                              title={ef === "Incrimina" ? "A evidência aponta para este suspeito" : "A evidência afasta este suspeito (álibi, contradição)"}
+                              onClick={() => updateSuspectEfeito(s.id, ef)}
+                              className={`px-2 py-1 transition-colors ${
+                                // só o selecionado ganha cor: Incrimina em vermelho, Inocenta em verde
+                                s.efeito === ef
+                                  ? ef === "Incrimina" ? "bg-red-500/80 text-white" : "bg-[#139C73] text-white"
+                                  : "bg-[#1e1e1e] text-[#999] hover:text-white"
+                              }`}
+                            >
+                              {ef}
+                            </button>
+                          ))}
+                        </div>
+
                         <label className="text-[10px] text-[#888] uppercase tracking-widest shrink-0">
                           Peso vínculo
                         </label>
+                        <LinkWeightHint />
                         <input
                           type="number"
                           step="0.01" min="0.01" max="0.99"
@@ -332,6 +376,16 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
             {/* COLUNA DIREITA */}
             <div>
+              <label className={LABEL}>Fonte</label>
+              <input
+                name="fonte"
+                value={form.fonte}
+                onChange={handleInput}
+                maxLength={300}
+                placeholder="Ex.: laudo pericial nº, depoimento, documento, reportagem"
+                className={`${INPUT} mb-4`}
+              />
+
               <label className={LABEL}>Descrição</label>
               <textarea
                 name="descricao"
@@ -346,6 +400,9 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
         {/* FOOTER */}
         <div className="flex flex-col items-end gap-2 px-5 py-4 border-t border-[#2e2e2e]">
+          <p className="mr-auto text-[11px] text-[#888]">
+            <span className="text-red-400">*</span> Campos obrigatórios
+          </p>
           {error && <p className={ERROR_CLASS}>{error}</p>}
           <PrimaryButton onClick={handleSubmit}>
             {loading ? "Salvando..." : isEdit ? "Salvar alterações" : "Salvar"}

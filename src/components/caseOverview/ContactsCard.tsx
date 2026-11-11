@@ -4,6 +4,8 @@ import SecondaryButton from "../ui/SecondaryButton";
 import Panel from "./Panel";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
+import { confirmDialog } from "@/lib/confirmDialog";
+import LoadingButton from "@/components/ui/LoadingButton";
 
 type Contact = {
   id: string;
@@ -135,7 +137,7 @@ export default function ContactsCard({ casoId, contacts, onRefresh, canEdit = fa
   }
 
   async function handleDelete(contatoId: string) {
-    const confirmed = confirm("Deseja excluir este contato?");
+    const confirmed = await confirmDialog("Deseja excluir este contato?", { confirmLabel: "Excluir" });
     if (!confirmed) return;
 
     await apiFetch(`/contacts/case/${casoId}/${contatoId}`, {
@@ -191,12 +193,12 @@ export default function ContactsCard({ casoId, contacts, onRefresh, canEdit = fa
                       <Edit size={14} />
                     </button>
 
-                    <button
+                    <LoadingButton iconOnly
                       onClick={() => handleDelete(contact.id)}
                       className="rounded-full p-1.5 text-red-400/70 hover:bg-red-500/10 hover:text-red-400"
                     >
                       <Trash2 size={14} />
-                    </button>
+                    </LoadingButton>
                   </div>
                 )}
               </div>
@@ -283,12 +285,12 @@ export default function ContactsCard({ casoId, contacts, onRefresh, canEdit = fa
                 Cancelar
               </button>
 
-              <button
+              <LoadingButton
                 onClick={handleSubmit}
                 className="w-full rounded-md bg-[#139C73] px-4 py-2 text-sm text-white transition hover:bg-[#139C73]/80"
               >
                 Salvar
-              </button>
+              </LoadingButton>
             </div>
           </div>
         </div>

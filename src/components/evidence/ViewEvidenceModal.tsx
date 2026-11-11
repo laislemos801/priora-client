@@ -1,4 +1,4 @@
-import { X, Fingerprint, Dna, MessageSquare, FileText, Video, Microscope, File } from "lucide-react";
+import { X, Fingerprint, Dna, MessageSquare, FileText, Video, Microscope, File, Lightbulb, History, ClipboardCheck, Phone, Activity } from "lucide-react";
 
 type Suspect = { id: string; nome: string; pesoVinculo?: number | null };
 
@@ -21,6 +21,11 @@ const tipoIconMap: Record<string, React.ReactNode> = {
   Audiovisual:<Video       size={16} className="text-emerald-400" />,
   Biológica:  <Microscope  size={16} className="text-emerald-400" />,
   Física:     <File        size={16} className="text-emerald-400" />,
+  Motivação:  <Lightbulb   size={16} className="text-emerald-400" />,
+  Antecedente:<History     size={16} className="text-emerald-400" />,
+  Pericial:   <ClipboardCheck size={16} className="text-emerald-400" />,
+  Telefônica: <Phone       size={16} className="text-emerald-400" />,
+  Comportamento:<Activity  size={16} className="text-emerald-400" />,
 };
 
 const STATUS_STYLES: Record<string, string> = {

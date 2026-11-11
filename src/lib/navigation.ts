@@ -41,6 +41,11 @@ export function responsibleUsePath(caseId?: string): string {
   return caseId ? `/case/${caseId}/responsible-use` : GENERAL_PAGES.responsible.path;
 }
 
+/** Contato: dentro de um caso abre no próprio caso (o menu do caso continua). */
+export function contactPath(caseId?: string): string {
+  return caseId ? `/case/${caseId}/contact` : GENERAL_PAGES.contact.path;
+}
+
 /** Id do caso na URL atual (/case/:id/...), ou undefined fora de um caso. */
 export function caseIdFromPath(pathname: string): string | undefined {
   return pathname.match(/^\/case\/([^/]+)/)?.[1];
