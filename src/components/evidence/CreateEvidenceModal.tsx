@@ -343,7 +343,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
                               className={`px-2 py-1 transition-colors ${
                                 // Incrimina é sempre vermelho e Inocenta sempre verde; o selecionado fica preenchido
                                 ef === "Incrimina"
-                                  ? s.efeito === ef ? "bg-red-500/80 text-white" : "bg-red-500/10 text-red-300 hover:bg-red-500/25"
+                                  ? s.efeito === ef ? "bg-red-500/80 text-white" : "bg-red-500/[0.04] text-red-300 hover:bg-red-500/15"
                                   : s.efeito === ef ? "bg-[#139C73] text-white" : "bg-[#139C73]/10 text-[#18C18A] hover:bg-[#139C73]/25"
                               }`}
                             >
