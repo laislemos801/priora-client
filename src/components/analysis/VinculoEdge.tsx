@@ -11,6 +11,7 @@ export default function VinculoEdge({
   targetX,
   targetY,
   label,
+  data,
 }: any) {
   const [edgePath] = getStraightPath({ sourceX, sourceY, targetX, targetY });
   // o percentual fica perto do cartão da evidência (as ligações convergem no suspeito e se
@@ -24,7 +25,7 @@ export default function VinculoEdge({
         id={id}
         path={edgePath}
         style={{
-            stroke: "#d3d3d3",
+            stroke: data?.inocenta ? "#f87171" : "#d3d3d3",
             strokeWidth: 2,
             strokeDasharray: "6 6",
         }}
@@ -37,7 +38,7 @@ export default function VinculoEdge({
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
             pointerEvents: "none",
           }}
-          className="rounded bg-[#1e1e1e] px-1 text-xs font-bold text-[#139C73]"
+          className={`rounded bg-[#1e1e1e] px-1 text-xs font-bold ${data?.inocenta ? "text-red-300" : "text-[#139C73]"}`}
         >
           {label}
         </div>

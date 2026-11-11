@@ -6,6 +6,10 @@ export type Evidence = {
   pesoVinculo: number;
   pesoFinal: number;
   suspectIds?: string[];
+  /** Incrimina (padrão) ou Inocenta (álibi, contradição) este suspeito. */
+  efeito?: "Incrimina" | "Inocenta";
+  /** Suspeitos que a evidência incrimina (base do fator de exclusividade). */
+  nIncriminados?: number;
   /** C = 1 + r × v × 1/|S|, calculada pelo backend com a mesma função do modelo. */
   contribuicao?: number;
   status?: string;

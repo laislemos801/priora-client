@@ -13,7 +13,7 @@ import { apiFetch } from "@/lib/api";
 
 export type Status = "Coletada" | "Em análise" | "Custodiada" | "Descartada" | "Enviada a perícia";
 
-interface SuspeitoVinculo { id: string; nome: string; pesoVinculo?: number | null; }
+interface SuspeitoVinculo { id: string; nome: string; pesoVinculo?: number | null; efeito?: "Incrimina" | "Inocenta"; }
 
 export interface Evidencia {
   id: string; nome: string; tipo: string; status: Status;
@@ -168,10 +168,13 @@ export function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; 
                   {detail.suspeitos.map((s) => (
                     <span
                       key={s.id}
-                      className="bg-[#139C73]/15 text-[#139C73] text-xs px-3 py-1 rounded-full"
+                      className={`text-xs px-3 py-1 rounded-full ${
+                        s.efeito === "Inocenta" ? "bg-red-500/15 text-red-300" : "bg-[#139C73]/15 text-[#139C73]"
+                      }`}
                     >
                       {s.nome}
                       {s.pesoVinculo != null && ` · ${s.pesoVinculo}`}
+                      {s.efeito === "Inocenta" && " · inocenta"}
                     </span>
                   ))}
                 </div>

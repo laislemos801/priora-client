@@ -29,7 +29,8 @@ const INPUT     = "w-full bg-[#282828] border border-[#434343] rounded-md px-3 p
 const ERROR_CLASS = "text-[11px] text-red-400 mt-1";
 
 type Suspect = { id: string; nome: string };
-type SelectedSuspect = { id: string; nome: string; pesoVinculo: number };
+type Efeito = "Incrimina" | "Inocenta";
+type SelectedSuspect = { id: string; nome: string; pesoVinculo: number; efeito: Efeito };
 
 export type EvidenceForEdit = {
   id: string;
@@ -40,7 +41,7 @@ export type EvidenceForEdit = {
   fonte?: string | null;
   dataColeta?: string | null;
   pesoCondicional?: number | null;
-  suspeitos?: (Suspect & { pesoVinculo?: number | null })[];
+  suspeitos?: (Suspect & { pesoVinculo?: number | null; efeito?: Efeito })[];
 };
 
 const DEFAULT_PESO_VINCULO = 0.5;
@@ -72,6 +73,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
       id: s.id,
       nome: s.nome,
       pesoVinculo: s.pesoVinculo ?? DEFAULT_PESO_VINCULO,
+      efeito: s.efeito ?? "Incrimina",
     }))
   );
   const [openSuspeitos, setOpenSuspeitos]     = useState(false);
@@ -104,11 +106,14 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
     setSelected((prev) =>
       prev.find((x) => x.id === s.id)
         ? prev.filter((x) => x.id !== s.id)
-        : [...prev, { id: s.id, nome: s.nome, pesoVinculo: DEFAULT_PESO_VINCULO }]
+        : [...prev, { id: s.id, nome: s.nome, pesoVinculo: DEFAULT_PESO_VINCULO, efeito: "Incrimina" }]
     );
 
   const removeSuspect = (id: string) =>
     setSelected((prev) => prev.filter((s) => s.id !== id));
+
+  const updateSuspectEfeito = (id: string, efeito: Efeito) =>
+    setSelected((prev) => prev.map((s) => (s.id === id ? { ...s, efeito } : s)));
 
   const updateSuspectPeso = (id: string, value: string) =>
     setSelected((prev) =>
@@ -141,6 +146,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
     const vinculos = selectedSuspects.map((s) => ({
       suspeitoId: s.id,
       pesoVinculo: s.pesoVinculo,
+      efeito: s.efeito,
     }));
 
     try {
@@ -325,6 +331,25 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
                         className="flex items-center gap-2 bg-[#282828] border border-[#434343] rounded-md px-2 py-1.5"
                       >
                         <span className="flex-1 text-xs text-[#ccc] truncate">{s.nome}</span>
+
+                        {/* a evidência aponta para o suspeito ou o afasta (álibi, contradição)? */}
+                        <div className="flex shrink-0 overflow-hidden rounded border border-[#434343] text-[10px]" role="group" aria-label={`Efeito sobre ${s.nome}`}>
+                          {(["Incrimina", "Inocenta"] as const).map((ef) => (
+                            <button
+                              key={ef}
+                              type="button"
+                              title={ef === "Incrimina" ? "A evidência aponta para este suspeito" : "A evidência afasta este suspeito (álibi, contradição)"}
+                              onClick={() => updateSuspectEfeito(s.id, ef)}
+                              className={`px-2 py-1 transition-colors ${
+                                s.efeito === ef
+                                  ? ef === "Incrimina" ? "bg-[#139C73] text-white" : "bg-red-500/80 text-white"
+                                  : "bg-[#1e1e1e] text-[#999] hover:text-white"
+                              }`}
+                            >
+                              {ef}
+                            </button>
+                          ))}
+                        </div>
 
                         <label className="text-[10px] text-[#888] uppercase tracking-widest shrink-0">
                           Peso vínculo

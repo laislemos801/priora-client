@@ -115,7 +115,8 @@ export default function Analysis() {
     const evidenceEdges: Edge[] = placed.map(({ ev, dx, dy }) => ({
       id: `edge-${ev.id}`, type: "vinculo",
       source: ev.id, sourceHandle: nearestSides(dx, dy).ev, target: selected.id, targetHandle: nearestSides(dx, dy).su,
-      label: `${Math.round(ev.pesoVinculo * 100)}%`,
+      label: `${ev.efeito === "Inocenta" ? "−" : ""}${Math.round(ev.pesoVinculo * 100)}%`,
+      data: { inocenta: ev.efeito === "Inocenta" },
     }));
 
     setNodes([{ id: selected.id, type: "suspect", position: SUSPECT, data: { nome: selected.nome, fotoUrl: selected.fotoUrl } }, ...evidenceNodes]);
