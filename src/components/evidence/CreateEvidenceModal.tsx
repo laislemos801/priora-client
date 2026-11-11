@@ -251,7 +251,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
             <CustomDropdown name="status" placeholder="Status" options={STATUS_OPTIONS} value={form.status} onChange={handleDropdown} />
           </div>
 
-          <div className="md:col-span-3 grid md:grid-cols-[2fr_3fr] gap-4">
+          <div className="md:col-span-3 grid md:grid-cols-[7fr_4fr] gap-4">
             <div className="flex flex-col gap-4">
 
               <div>
