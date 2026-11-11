@@ -8,6 +8,7 @@ import { Trash2 } from "lucide-react";
 import { IoMdArrowDropdown } from "react-icons/io";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
+import { EvidenceWeightHint, LinkWeightHint } from "./WeightHints";
 
 const STATUS_OPTIONS = [
   { value: "Coletada",          label: "Coletada"          },
@@ -40,6 +41,7 @@ export type EvidenceForEdit = {
   tipo: string;
   status: string;
   descricao?: string | null;
+  fonte?: string | null;
   dataColeta?: string | null;
   pesoCondicional?: number | null;
   suspeitos?: (Suspect & { pesoVinculo?: number | null })[];
@@ -62,6 +64,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
     tipo:        evidence?.tipo               ?? "",
     status:      evidence?.status             ?? "",
     descricao:   evidence?.descricao          ?? "",
+    fonte:       evidence?.fonte              ?? "",
     data:        evidence?.dataColeta         ?? "",
     peso:        evidence?.pesoCondicional != null ? String(evidence.pesoCondicional) : "",
   });
@@ -153,6 +156,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
             tipo:        form.tipo,
             status:      form.status,
             descricao:   form.descricao.trim() || null,
+            fonte:       form.fonte.trim(),
             dataColeta:  form.data,
             peso:        pesoNum,
             vinculos,
@@ -171,6 +175,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
             tipo:        form.tipo,
             status:      form.status,
             descricao:   form.descricao.trim() || null,
+            fonte:       form.fonte.trim() || null,
             dataColeta:  form.data,
             peso:        pesoNum,
           }),
@@ -240,7 +245,10 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
               </div>
 
               <div>
-                <label className={LABEL}>Peso (entre 0 e 1, exclusivo)</label>
+                <div className="mb-1.5 flex items-center gap-1.5">
+                  <label className={LABEL.replace("block mb-1.5", "")}>Peso (entre 0 e 1, exclusivo)</label>
+                  <EvidenceWeightHint />
+                </div>
                 <input
                   name="peso"
                   type="number"
@@ -312,6 +320,7 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
                         <label className="text-[10px] text-[#888] uppercase tracking-widest shrink-0">
                           Peso vínculo
                         </label>
+                        <LinkWeightHint />
                         <input
                           type="number"
                           step="0.01" min="0.01" max="0.99"
@@ -332,6 +341,16 @@ export default function CreateEvidenceModal({ onClose, onSuccess, evidence }: Pr
 
             {/* COLUNA DIREITA */}
             <div>
+              <label className={LABEL}>Fonte (opcional)</label>
+              <input
+                name="fonte"
+                value={form.fonte}
+                onChange={handleInput}
+                maxLength={300}
+                placeholder="Ex.: laudo pericial nº, depoimento, documento, reportagem"
+                className={`${INPUT} mb-4`}
+              />
+
               <label className={LABEL}>Descrição</label>
               <textarea
                 name="descricao"

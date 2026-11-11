@@ -17,7 +17,7 @@ interface SuspeitoVinculo { id: string; nome: string; pesoVinculo?: number | nul
 interface Evidencia {
   id: string; nome: string; tipo: string; status: Status;
   dataColeta: string | null; pesoCondicional: number;
-  descricao?: string | null; suspeitos: SuspeitoVinculo[];
+  descricao?: string | null; fonte?: string | null; suspeitos: SuspeitoVinculo[];
 }
 
 function formatDate(raw: string | null | undefined): string {
@@ -169,6 +169,13 @@ function ViewEvidenceModal({ evidence, onClose }: { evidence: Evidencia; onClose
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {detail.fonte != null && detail.fonte.trim() !== "" && (
+              <div className="sm:col-span-2">
+                <span className={LABEL}>Fonte</span>
+                <p className="text-[14px] text-[#e8e8e8] leading-relaxed break-words">{detail.fonte}</p>
               </div>
             )}
 

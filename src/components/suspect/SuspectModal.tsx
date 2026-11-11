@@ -26,6 +26,7 @@ export default function SuspectModal({
 }: Props) {
   const [nome, setNome] = useState("");
   const [idade, setIdade] = useState("");
+  const [descricao, setDescricao] = useState("");
   const [fotoFile, setFotoFile] = useState<File | null>(null);
 
   const [historicoCriminal, setHistoricoCriminal] = useState(50);
@@ -42,6 +43,7 @@ export default function SuspectModal({
 
     setNome(suspect.nome || "");
     setIdade(suspect.idade ? String(suspect.idade) : "");
+    setDescricao(suspect.descricao ?? "");
     setFotoFile(null);
 
     setHistoricoCriminal(suspect.historicoCriminal ?? 50);
@@ -114,6 +116,7 @@ export default function SuspectModal({
         casoId,
         nome: nome.trim(),
         idade: idade ? Number(idade) : null,
+        descricao: descricao.trim() || null,
         fotoUrl:
           uploadedPhotoUrl ??
           (mode === "edit" ? suspect?.fotoUrl ?? null : null),
@@ -212,6 +215,20 @@ export default function SuspectModal({
               </div>
             )}
           </div>
+        </div>
+
+        <div className="mt-4">
+          <label className="mb-1 flex items-center justify-between text-xs text-white/65">
+            <span>Descrição (opcional)</span>
+            <span className="text-white/40">{descricao.length}/1000</span>
+          </label>
+          <textarea
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value.slice(0, 1000))}
+            rows={2}
+            placeholder="Relação com a vítima, contexto, de onde veio a suspeita..."
+            className="w-full resize-none rounded-lg border border-[#434343] bg-[#282828] px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6]"
+          />
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-2">

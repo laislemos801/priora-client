@@ -76,6 +76,15 @@ export default function ViewSuspectModal({ suspect, casoId, onClose }: Props) {
             <p className="text-[14px] text-[#e8e8e8]">{suspect.qtdEvidencias ?? evidencias.length}</p>
           </div>
 
+          {suspect.descricao && suspect.descricao.trim() !== "" && (
+            <div className="col-span-2">
+              <span className={LABEL}>Descrição</span>
+              <p className="whitespace-pre-wrap break-words text-[14px] leading-relaxed text-[#a6a6a6]">
+                {suspect.descricao}
+              </p>
+            </div>
+          )}
+
           <div className="col-span-2">
             <span className={LABEL}>Antecedentes</span>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
