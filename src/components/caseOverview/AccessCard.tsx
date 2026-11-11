@@ -5,6 +5,7 @@ import Panel from "./Panel";
 import SecondaryButton from "../ui/SecondaryButton";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
+import { confirmDialog } from "@/lib/confirmDialog";
 
 type AccessUser = {
   usuario: {
@@ -79,7 +80,7 @@ export default function AccessCard({ casoId, canInvite = false, isOwner = false 
   }
 
   async function handleDeleteAccess(userId: string) {
-    const confirmed = confirm("Deseja remover este acesso?");
+    const confirmed = await confirmDialog("Deseja remover este acesso?", { confirmLabel: "Remover" });
     if (!confirmed) return;
 
     await apiFetch(`/access/case/${casoId}/user/${userId}`, {

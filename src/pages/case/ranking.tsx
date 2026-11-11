@@ -17,6 +17,7 @@ import RankingSkeleton from "@/components/suspect/RankingSkeleton";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
 import { useCaseRole } from "@/hooks/useCaseRole";
+import { confirmDialog } from "@/lib/confirmDialog";
 
 import type {
   RankingFilters,
@@ -179,7 +180,7 @@ export default function Ranking() {
       return;
     }
 
-    const confirmed = confirm("Deseja deletar os suspeitos selecionados?");
+    const confirmed = await confirmDialog("Deseja deletar os suspeitos selecionados?", { confirmLabel: "Deletar" });
     if (!confirmed) return;
 
     try {

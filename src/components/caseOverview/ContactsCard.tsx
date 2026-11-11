@@ -4,6 +4,7 @@ import SecondaryButton from "../ui/SecondaryButton";
 import Panel from "./Panel";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
+import { confirmDialog } from "@/lib/confirmDialog";
 
 type Contact = {
   id: string;
@@ -135,7 +136,7 @@ export default function ContactsCard({ casoId, contacts, onRefresh, canEdit = fa
   }
 
   async function handleDelete(contatoId: string) {
-    const confirmed = confirm("Deseja excluir este contato?");
+    const confirmed = await confirmDialog("Deseja excluir este contato?", { confirmLabel: "Excluir" });
     if (!confirmed) return;
 
     await apiFetch(`/contacts/case/${casoId}/${contatoId}`, {

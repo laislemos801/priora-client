@@ -7,6 +7,18 @@ import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { RiAlertFill } from "react-icons/ri";
 import toast from "react-hot-toast";
 import { apiFetch } from "@/lib/api";
+import municipios from "@/data/municipios.json";
+
+/** Municípios por UF (IBGE), embutidos no app: funciona sem internet e sem chamada externa. */
+const MUNICIPIOS = municipios as Record<string, string[]>;
+
+const plain = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+/** Nome oficial do município (o CEP pode vir sem acento ou em caixa diferente). */
+function canonicalCity(uf: string, name: string): string {
+  const key = plain(name);
+  return (MUNICIPIOS[uf] ?? []).find((c) => plain(c) === key) ?? name;
+}
 
 const STATUS_OPTIONS = [
   { value: "ativo",      label: "Ativo",      color: "#4caf7d" },
@@ -148,6 +160,13 @@ export default function CreateCaseModal({
   const [cepLoading, setCepLoading] = useState(false);
   const [cepError, setCepError]     = useState<string | null>(null);
 
+  // cidade é sempre escolhida na lista do estado; mantém a atual mesmo que fuja da lista (caso antigo)
+  const cityOptions = (() => {
+    const list = MUNICIPIOS[form.estado] ?? [];
+    const names = form.cidade && !list.includes(form.cidade) ? [form.cidade, ...list] : list;
+    return names.map((n) => ({ value: n, label: n }));
+  })();
+
   useEffect(() => {
     if (mode !== "edit" || !caseData) return;
 
@@ -171,7 +190,12 @@ export default function CreateCaseModal({
   ) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleDropdown = (name: string, value: string) =>
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+      // trocar de estado limpa a cidade, que pertence ao estado anterior
+      ...(name === "estado" && value !== prev.estado ? { cidade: "" } : {}),
+    }));
 
   const handleCep = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, "").slice(0, 8);
@@ -194,7 +218,7 @@ export default function CreateCaseModal({
         ...prev,
         endereco: data.logradouro ?? prev.endereco,
         bairro:   data.bairro    ?? prev.bairro,
-        cidade:   data.localidade ?? prev.cidade,
+        cidade:   data.localidade ? canonicalCity(data.uf ?? prev.estado, data.localidade) : prev.cidade,
         estado:   data.uf        ?? prev.estado,
       }));
     } catch {
@@ -367,15 +391,18 @@ export default function CreateCaseModal({
             />
           </div>
 
-          {/* Cidade — input de texto livre preenchido pelo CEP */}
+          {/* Cidade: lista de municípios do estado escolhido */}
           <div>
             <Label required>Cidade</Label>
-            <input
+            <CustomDropdown
               name="cidade"
+              placeholder={form.estado ? "Selecione a cidade" : "Escolha o estado primeiro"}
+              options={cityOptions}
               value={form.cidade}
-              onChange={handleInput}
-              placeholder="Cidade"
-              className={INPUT}
+              onChange={handleDropdown}
+              searchable
+              disabled={!form.estado}
+              menuClassName="max-h-56"
             />
           </div>
 
