@@ -100,6 +100,20 @@ const LABEL =
 const INPUT =
   "w-full bg-[#282828] border border-[#434343] rounded-md px-3 py-2 text-sm text-[#A6A6A6] outline-none placeholder:text-[#A6A6A6] hover:border-[#606060] focus:border-[#606060] transition-colors";
 
+/** Rótulo de campo; `required` acrescenta o asterisco de obrigatório. */
+function Label({ children, required }: { children: string; required?: boolean }) {
+  return (
+    <label className={LABEL}>
+      {children}
+      {required && (
+        <span className="ml-0.5 text-red-400" aria-hidden>
+          *
+        </span>
+      )}
+    </label>
+  );
+}
+
 const ERROR_CLASS = "text-[11px] text-red-400 mt-1";
 
 type CreateCaseModalProps = {
@@ -197,6 +211,8 @@ export default function CreateCaseModal({
     if (!form.status)           return setError("Status é obrigatório.");
     if (!form.prioridade)       return setError("Prioridade é obrigatória.");
     if (!form.descricao.trim()) return setError("Descrição é obrigatória.");
+    if (!form.estado)           return setError("Estado é obrigatório.");
+    if (!form.cidade.trim())    return setError("Cidade é obrigatória.");
     if (!form.data)             return setError("Data de ocorrência é obrigatória.");
 
     const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -270,28 +286,28 @@ export default function CreateCaseModal({
         <div className="p-4 md:p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
 
           <div>
-            <label className={LABEL}>Nome do caso</label>
+            <Label required>Nome do caso</Label>
             <input name="nome" value={form.nome} onChange={handleInput} placeholder="Nome caso" className={INPUT} />
           </div>
 
           <div>
-            <label className={LABEL}>Status</label>
+            <Label required>Status</Label>
             <CustomDropdown name="status" placeholder="Status" options={STATUS_OPTIONS} value={form.status} onChange={handleDropdown} />
           </div>
 
           <div>
-            <label className={LABEL}>Prioridade</label>
+            <Label required>Prioridade</Label>
             <CustomDropdown name="prioridade" placeholder="Prioridade" options={PRIORIDADE_OPTIONS} value={form.prioridade} onChange={handleDropdown} />
           </div>
 
           <div className="md:col-span-3">
-            <label className={LABEL}>Descrição</label>
+            <Label required>Descrição</Label>
             <textarea name="descricao" value={form.descricao} onChange={handleInput} className={`${INPUT} h-24 resize-none`} />
           </div>
 
           {/* CEP */}
           <div>
-            <label className={LABEL}>CEP</label>
+            <Label>CEP</Label>
             <div className="relative">
               <input
                 name="cep"
@@ -312,7 +328,7 @@ export default function CreateCaseModal({
 
           {/* Endereço preenchido pelo CEP, editável manualmente */}
           <div className="md:col-span-1">
-            <label className={LABEL}>Endereço</label>
+            <Label>Endereço</Label>
             <input
               name="endereco"
               value={form.endereco}
@@ -323,12 +339,12 @@ export default function CreateCaseModal({
           </div>
 
           <div>
-            <label className={LABEL}>Número</label>
+            <Label>Número</Label>
             <input name="numero" value={form.numero} onChange={handleInput} className={INPUT} />
           </div>
 
           <div>
-            <label className={LABEL}>Bairro</label>
+            <Label>Bairro</Label>
             <input
               name="bairro"
               value={form.bairro}
@@ -340,7 +356,7 @@ export default function CreateCaseModal({
 
           {/* Estado — dropdown com todos os 27 estados */}
           <div>
-            <label className={LABEL}>Estado</label>
+            <Label required>Estado</Label>
             <CustomDropdown
               name="estado"
               placeholder="Estado"
@@ -353,7 +369,7 @@ export default function CreateCaseModal({
 
           {/* Cidade — input de texto livre preenchido pelo CEP */}
           <div>
-            <label className={LABEL}>Cidade</label>
+            <Label required>Cidade</Label>
             <input
               name="cidade"
               value={form.cidade}
@@ -364,7 +380,7 @@ export default function CreateCaseModal({
           </div>
 
           <div>
-            <label className={LABEL}>Data</label>
+            <Label required>Data</Label>
             <DatePicker name="data" value={form.data} onChange={handleDropdown} />
           </div>
 
@@ -372,6 +388,9 @@ export default function CreateCaseModal({
 
         {/* FOOTER */}
         <div className="flex flex-col items-end gap-2 px-5 py-4 border-t border-[#2e2e2e]">
+          <p className="mr-auto text-[11px] text-[#888]">
+            <span className="text-red-400">*</span> Campos obrigatórios
+          </p>
           {error && <p className={ERROR_CLASS}>{error}</p>}
           <PrimaryButton onClick={handleSubmit}>
             {loading
