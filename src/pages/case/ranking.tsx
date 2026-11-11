@@ -46,7 +46,15 @@ export default function Ranking() {
   const getRankingDirection = (id: string): "up" | "down" | "same" => {
     return rankingDiffs[id] ?? "same";
   };
-  const SNAPSHOT_KEY = `ranking_snapshot_${id}`;
+  // o último ranking visto é por usuário e por caso (outra conta no mesmo navegador não herda as variações)
+  const viewerId = (() => {
+    try {
+      return (JSON.parse(localStorage.getItem("user") || "{}") as { id?: string }).id ?? "anon";
+    } catch {
+      return "anon";
+    }
+  })();
+  const SNAPSHOT_KEY = `ranking_snapshot_${viewerId}_${id}`;
   const [loading, setLoading] = useState(true);
 
   async function fetchSuspects() {
