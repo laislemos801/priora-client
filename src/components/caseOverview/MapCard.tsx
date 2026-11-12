@@ -236,9 +236,13 @@ function MapView({
       scrollWheelZoom
       className="h-full w-full"
     >
+      {/* CARTO não exige chave nem cadastro de domínio. O Stadia só liberava
+          localhost: na Vercel e no app desktop os tiles voltavam 401. */}
       <TileLayer
-        attribution='&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap contributors'
-        url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        subdomains="abcd"
+        maxZoom={20}
       />
 
       <Marker
