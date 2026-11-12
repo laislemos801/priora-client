@@ -236,13 +236,20 @@ function MapView({
       scrollWheelZoom
       className="h-full w-full"
     >
-      {/* CARTO não exige chave nem cadastro de domínio. O Stadia só liberava
-          localhost: na Vercel e no app desktop os tiles voltavam 401. */}
+      {/* Esri Dark Gray Canvas: não pede chave nem cadastro de domínio. O Stadia
+          só liberava localhost e o CARTO devolve um tile "API KEY REQUIRED".
+          Base (ruas e áreas) + camada de nomes por cima; acima do zoom 16 o
+          Leaflet amplia os tiles do 16. */}
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        subdomains="abcd"
-        maxZoom={20}
+        attribution='Tiles &copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors'
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+        maxNativeZoom={16}
+        maxZoom={19}
+      />
+      <TileLayer
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+        maxNativeZoom={16}
+        maxZoom={19}
       />
 
       <Marker
